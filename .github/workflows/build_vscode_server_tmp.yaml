@@ -196,9 +196,8 @@ jobs:
                 ;;
               esac
 
-
-              export CC="clang --target=${TARGET} --sysroot=${SYSROOT}"
-              export CXX="clang++ --target=${TARGET} --sysroot=${SYSROOT}"
+              export CC="clang --target=${TARGET} --sysroot=${SYSROOT} -fuse-ld=lld"
+              export CXX="clang++ --target=${TARGET} --sysroot=${SYSROOT} -fuse-ld=lld"
 
               build_fail_retry
               ;;
