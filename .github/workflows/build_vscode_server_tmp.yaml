@@ -177,7 +177,7 @@ jobs:
               echo "Setting up toolchain"
               case "${ARCH}" in
               x86_64)
-                sudo apt install musl lld
+                sudo apt install musl-dev lld
                 ;;
               aarch64)
                 . /etc/os-release
@@ -193,7 +193,7 @@ jobs:
                 sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
                 sudo dpkg --add-architecture arm64
                 sudo apt update || true
-                sudo apt install musl:arm64 lld
+                sudo apt install musl-dev:arm64 lld
                 ;;
               esac
 
