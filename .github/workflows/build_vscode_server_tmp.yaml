@@ -176,6 +176,16 @@ jobs:
 
               echo "Setting up toolchain"
               sudo dpkg --add-architecture arm64
+              sudo cat<<EOF>/etc/apt/sources.list.d/arm-cross-compile-sources.list
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal main restricted
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-updates main restricted
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal universe
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-updates universe
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-updates multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-backports main restricted universe multiverse
+          EOF
+
               sudo apt update
               sudo apt install musl musl:arm64 lld
 
