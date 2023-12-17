@@ -47,7 +47,8 @@ jobs:
           make install
 
           ls -al
-          ls -al musl-cross
+          file output/*
+
       #     mv musl-cross/output musl-cross/${{ matrix.target }}-cross
           
       # - name: Compress ${{ matrix.target }}-cross
