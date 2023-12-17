@@ -24,7 +24,7 @@ jobs:
           TARGET = aarch64-linux-musl
 
           BINUTILS_VER = 2.39
-          GCC_VER = 12.2.0
+          GCC_VER = 11.2.0
           MUSL_VER = 1.2.4
           GMP_VER = 6.2.1
           MPC_VER = 1.2.1
