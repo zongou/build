@@ -175,8 +175,10 @@ jobs:
               sudo chroot "${SYSROOT}" apk add libx11-dev libxkbfile-dev libsecret-dev krb5-dev libstdc++
 
               echo "Setting up toolchain"
-              sudo dpkg --add-architecture arm64
-              (
+              case "${ARCH}" in
+              x86_64)
+                sudo apt install musl:arm64 lld
+              aarch64)
                 . /etc/os-release
                 cat<<EOF>arm-cross-compile-sources.list
           deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} main restricted
@@ -188,10 +190,12 @@ jobs:
           deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-backports main restricted universe multiverse
           EOF
                 sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
-              )
+                sudo dpkg --add-architecture arm64
+                sudo apt update || true
+                sudo apt install musl:arm64 lld
+                ;;
+              esac
 
-              sudo apt update || true
-              sudo apt install musl$(test ${ARCH} = 'aarch64' && echo ':arm64') lld
 
               export CC="clang --target=${TARGET} --sysroot=${SYSROOT}"
               export CXX="clang++ --target=${TARGET} --sysroot=${SYSROOT}"
