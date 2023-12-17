@@ -6,11 +6,11 @@ on:
 jobs:
   Build:
     runs-on: ubuntu-latest
-    strategy:
-       fail-fast: false
-       matrix:
-         target: [aarch64-linux-musl,x86_64-linux-musl]
-         #target: [armv7l-linux-musleabihf]
+    # strategy:
+    #    fail-fast: false
+    #    matrix:
+    #      target: [aarch64-linux-musl,x86_64-linux-musl]
+    #      #target: [armv7l-linux-musleabihf]
     steps:
       # - name: Checkout
       #   uses: actions/checkout@v3
@@ -22,6 +22,8 @@ jobs:
         working-directory: musl-cross-make
         run: |
           cat<<EOF>config.mak
+          DL_CMD = curl -C - -Ls -o
+
           TARGET = aarch64-linux-musl
 
           BINUTILS_VER = 2.41
@@ -46,16 +48,16 @@ jobs:
 
           ls -al
           ls -al musl-cross
-          mv musl-cross/output musl-cross/${{ matrix.target }}-cross
+      #     mv musl-cross/output musl-cross/${{ matrix.target }}-cross
           
-      - name: Compress ${{ matrix.target }}-cross
-        run: |
-             cd musl-cross
-             tar -cvzf ${{ matrix.target }}-cross.tar.gz ${{ matrix.target }}-cross
-             ls -al
+      # - name: Compress ${{ matrix.target }}-cross
+      #   run: |
+      #        cd musl-cross
+      #        tar -cvzf ${{ matrix.target }}-cross.tar.gz ${{ matrix.target }}-cross
+      #        ls -al
 
-      - name: Upload ${{ matrix.target }}-cross artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.target }}-cross.tar.gz
-          path: musl-cross/${{ matrix.target }}-cross.tar.gz
+      # - name: Upload ${{ matrix.target }}-cross artifacts
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ${{ matrix.target }}-cross.tar.gz
+      #     path: musl-cross/${{ matrix.target }}-cross.tar.gz
