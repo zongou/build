@@ -188,7 +188,7 @@ jobs:
               sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
 
               sudo apt update || true
-              sudo apt install musl musl:arm64 lld
+              sudo apt install musl$(test ${ARCH} = 'aarch64' && echo ':arm64') lld
 
               export CC="clang --target=${TARGET} --sysroot=${SYSROOT}"
               export CXX="clang++ --target=${TARGET} --sysroot=${SYSROOT}"
