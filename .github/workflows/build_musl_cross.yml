@@ -48,8 +48,8 @@ jobs:
           ls -al
           file output/bin/*
 
-          mv output musl-cross/${TARGET}-cross
-          tar -c musl-cross/${TARGET}-cross | xz -T0 > musl-cross/${TARGET}-cross.tar.xz
+          mv output ${TARGET}-cross
+          tar -c ${TARGET}-cross | xz -T0 > ${TARGET}-cross.tar.xz
 
       # - name: Compress ${TARGET}-cross
       #   run: |
@@ -60,5 +60,5 @@ jobs:
       - name: Upload ${TARGET}-cross artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${TARGET}-cross.tar.gz
-          path: musl-cross/${TARGET}-cross.tar.xz
+          name: ${TARGET}-cross.tar.xz
+          path: ${TARGET}-cross.tar.xz
