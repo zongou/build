@@ -176,16 +176,19 @@ jobs:
 
               echo "Setting up toolchain"
               sudo dpkg --add-architecture arm64
-              cat<<EOF>arm-cross-compile-sources.list
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal main restricted
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-updates main restricted
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal universe
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-updates universe
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-updates multiverse
-          deb [arch=armhf,arm64] http://ports.ubuntu.com/ focal-backports main restricted universe multiverse
+              (
+                . /etc/os-release
+                cat<<EOF>arm-cross-compile-sources.list
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} main restricted
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-updates main restricted
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} universe
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-updates universe
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-updates multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-backports main restricted universe multiverse
           EOF
-              sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
+                sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
+              )
 
               sudo apt update || true
               sudo apt install musl$(test ${ARCH} = 'aarch64' && echo ':arm64') lld
