@@ -178,6 +178,7 @@ jobs:
               case "${ARCH}" in
               x86_64)
                 sudo apt install musl:arm64 lld
+                ;;
               aarch64)
                 . /etc/os-release
                 cat<<EOF>arm-cross-compile-sources.list
