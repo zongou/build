@@ -1,0 +1,42 @@
+name: test build for musl
+run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
+on:
+  workflow_dispatch:
+    inputs:
+      msg:
+        description: "message:"
+        default: "Hello World!"
+        required: true
+      # tag:
+      #   description: "Release tag:"
+      #   default: "v1.0"
+      #   required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      arch: ${{github.event.inputs.msg}}
+    strategy:
+      fail-fast: false
+      matrix:
+        target_arch: [matrix0, matrix1]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: ${{github.repository}}
+          # ref: ${{github.event.inputs.tag}}
+
+      - name: Print env
+        run: |
+          clang --target=aarch64-linux-musl -fuse-ld=lld -xc - <<EOF
+          #include <stdio.h>
+          int main(){
+              printf("Hello World\n");
+              return 0;
+          }
+          EOF
+
+          file a.out
