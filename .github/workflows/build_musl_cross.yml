@@ -1,0 +1,57 @@
+name: Build musl cross
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    strategy:
+       fail-fast: false
+       matrix:
+         target: [aarch64-linux-musl,x86_64-linux-musl]
+         #target: [armv7l-linux-musleabihf]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Clone upstream
+        run: git clone --depth=1 https://git.zv.io/toolchains/musl-cross-make.git musl-cross
+
+      - name: Build
+        run: |
+          cat<<EOF>musl-cross/config.mak
+          TARGET = aarch64-linux-musl
+
+          BINUTILS_VER = 2.39
+          GCC_VER = 12.2.0
+          MUSL_VER = 1.2.4
+          GMP_VER = 6.2.1
+          MPC_VER = 1.2.1
+          MPFR_VER = 4.1.0
+          ISL_VER = 0.23
+          LINUX_VER = 6.1.27
+
+          # Recommended options for smaller build for deploying binaries:
+          COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-s"
+          EOF
+
+          cd musl-cross
+          make -j$(nproc)
+          make install
+
+          ls -al
+          ls -al musl-cross
+          mv musl-cross/output musl-cross/${{ matrix.target }}-cross
+          
+      - name: Compress ${{ matrix.target }}-cross
+        run: |
+             cd musl-cross
+             tar -cvzf ${{ matrix.target }}-cross.tar.gz ${{ matrix.target }}-cross
+             ls -al
+
+      - name: Upload ${{ matrix.target }}-cross artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}-cross.tar.gz
+          path: musl-cross/${{ matrix.target }}-cross.tar.gz

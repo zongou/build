@@ -1,0 +1,472 @@
+commit d96d3fd72a2cf9aade018766680eb678ca2de53d
+Author: zongou <zongou@outlook.com>
+Date:   Sat Dec 16 00:03:37 2023 +0800
+
+    custom product.json
+
+diff --git a/product.json b/product.json
+index 49b692f2c2f..84af04e7934 100644
+--- a/product.json
++++ b/product.json
+@@ -30,7 +30,8 @@
+ 	"reportIssueUrl": "https://github.com/microsoft/vscode/issues/new",
+ 	"nodejsRepository": "https://nodejs.org",
+ 	"urlProtocol": "code-oss",
+-	"webviewContentExternalBaseUrlTemplate": "https://{{uuid}}.vscode-cdn.net/insider/ef65ac1ba57f57f2a3961bfe94aa20481caca4c6/out/vs/workbench/contrib/webview/browser/pre/",
++	"webviewContentExternalBaseUrlTemplate": "https://{{uuid}}.vscode-cdn.net/{{quality}}/{{commit}}/out/vs/workbench/contrib/webview/browser/pre/",
++	"quality": "stable",
+ 	"builtInExtensions": [
+ 		{
+ 			"name": "ms-vscode.js-debug-companion",
+@@ -80,5 +81,52 @@
+ 				"publisherDisplayName": "Microsoft"
+ 			}
+ 		}
+-	]
++	],
++	"extensionsGallery": {
++		"nlsBaseUrl": "https://www.vscode-unpkg.net/_lp/",
++		"serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
++		"cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
++		"itemUrl": "https://marketplace.visualstudio.com/items",
++		"publisherUrl": "https://marketplace.visualstudio.com/publishers",
++		"resourceUrlTemplate": "https://{publisher}.vscode-unpkg.net/{publisher}/{name}/{version}/{path}",
++		"controlUrl": "https://az764295.vo.msecnd.net/extensions/marketplace.json"
++	},
++	"linkProtectionTrustedDomains": [
++		"https://*.visualstudio.com",
++		"https://*.microsoft.com",
++		"https://aka.ms",
++		"https://*.gallerycdn.vsassets.io",
++		"https://*.github.com",
++		"https://login.microsoftonline.com",
++		"https://*.vscode.dev",
++		"https://*.github.dev",
++		"https://gh.io",
++		"https://portal.azure.com"
++	],
++	"trustedExtensionAuthAccess": [
++		"vscode.git",
++		"vscode.github",
++		"ms-vscode.remote-repositories",
++		"github.remotehub",
++		"ms-vscode.azure-repos",
++		"ms-vscode.remote-server",
++		"github.vscode-pull-request-github",
++		"github.codespaces",
++		"ms-vsliveshare.vsliveshare",
++		"github.copilot",
++		"github.copilot-chat",
++		"ms-azuretools.vscode-azureresourcegroups",
++		"ms-edu.vscode-learning"
++	],
++	"trustedExtensionProtocolHandlers": [
++		"vscode.git",
++		"vscode.github-authentication",
++		"vscode.microsoft-authentication"
++	],
++	"auth": {
++		"loginUrl": "https://login.microsoftonline.com/common/oauth2/authorize",
++		"tokenUrl": "https://login.microsoftonline.com/common/oauth2/token",
++		"redirectUrl": "https://vscode-redirect.azurewebsites.net/",
++		"clientId": "aebc6443-996d-45c2-90f0-388ff96faa56"
++	}
+ }
+
+commit 45d63997cdfaf9d52194fc30cc59b56dd118e15e
+Author: zongou <zongou@outlook.com>
+Date:   Fri Dec 15 00:46:00 2023 +0800
+
+    add mobile prefered style
+
+diff --git a/src/vs/base/browser/ui/dialog/dialog.css b/src/vs/base/browser/ui/dialog/dialog.css
+index 9b7681e1fa8..023a901efe8 100644
+--- a/src/vs/base/browser/ui/dialog/dialog.css
++++ b/src/vs/base/browser/ui/dialog/dialog.css
+@@ -25,7 +25,7 @@
+ 	display: flex;
+ 	flex-direction: column-reverse;
+ 	width: min-content;
+-	min-width: 500px;
++	width: 500px;
+ 	max-width: 90vw;
+ 	min-height: 75px;
+ 	padding: 10px;
+@@ -50,7 +50,7 @@
+ 	padding: 0 10px;
+ }
+ 
+-.monaco-dialog-box .dialog-message-row > .dialog-icon.codicon {
++.monaco-dialog-box .dialog-message-row>.dialog-icon.codicon {
+ 	flex: 0 0 48px;
+ 	height: 48px;
+ 	align-self: baseline;
+@@ -66,7 +66,8 @@
+ 	padding-left: 24px;
+ 	user-select: text;
+ 	-webkit-user-select: text;
+-	word-wrap: break-word; /* never overflow long words, but break to next line */
++	word-wrap: break-word;
++	/* never overflow long words, but break to next line */
+ 	white-space: normal;
+ }
+ 
+@@ -74,10 +75,13 @@
+ .monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-message {
+ 	line-height: 22px;
+ 	font-size: 18px;
+-	flex: 1; /* let the message always grow */
++	flex: 1;
++	/* let the message always grow */
+ 	white-space: normal;
+-	word-wrap: break-word; /* never overflow long words, but break to next line */
+-	min-height: 48px; /* matches icon height */
++	word-wrap: break-word;
++	/* never overflow long words, but break to next line */
++	min-height: 48px;
++	/* matches icon height */
+ 	margin-bottom: 8px;
+ 	display: flex;
+ 	align-items: center;
+@@ -86,7 +90,8 @@
+ /** Dialog: Details */
+ .monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-message-detail {
+ 	line-height: 22px;
+-	flex: 1; /* let the message always grow */
++	flex: 1;
++	/* let the message always grow */
+ }
+ 
+ .monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-message a:focus {
+@@ -122,33 +127,36 @@
+ }
+ 
+ /** Dialog: Buttons Row */
+-.monaco-dialog-box > .dialog-buttons-row {
++.monaco-dialog-box>.dialog-buttons-row {
+ 	display: flex;
+ 	align-items: center;
+ 	padding-right: 1px;
+-	overflow: hidden; /* buttons row should never overflow */
++	overflow: hidden;
++	/* buttons row should never overflow */
+ }
+ 
+-.monaco-dialog-box > .dialog-buttons-row {
++.monaco-dialog-box>.dialog-buttons-row {
+ 	display: flex;
+ 	white-space: nowrap;
+ 	padding: 20px 10px 10px;
+ }
+ 
+ /** Dialog: Buttons */
+-.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons {
++.monaco-dialog-box>.dialog-buttons-row>.dialog-buttons {
+ 	display: flex;
+ 	width: 100%;
+ 	justify-content: flex-end;
+ 	overflow: hidden;
+-	margin-left: 67px; /* for long buttons, force align with text */
++	margin-left: 67px;
++	/* for long buttons, force align with text */
+ }
+ 
+-.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button {
++.monaco-dialog-box>.dialog-buttons-row>.dialog-buttons>.monaco-button {
+ 	width: fit-content;
+ 	padding: 5px 10px;
+ 	overflow: hidden;
+ 	text-overflow: ellipsis;
+-	margin: 4px 5px; /* allows button focus outline to be visible */
++	margin: 4px 5px;
++	/* allows button focus outline to be visible */
+ 	outline-offset: 2px !important;
+ }
+diff --git a/src/vs/code/browser/workbench/workbench-dev.html b/src/vs/code/browser/workbench/workbench-dev.html
+index be6d30bfb98..254cf2af0e3 100644
+--- a/src/vs/code/browser/workbench/workbench-dev.html
++++ b/src/vs/code/browser/workbench/workbench-dev.html
+@@ -14,7 +14,7 @@
+ 		<link rel="apple-touch-icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/code-192.png" />
+ 
+ 		<!-- Disable pinch zooming -->
+-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
++		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+ 
+ 		<!-- Workbench Configuration -->
+ 		<meta id="vscode-workbench-web-configuration" data-settings="{{WORKBENCH_WEB_CONFIGURATION}}">
+diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
+index 700231f0357..a004b78aade 100644
+--- a/src/vs/code/browser/workbench/workbench.html
++++ b/src/vs/code/browser/workbench/workbench.html
+@@ -14,7 +14,7 @@
+ 		<link rel="apple-touch-icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/code-192.png" />
+ 
+ 		<!-- Disable pinch zooming -->
+-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
++		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+ 
+ 		<!-- Workbench Configuration -->
+ 		<meta id="vscode-workbench-web-configuration" data-settings="{{WORKBENCH_WEB_CONFIGURATION}}">
+diff --git a/src/vs/platform/quickinput/browser/quickInputController.ts b/src/vs/platform/quickinput/browser/quickInputController.ts
+index 1251097b695..b56d92210a3 100644
+--- a/src/vs/platform/quickinput/browser/quickInputController.ts
++++ b/src/vs/platform/quickinput/browser/quickInputController.ts
+@@ -686,7 +686,7 @@ export class QuickInputController extends Disposable {
+ 			this.ui.container.style.top = `${this.titleBarOffset}px`;
+ 
+ 			const style = this.ui.container.style;
+-			const width = Math.min(this.dimension!.width * 0.62 /* golden cut */, QuickInputController.MAX_WIDTH);
++			const width = Math.min(this.dimension!.width * 0.9 /* golden cut */, QuickInputController.MAX_WIDTH);
+ 			style.width = width + 'px';
+ 			style.marginLeft = '-' + (width / 2) + 'px';
+ 
+
+commit 3fdee2e4e3e876813f9156048dc42698d8c911ab
+Author: zongou <zongou@outlook.com>
+Date:   Fri Dec 15 00:44:41 2023 +0800
+
+    set default settings keyboard.dispatch = keyCode for android
+
+diff --git a/src/vs/platform/keyboardLayout/common/keyboardConfig.ts b/src/vs/platform/keyboardLayout/common/keyboardConfig.ts
+index e9e83dcd70f..9f0660dc378 100644
+--- a/src/vs/platform/keyboardLayout/common/keyboardConfig.ts
++++ b/src/vs/platform/keyboardLayout/common/keyboardConfig.ts
+@@ -5,7 +5,7 @@
+ 
+ import * as nls from 'vs/nls';
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+-import { OS, OperatingSystem } from 'vs/base/common/platform';
++import { OS, OperatingSystem, isAndroid } from 'vs/base/common/platform';
+ import { ConfigurationScope, Extensions as ConfigExtensions, IConfigurationNode, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
+ import { Registry } from 'vs/platform/registry/common/platform';
+ 
+@@ -37,7 +37,7 @@ const keyboardConfiguration: IConfigurationNode = {
+ 			scope: ConfigurationScope.APPLICATION,
+ 			type: 'string',
+ 			enum: ['code', 'keyCode'],
+-			default: 'code',
++			default: isAndroid ? 'keyCode' : 'code',
+ 			markdownDescription: nls.localize('dispatch', "Controls the dispatching logic for key presses to use either `code` (recommended) or `keyCode`."),
+ 			included: OS === OperatingSystem.Macintosh || OS === OperatingSystem.Linux
+ 		},
+
+commit 97ba728b8a8046936584297290f7bc45fc128b54
+Author: zongou <zongou@outlook.com>
+Date:   Fri Dec 15 00:43:31 2023 +0800
+
+    fix actionWidget for android
+
+diff --git a/src/vs/base/browser/dom.ts b/src/vs/base/browser/dom.ts
+index e8bf8980241..8187a9c6d87 100644
+--- a/src/vs/base/browser/dom.ts
++++ b/src/vs/base/browser/dom.ts
+@@ -1128,6 +1128,10 @@ export const EventType = {
+ 	POINTER_LEAVE: 'pointerleave',
+ 	CONTEXT_MENU: 'contextmenu',
+ 	WHEEL: 'wheel',
++	// Touch
++	TOUCH_START: 'touchstart',
++	TOUCH_MOVE: 'touchmove',
++	TOUCH_END: 'touchend',
+ 	// Keyboard
+ 	KEY_DOWN: 'keydown',
+ 	KEY_PRESS: 'keypress',
+diff --git a/src/vs/editor/contrib/codeAction/browser/codeActionController.ts b/src/vs/editor/contrib/codeAction/browser/codeActionController.ts
+index 3de08ca3962..7b95fb1d376 100644
+--- a/src/vs/editor/contrib/codeAction/browser/codeActionController.ts
++++ b/src/vs/editor/contrib/codeAction/browser/codeActionController.ts
+@@ -38,6 +38,7 @@ import { isHighContrast } from 'vs/platform/theme/common/theme';
+ import { registerThemingParticipant } from 'vs/platform/theme/common/themeService';
+ import { CodeActionAutoApply, CodeActionFilter, CodeActionItem, CodeActionSet, CodeActionTrigger, CodeActionTriggerSource } from '../common/types';
+ import { CodeActionModel, CodeActionsState } from './codeActionModel';
++import { isAndroid } from 'vs/base/common/platform';
+ 
+ 
+ interface IActionShowOptions {
+@@ -95,7 +96,9 @@ export class CodeActionController extends Disposable implements IEditorContribut
+ 
+ 		this._resolver = instantiationService.createInstance(CodeActionKeybindingResolver);
+ 
+-		this._register(this._editor.onDidLayoutChange(() => this._actionWidgetService.hide()));
++		if (!isAndroid) {
++			this._register(this._editor.onDidLayoutChange(() => this._actionWidgetService.hide()));
++		}
+ 	}
+ 
+ 	override dispose() {
+diff --git a/src/vs/platform/actionWidget/browser/actionWidget.ts b/src/vs/platform/actionWidget/browser/actionWidget.ts
+index 33398d68b48..54534361eb6 100644
+--- a/src/vs/platform/actionWidget/browser/actionWidget.ts
++++ b/src/vs/platform/actionWidget/browser/actionWidget.ts
+@@ -124,6 +124,10 @@ class ActionWidgetService extends Disposable implements IActionWidgetService {
+ 		renderDisposables.add(dom.addDisposableListener(pointerBlock, dom.EventType.POINTER_MOVE, () => pointerBlock.remove()));
+ 		renderDisposables.add(dom.addDisposableListener(pointerBlock, dom.EventType.MOUSE_DOWN, () => pointerBlock.remove()));
+ 
++		// Removes block on touchstart INSIDE widget or ANY touch movement
++		renderDisposables.add(dom.addDisposableListener(pointerBlock, dom.EventType.TOUCH_MOVE, () => pointerBlock.remove()));
++		renderDisposables.add(dom.addDisposableListener(pointerBlock, dom.EventType.TOUCH_START, () => pointerBlock.remove()));
++
+ 		// Action bar
+ 		let actionBarWidth = 0;
+ 		if (actionBarActions.length) {
+
+commit 4401a3212d82c32e24a3bccc9fedc1d8f2f4d477
+Author: zongou <zongou@outlook.com>
+Date:   Fri Dec 15 00:42:21 2023 +0800
+
+    fix context menu for android
+
+diff --git a/src/vs/base/browser/ui/contextview/contextview.ts b/src/vs/base/browser/ui/contextview/contextview.ts
+index 239cc4171a2..41ed9be103b 100644
+--- a/src/vs/base/browser/ui/contextview/contextview.ts
++++ b/src/vs/base/browser/ui/contextview/contextview.ts
+@@ -248,7 +248,7 @@ export class ContextView extends Disposable {
+ 			return;
+ 		}
+ 
+-		if (this.delegate!.canRelayout === false && !(platform.isIOS && BrowserFeatures.pointerEvents)) {
++		if (this.delegate!.canRelayout === false && !(platform.isIOS && BrowserFeatures.pointerEvents) && !platform.isAndroid) {
+ 			this.hide();
+ 			return;
+ 		}
+diff --git a/src/vs/platform/contextview/browser/contextViewService.ts b/src/vs/platform/contextview/browser/contextViewService.ts
+index f47285746fe..9faa652868f 100644
+--- a/src/vs/platform/contextview/browser/contextViewService.ts
++++ b/src/vs/platform/contextview/browser/contextViewService.ts
+@@ -8,6 +8,7 @@ import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle'
+ import { ILayoutService } from 'vs/platform/layout/browser/layoutService';
+ import { IContextViewDelegate, IContextViewService } from './contextView';
+ import { getWindow } from 'vs/base/browser/dom';
++import { isAndroid } from 'vs/base/common/platform';
+ 
+ export class ContextViewService extends Disposable implements IContextViewService {
+ 
+@@ -29,19 +30,24 @@ export class ContextViewService extends Disposable implements IContextViewServic
+ 
+ 	showContextView(delegate: IContextViewDelegate, container?: HTMLElement, shadowRoot?: boolean): IDisposable {
+ 		let domPosition: ContextViewDOMPosition;
+-		if (container) {
+-			if (container === this.layoutService.getContainer(getWindow(container))) {
+-				domPosition = ContextViewDOMPosition.ABSOLUTE;
+-			} else if (shadowRoot) {
+-				domPosition = ContextViewDOMPosition.FIXED_SHADOW;
++		if (isAndroid) {
++			this.contextView.setContainer(this.layoutService.activeContainer, ContextViewDOMPosition.ABSOLUTE);
++		} else {
++			if (container) {
++				if (container === this.layoutService.getContainer(getWindow(container))) {
++					domPosition = ContextViewDOMPosition.ABSOLUTE;
++				} else if (shadowRoot) {
++					domPosition = ContextViewDOMPosition.FIXED_SHADOW;
++				} else {
++					domPosition = ContextViewDOMPosition.FIXED;
++				}
+ 			} else {
+-				domPosition = ContextViewDOMPosition.FIXED;
++				domPosition = ContextViewDOMPosition.ABSOLUTE;
+ 			}
+-		} else {
+-			domPosition = ContextViewDOMPosition.ABSOLUTE;
++
++			this.contextView.setContainer(container ?? this.layoutService.activeContainer, domPosition);
+ 		}
+ 
+-		this.contextView.setContainer(container ?? this.layoutService.activeContainer, domPosition);
+ 
+ 		this.contextView.show(delegate);
+ 
+diff --git a/src/vs/workbench/browser/parts/titlebar/menubarControl.ts b/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
+index 46c8de7dbd7..f35a61aeb48 100644
+--- a/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
++++ b/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
+@@ -11,7 +11,7 @@ import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
+ import { IAction, Action, SubmenuAction, Separator, IActionRunner, ActionRunner, WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification, toAction } from 'vs/base/common/actions';
+ import { addDisposableListener, Dimension, EventType } from 'vs/base/browser/dom';
+ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
+-import { isMacintosh, isWeb, isIOS, isNative } from 'vs/base/common/platform';
++import { isMacintosh, isWeb, isIOS, isNative, isAndroid } from 'vs/base/common/platform';
+ import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
+ import { Event, Emitter } from 'vs/base/common/event';
+ import { Disposable, DisposableStore } from 'vs/base/common/lifecycle';
+@@ -791,7 +791,7 @@ export class CustomMenubarControl extends MenubarControl {
+ 		super.registerListeners();
+ 
+ 		this._register(addDisposableListener(mainWindow, EventType.RESIZE, () => {
+-			if (this.menubar && !(isIOS && BrowserFeatures.pointerEvents)) {
++			if (this.menubar && !(isIOS && BrowserFeatures.pointerEvents) && !isAndroid) {
+ 				this.menubar.blur();
+ 			}
+ 		}));
+diff --git a/src/vs/workbench/contrib/inlineChat/browser/inlineChatActions.ts b/src/vs/workbench/contrib/inlineChat/browser/inlineChatActions.ts
+index 0fd8f86973d..fae5cdc12a1 100644
+--- a/src/vs/workbench/contrib/inlineChat/browser/inlineChatActions.ts
++++ b/src/vs/workbench/contrib/inlineChat/browser/inlineChatActions.ts
+@@ -53,7 +53,7 @@ export class StartSessionAction extends EditorAction2 {
+ 			icon: START_INLINE_CHAT,
+ 			menu: [{
+ 				id: MenuId.EditorTitle,
+-				when: ContextKeyExpr.and(CTX_INLINE_CHAT_TOOLBAR_ICON_ENABLED, CTX_INLINE_CHAT_HAS_PROVIDER, CTX_INLINE_CHAT_VISIBLE.toNegated(), EditorContextKeys.focus),
++				when: ContextKeyExpr.and(CTX_INLINE_CHAT_TOOLBAR_ICON_ENABLED, CTX_INLINE_CHAT_HAS_PROVIDER, CTX_INLINE_CHAT_VISIBLE.toNegated(), EditorContextKeys.writable),
+ 				group: 'navigation',
+ 				order: -1000000, // at the very front
+ 			}],
+
+commit 76808dce5cf6ac496788555ada371393c47b3e90
+Author: zongou <zongou@outlook.com>
+Date:   Fri Dec 15 00:39:18 2023 +0800
+
+    fix keyboard popping up when scrolling
+
+diff --git a/src/vs/base/browser/touch.ts b/src/vs/base/browser/touch.ts
+index 79e3211d85f..c3f5a0444c9 100644
+--- a/src/vs/base/browser/touch.ts
++++ b/src/vs/base/browser/touch.ts
+@@ -74,6 +74,7 @@ export class Gesture extends Disposable {
+ 	private static readonly HOLD_DELAY = 700;
+ 
+ 	private dispatched = false;
++	private dispatchedEventType: string | undefined;
+ 	private readonly targets = new LinkedList<HTMLElement>();
+ 	private readonly ignoreTargets = new LinkedList<HTMLElement>();
+ 	private handle: IDisposable | null;
+@@ -227,6 +228,8 @@ export class Gesture extends Disposable {
+ 					deltaY > 0 ? 1 : -1,							// y direction
+ 					finalY											// y now
+ 				);
++
++				this.dispatchedEventType = EventType.Change;
+ 			}
+ 
+ 
+@@ -236,7 +239,10 @@ export class Gesture extends Disposable {
+ 		}
+ 
+ 		if (this.dispatched) {
+-			e.preventDefault();
++			if (this.dispatchedEventType !== EventType.Change) {
++				e.preventDefault();
++			}
++			this.dispatchedEventType = undefined;
+ 			e.stopPropagation();
+ 			this.dispatched = false;
+ 		}
+
+commit 2a2ef8134990520158e7a54c14f2298a11af20a0
+Author: zongou <zongou@outlook.com>
+Date:   Fri Dec 15 00:36:41 2023 +0800
+
+    fix ptyhost for android
+
+diff --git a/src/vs/platform/environment/node/userDataPath.js b/src/vs/platform/environment/node/userDataPath.js
+index 92898523ed1..92bd5522301 100644
+--- a/src/vs/platform/environment/node/userDataPath.js
++++ b/src/vs/platform/environment/node/userDataPath.js
+@@ -91,6 +91,7 @@
+ 				case 'darwin':
+ 					appDataPath = path.join(os.homedir(), 'Library', 'Application Support');
+ 					break;
++				case 'android':
+ 				case 'linux':
+ 					appDataPath = process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
+ 					break;

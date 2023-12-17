@@ -1,0 +1,51 @@
+name: Build llvm
+run-name: Build llvm ${{github.event.inputs.tag}}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag:"
+        default: "llvmorg-17.0.6"
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # env:
+    #   arch: ${{github.event.inputs.msg}}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     target_arch: [matrix0, matrix1]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: llvm/llvm-project
+          ref: ${{github.event.inputs.tag}}
+
+      - name: Print env
+        run: |
+          mkdir build
+          cd build
+          cmake \
+          ../llvm \
+          -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
+          -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;compiler-rt;lld;lldb;mlir;openmp;polly" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_TARGETS_TO_BUILD="AArch64" \
+          -DLLVM_HOST_TRIPLE=${TARGET} \
+          -G "Ninja"
+
+      - name: Create files
+        run: |
+          echo "echo hello world" > echo_hello
+          chmod +x echo_hello
+          tar -c echo_hello | xz -T0 > echo_hello.tar.xz
+
+      - name: Upload
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{matrix.target_arch}}
+          path: echo_hello.tar.xz

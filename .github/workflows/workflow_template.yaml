@@ -1,0 +1,70 @@
+name: Workflow template
+run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
+on:
+  workflow_dispatch:
+    inputs:
+      msg:
+        description: "message:"
+        default: "Hello World!"
+        required: true
+      # tag:
+      #   description: "Release tag:"
+      #   default: "v1.0"
+      #   required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      arch: ${{github.event.inputs.msg}}
+    strategy:
+      fail-fast: false
+      matrix:
+        target_arch: [matrix0, matrix1]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: ${{github.repository}}
+          # ref: ${{github.event.inputs.tag}}
+
+      - name: Print env
+        run: |
+          env
+          cat /proc/cpuinfo
+          tree -L 2 ${GITHUB_WORKSPACE}
+
+          heredoc(){
+            cat <<EOF
+          heredoc_content
+          EOF
+
+            cat <<EOF
+            heredoc_content
+          EOF
+
+            cat <<-EOF
+          heredoc_content
+          EOF
+
+          cat <<-EOF
+            heredoc_content
+          EOF
+          }
+
+          heredoc
+
+          command -v upx && upx --version
+
+      - name: Create files
+        run: |
+          echo "echo hello world" > echo_hello
+          chmod +x echo_hello
+          tar -c echo_hello | xz -T0 > echo_hello.tar.xz
+
+      - name: Upload
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{matrix.target_arch}}
+          path: echo_hello.tar.xz

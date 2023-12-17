@@ -1,0 +1,29 @@
+From a9638999eef7fe541a8c6688b4a5eb98f0f43204 Mon Sep 17 00:00:00 2001
+From: Julian Dropmann <julian@dropmann.org>
+Date: Mon, 20 Feb 2023 14:41:05 +0100
+Subject: [PATCH] deps: fix libuv for android
+
+Fix android build errors introduced by the upgrade to libuv 1.44.2
+
+Fixes: https://github.com/nodejs/node/issues/46743
+Fixes: https://github.com/nodejs/node/issues/46744
+---
+ deps/uv/uv.gyp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/deps/uv/uv.gyp b/deps/uv/uv.gyp
+index a3e9819a7e0fd..320a0016b7c3e 100644
+--- a/deps/uv/uv.gyp
++++ b/deps/uv/uv.gyp
+@@ -255,8 +255,10 @@
+           },
+         }],
+         [ 'OS=="android"', {
++          'defines': [
++            '_GNU_SOURCE',
++          ],
+           'sources': [
+-            'src/unix/android-ifaddrs.c',
+             'src/unix/linux-core.c',
+             'src/unix/linux-inotify.c',
+             'src/unix/linux-syscalls.c',
