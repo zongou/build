@@ -31,9 +31,12 @@ jobs:
 
       - name: Print env
         run: |
-          env
           cat /etc/os-release
           cat /proc/cpuinfo
+
+          command -v upx && upx --version
+          command -v clang && clang --version
+
           tree -L 2 ${GITHUB_WORKSPACE}
 
           heredoc(){
@@ -56,8 +59,7 @@ jobs:
 
           heredoc
 
-          command -v upx && upx --version
-          command -v clang && clang --version
+          env
 
       - name: Create files
         run: |
