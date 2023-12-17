@@ -29,14 +29,18 @@ jobs:
         run: |
           mkdir build
           cd build
+          # -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;compiler-rt;lld;lldb;mlir;openmp;polly" \
           cmake \
-          ../llvm \
-          -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
-          -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;compiler-rt;lld;lldb;mlir;openmp;polly" \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DLLVM_TARGETS_TO_BUILD="AArch64" \
-          -DLLVM_HOST_TRIPLE=${TARGET} \
-          -G "Ninja"
+            ../llvm \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_TARGETS_TO_BUILD="AArch64" \
+            -DLLVM_HOST_TRIPLE=aarch64-linux-musl \
+            -G "Ninja"
+          
+          cmake --build .
+
+          tree bin
+          file bin/*
 
       - name: Create files
         run: |
@@ -44,8 +48,8 @@ jobs:
           chmod +x echo_hello
           tar -c echo_hello | xz -T0 > echo_hello.tar.xz
 
-      - name: Upload
-        uses: actions/upload-artifact@main
-        with:
-          name: ${{matrix.target_arch}}
-          path: echo_hello.tar.xz
+      # - name: Upload
+      #   uses: actions/upload-artifact@main
+      #   with:
+      #     name: ${{matrix.target_arch}}
+      #     path: echo_hello.tar.xz
