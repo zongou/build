@@ -39,7 +39,7 @@ jobs:
             -DLLVM_TARGETS_TO_BUILD="AArch64" \
             -DLLVM_HOST_TRIPLE=aarch64-linux-musl \
             -G "Ninja"
-          
+
           cmake --build .
 
           tree bin

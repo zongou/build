@@ -11,10 +11,9 @@ jobs:
     #    matrix:
     #      target: [aarch64-linux-musl,x86_64-linux-musl]
     #      #target: [armv7l-linux-musleabihf]
+    env:
+      TARGET: aarch64-linux-musl
     steps:
-      # - name: Checkout
-      #   uses: actions/checkout@v3
-
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
@@ -24,7 +23,7 @@ jobs:
           cat<<EOF>config.mak
           DL_CMD = curl -C - -Ls -o
 
-          TARGET = aarch64-linux-musl
+          TARGET = ${TARGET}
 
           BINUTILS_VER = 2.41
           GCC_VER = 13.2.0
@@ -47,18 +46,19 @@ jobs:
           make install
 
           ls -al
-          file output/*
+          file output/bin/*
 
-      #     mv musl-cross/output musl-cross/${{ matrix.target }}-cross
-          
-      # - name: Compress ${{ matrix.target }}-cross
+          mv output musl-cross/${TARGET}-cross
+          tar -c musl-cross/${TARGET}-cross | xz -T0 > musl-cross/${TARGET}-cross.tar.xz
+
+      # - name: Compress ${TARGET}-cross
       #   run: |
       #        cd musl-cross
-      #        tar -cvzf ${{ matrix.target }}-cross.tar.gz ${{ matrix.target }}-cross
+      #        tar -cvzf ${TARGET}-cross.tar.gz ${TARGET}-cross
       #        ls -al
 
-      # - name: Upload ${{ matrix.target }}-cross artifacts
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: ${{ matrix.target }}-cross.tar.gz
-      #     path: musl-cross/${{ matrix.target }}-cross.tar.gz
+      - name: Upload ${TARGET}-cross artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${TARGET}-cross.tar.gz
+          path: musl-cross/${TARGET}-cross.tar.xz
