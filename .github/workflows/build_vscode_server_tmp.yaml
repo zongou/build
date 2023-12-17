@@ -167,6 +167,7 @@ jobs:
               export CC="clang --target=${TARGET} -fuse-ld=${LINKER} --sysroot=${SYSROOT}"
               export CXX="clang++ --target=${TARGET} -fuse-ld=${LINKER} --sysroot=${SYSROOT}"
 
+              yarn add @vscode/spdlog @vscode/windows-mutex
               find node_modules -name "*.node" -exec file {} \;
 
               echo "Setting up sysroot"
