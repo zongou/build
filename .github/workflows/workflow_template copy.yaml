@@ -1,27 +1,11 @@
 name: test build for musl
 run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
 on:
-  workflow_dispatch:
-    inputs:
-      msg:
-        description: "message:"
-        default: "Hello World!"
-        required: true
-      # tag:
-      #   description: "Release tag:"
-      #   default: "v1.0"
-      #   required: true
+  push: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      arch: ${{github.event.inputs.msg}}
-    strategy:
-      fail-fast: false
-      matrix:
-        target_arch: [matrix0, matrix1]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1
@@ -31,6 +15,7 @@ jobs:
 
       - name: Print env
         run: |
+          sudo apt install musl musl-dev musl-tools
           clang --target=aarch64-linux-musl -fuse-ld=lld -xc - <<EOF
           #include <stdio.h>
           int main(){
