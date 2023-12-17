@@ -21,7 +21,7 @@ jobs:
       - name: Build
         working-directory: musl-cross-make
         run: |
-          cat<<EOF>mconfig.mak
+          cat<<EOF>config.mak
           TARGET = aarch64-linux-musl
 
           BINUTILS_VER = 2.41
