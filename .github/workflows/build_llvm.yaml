@@ -66,10 +66,9 @@ jobs:
         git clone https://github.com/DanielMYT/musl-cross-make
 
     - name: Build
+      working-directory: musl-cross-make
       run: |
-        cd musl-cross-make
-
-        cat<<EOF>musl-cross/config.mak
+        cat<<EOF>config.mak
         TARGET = aarch64-linux-musl
 
         BINUTILS_VER = 2.41
