@@ -175,6 +175,8 @@ jobs:
               sudo chroot "${SYSROOT}" apk add libx11-dev libxkbfile-dev libsecret-dev krb5-dev libstdc++
 
               echo "Setting up toolchain"
+              sudo dpkg --add-architecture arm64
+              sudo apt update
               sudo apt install musl musl:arm64 lld
 
               export CC="clang --target=${TARGET} --sysroot=${SYSROOT}"
