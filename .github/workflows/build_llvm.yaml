@@ -31,8 +31,8 @@ jobs:
           cd build
           # -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;compiler-rt;lld;lldb;mlir;openmp;polly" \
 
-          sudo apt install ninja
-          
+          sudo apt install ninja-build
+
           cmake \
             ../llvm \
             -DCMAKE_BUILD_TYPE=Release \
