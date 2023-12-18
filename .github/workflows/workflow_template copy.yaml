@@ -28,7 +28,7 @@ jobs:
           clang --target=x86_64-linux-musl hello.c
           file a.out
 
-          curl -LkO https://musl.libc.org/releases/musl-1.2.4.tar.gz | gzip -d | tar -x
+          curl -Lk https://musl.libc.org/releases/musl-1.2.4.tar.gz|gzip -d| tar -x
           cd musl-1.2.4
           ./configure
           make install
