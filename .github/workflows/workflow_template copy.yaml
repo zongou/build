@@ -1,7 +1,8 @@
 name: test build for musl
 run-name: test musl
 on:
-  push:
+  # push:
+  workflow_dispatch: 
 
 jobs:
   build:
