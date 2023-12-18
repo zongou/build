@@ -52,7 +52,7 @@ jobs:
           BINUTILS_CONFIG += --disable-gprofng
           EOF
 
-          make -j$(nproc --all) || make -j$(nproc --all) || make -j$(nproc --all)
+          make -j$(nproc) || make -j$(nproc) || make -j$(nproc)
           make install
 
           mv output ${{matrix.host}}-host
@@ -85,7 +85,7 @@ jobs:
           BINUTILS_CONFIG += --disable-gprofng
           EOF
 
-          make -j$(nproc --all)
+          make -j$(nproc)
           make install
           mv output ${{matrix.target}}-${{matrix.host}}
 
@@ -97,7 +97,7 @@ jobs:
       - name: Compress ${{matrix.target}}-${{matrix.host}}
         working-directory: musl-cross-make
         run: |
-          tar -c ${{matrix.target}}-${{matrix.host}} | xz -T0 < ${{matrix.target}}-${{matrix.host}}.tar.xz
+          tar -c ${{matrix.target}}-${{matrix.host}} | xz -T0 > ${{matrix.target}}-${{matrix.host}}.tar.xz
 
       - name: Upload ${{matrix.target}}-cross artifacts
         uses: actions/upload-artifact@v3

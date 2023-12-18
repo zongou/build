@@ -1,8 +1,8 @@
 name: Workflow template
 run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
 on:
-  push: 
-    paths: '.github/workflows/workflow_template.yaml'
+  push:
+    paths: ".github/workflows/workflow_template.yaml"
   workflow_dispatch:
     inputs:
       msg:
@@ -16,13 +16,15 @@ on:
 
 jobs:
   build:
+    name: "Matrix msg: ${{matrix.msg}}"
     runs-on: ubuntu-latest
     env:
       arch: ${{github.event.inputs.msg}}
     strategy:
       fail-fast: false
       matrix:
-        target_arch: [matrix0, matrix1]
+        msg:
+          - "Hello matrix!"
 
     steps:
       - name: Checkout
@@ -31,11 +33,17 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: Print env
+      - name: Print system info
         run: |
           cat /etc/os-release
           cat /proc/cpuinfo
+          echo "Available cpu count: $(nproc)"
 
+      - name: Print env
+        run: env
+
+      - name: Test
+        run: |
           command -v upx && upx --version
           command -v clang && clang --version
 
@@ -61,16 +69,8 @@ jobs:
 
           heredoc
 
-          env
-
-      - name: Create files
-        run: |
-          echo "echo hello world" > echo_hello
-          chmod +x echo_hello
-          tar -c echo_hello | xz -T0 > echo_hello.tar.xz
-
       - name: Upload
         uses: actions/upload-artifact@main
         with:
-          name: ${{matrix.target_arch}}
-          path: echo_hello.tar.xz
+          name: os-release
+          path: /etc/os-release
