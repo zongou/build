@@ -46,7 +46,7 @@ jobs:
           COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-w -s"
           EOF
 
-          make -j$(nproc --all)
+          make -j$(nproc --all) || make -j$(nproc --all) || make -j$(nproc --all)
           make install
 
           mv output ${{matrix.target}}-bootstrap
