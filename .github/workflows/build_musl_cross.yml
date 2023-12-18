@@ -49,11 +49,10 @@ jobs:
       - name: Bootstrap build ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
-          pwd
           make clean
           export CC=${PWD}/output/bin/${{matrix.target}}-gcc
           export CXX=${PWD}/output/bin/${{matrix.target}}-g++
-          make -j${nproc --all}
+          make -j$(nproc --all)
 
       - name: Checkout output
         run: |
