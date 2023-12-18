@@ -13,7 +13,7 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: Print env
+      - name: build for musl
         run: |
           sudo apt install musl-tools
           musl-gcc --version
@@ -28,3 +28,5 @@ jobs:
 
           musl-gcc hello.c
           file a.out
+
+          clang --target=aarch64-linux-musl hello.c
