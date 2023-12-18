@@ -58,6 +58,7 @@ jobs:
           make install
 
           mv output ${{matrix.host}}-host
+          file ${{matrix.host}}-host/bin/*
 
       - name: Build target toolchain ${{matrix.target}}
         working-directory: musl-cross-make
