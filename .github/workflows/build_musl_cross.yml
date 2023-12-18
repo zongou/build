@@ -6,24 +6,22 @@ on:
 jobs:
   Build:
     runs-on: ubuntu-latest
-    # strategy:
-    #    fail-fast: false
-    #    matrix:
-    #      target: [aarch64-linux-musl,x86_64-linux-musl]
-    #      #target: [armv7l-linux-musleabihf]
-    env:
-      TARGET: aarch64-linux-musl
+    strategy:
+       fail-fast: false
+       matrix:
+         target: [aarch64-linux-musl,x86_64-linux-musl]
+
     steps:
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
-      - name: Build
+      - name: Build ${{matrix.target}} bootstrap
         working-directory: musl-cross-make
         run: |
           cat<<EOF>config.mak
           DL_CMD = curl -C - -Ls -o
 
-          TARGET = ${TARGET}
+          TARGET = ${{matrix.target}}
 
           BINUTILS_VER = 2.41
           GCC_VER = 13.2.0
@@ -42,23 +40,31 @@ jobs:
           cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
           mv Makefile_tmp Makefile
 
-          make -j$(nproc)
+          make -j$(nproc --all)
           make install
 
           ls -al
           file output/bin/*
 
-          mv output ${TARGET}-cross
-          tar -c ${TARGET}-cross | xz -T0 > ${TARGET}-cross.tar.xz
+      - name: Build ${{matrix.target}}
+        run: |
+          export CC=${PWD}/output/bin/${{matrix.target}}-gcc
+          export CXX=${PWD}/output/bin/${{matrix.target}}-g++
+          make clean
+          make -j${nproc --all}
 
-      # - name: Compress ${TARGET}-cross
+      - name: Checkout output
+        run: |
+          file output/bin/*
+
+      # - name: Compress ${{matrix.target}}-cross
       #   run: |
       #        cd musl-cross
-      #        tar -cvzf ${TARGET}-cross.tar.gz ${TARGET}-cross
+      #        tar -cvzf ${{matrix.target}}-cross.tar.gz ${{matrix.target}}-cross
       #        ls -al
 
-      - name: Upload ${TARGET}-cross artifacts
+      - name: Upload ${{matrix.target}}-cross artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${TARGET}-cross.tar.xz
-          path: ${TARGET}-cross.tar.xz
+          name: ${{matrix.target}}-cross.tar.xz
+          path: ${{matrix.target}}-cross.tar.xz
