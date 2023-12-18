@@ -1,6 +1,8 @@
 name: Workflow template
 run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
 on:
+  push: 
+    paths: '.github/workflows/workflow_template.yaml'
   workflow_dispatch:
     inputs:
       msg:
@@ -31,6 +33,7 @@ jobs:
 
       - name: Print env
         run: |
+          GITHUB_ACTION
           cat /etc/os-release
           cat /proc/cpuinfo
 
