@@ -85,7 +85,7 @@ jobs:
             /etc/resolv.conf
           allowUpdates: true
           replacesArtifacts: true
-          body: >
+          body: |
             * BINUTILS_VER = 2.41\n
             * GCC_VER = 13.2.0\n
             * MUSL_VER = 1.2.4\n
