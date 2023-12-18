@@ -31,7 +31,8 @@ jobs:
           curl -Lk https://musl.libc.org/releases/musl-1.2.4.tar.gz|gzip -d| tar -x
           cd musl-1.2.4
           ./configure
-          make install
+          make -j$(nproc --all)
+          sudo make install
 
           clang --target=aarch64-linux-musl hello.c
           file a.out
