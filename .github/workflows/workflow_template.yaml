@@ -33,7 +33,6 @@ jobs:
 
       - name: Print env
         run: |
-          GITHUB_ACTION
           cat /etc/os-release
           cat /proc/cpuinfo
 
