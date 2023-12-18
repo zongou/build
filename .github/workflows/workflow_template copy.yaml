@@ -30,3 +30,4 @@ jobs:
           file a.out
 
           clang --target=x86_64-linux-musl hello.c
+          file a.out
