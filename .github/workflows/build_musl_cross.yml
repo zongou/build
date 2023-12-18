@@ -53,6 +53,7 @@ jobs:
         working-directory: musl-cross-make
         run: |
           make clean
+          export PATH=${PWD}/output/bin:$PATH
           export CC=${PWD}/output/bin/${{matrix.target}}-gcc
           export CXX=${PWD}/output/bin/${{matrix.target}}-g++
           make -j$(nproc --all)
