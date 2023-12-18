@@ -1,5 +1,4 @@
 name: test build for musl
-run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
 on:
   push: 
 
@@ -16,7 +15,8 @@ jobs:
       - name: Print env
         run: |
           sudo apt install musl-tools
-          musl-gcc --target=x86_64-linux-musl -fuse-ld=lld -xc - <<EOF
+          musl-gcc --version
+          musl-gcc -xc - <<EOF
           #include <stdio.h>
           int main(){
             printf("Hello World\n");
