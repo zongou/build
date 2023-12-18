@@ -13,12 +13,10 @@ on:
       #   default: "v1.0"
       #   required: true
 
-permissions:
-  contents: write
-  packages: read
-
 jobs:
   build:
+    permissions: 
+      contents: write
     name: "Matrix msg: ${{matrix.msg}}"
     runs-on: ubuntu-latest
     env:
@@ -83,4 +81,9 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
+          tag: "v1.0.0"
           artifacts: 'hello.txt'
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            ${{ github.event.head_commit.message }}
