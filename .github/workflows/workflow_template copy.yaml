@@ -1,7 +1,7 @@
 name: test build for musl
 run-name: test musl
 on:
-  push: 
+  push:
 
 jobs:
   build:
@@ -28,7 +28,20 @@ jobs:
           clang --target=x86_64-linux-musl hello.c
           file a.out
 
+          . /etc/os-release
+          cat<<EOF>arm-cross-compile-sources.list
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} main restricted
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-updates main restricted
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} universe
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-updates universe
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-updates multiverse
+          deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME}-backports main restricted universe multiverse
+          EOF
+          sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
           sudo dpkg --add-architecture arm64
-          sudo apt update || true
-          sudo apt install musl-dev:arm64
+          sudo apt update
+          sudo apt install musl:arm64
 
+          clang --target=aarch64-linux-musl hello.c
+          file a.out
