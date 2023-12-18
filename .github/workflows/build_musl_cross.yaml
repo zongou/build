@@ -8,6 +8,7 @@ on:
 
 jobs:
   Build:
+    name: Build ${{matrix.target}}-${{matrix.host}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
