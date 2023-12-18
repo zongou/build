@@ -68,6 +68,8 @@ jobs:
 
           heredoc
 
+          echo Hello>hello.txt
+
       - name: Upload
         uses: actions/upload-artifact@main
         with:
@@ -86,7 +88,7 @@ jobs:
           # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
           # artifact: # optional, default is
           # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
-          artifacts: /etc/os-release # optional, default is
+          artifacts: hello.txt # optional, default is
           # The content type of the artifact. Defaults to raw
           artifactContentType: # optional, default is
           # An optional body for the release.
