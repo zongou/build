@@ -74,3 +74,13 @@ jobs:
         with:
           name: os-release
           path: /etc/os-release
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
+        with:
+          tag: "v1.0.0"
+          artifacts: /etc/os-release
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            ${{ github.event.head_commit.message }}
