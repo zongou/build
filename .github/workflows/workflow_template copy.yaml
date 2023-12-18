@@ -13,10 +13,9 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: build for musl
+      - name: Build for musl
         run: |
           sudo apt install musl
-          musl-gcc --version
 
           cat<<EOF>hello.c
           #include <stdio.h>
