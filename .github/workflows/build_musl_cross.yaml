@@ -56,7 +56,7 @@ jobs:
       - name: Bootstrap build toolchain ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
-          make clean
+          make distclean
           export PATH=${PWD}/${{matrix.target}}-bootstrap/bin:$PATH
 
           cat<<EOF>config.mak
