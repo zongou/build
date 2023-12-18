@@ -58,6 +58,7 @@ jobs:
         run: |
           make distclean
           export PATH=${PWD}/${{matrix.target}}-bootstrap/bin:$PATH
+          ${{matrix.target}}-gcc --version
 
           cat<<EOF>config.mak
           TARGET = ${{matrix.target}}
