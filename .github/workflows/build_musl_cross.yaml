@@ -3,22 +3,28 @@ name: Build musl cross
 on:
   push:
     paths:
-      - '.github/workflows/build_musl_corss.yaml'
+      - ".github/workflows/build_musl_corss.yaml"
   workflow_dispatch:
 
 jobs:
   Build:
     runs-on: ubuntu-latest
     strategy:
-       fail-fast: false
-       matrix:
-         target: [aarch64-linux-musl,x86_64-linux-musl]
+      fail-fast: false
+      matrix:
+        target: [aarch64-linux-musl, x86_64-linux-musl]
 
     steps:
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
-      - name: Build bootstrap ${{matrix.target}}
+      - name: Patch source
+        run: |
+          ## Tar no verbose
+          cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
+          mv Makefile_tmp Makefile
+
+      - name: Build bootstrap toolchain ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           cat<<EOF>config.mak
@@ -39,28 +45,42 @@ jobs:
           COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-w -s"
           EOF
 
-          ## Tar no verbose
-          cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
-          mv Makefile_tmp Makefile
-
           make -j$(nproc --all)
           make install
 
-          ls -al
-          file output/bin/*
+          mv output ${{matrix.target}}-bootstrap
 
-      - name: Bootstrap build ${{matrix.target}}
+      - name: Bootstrap build toolchain ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           make clean
-          export PATH=${PWD}/output/bin:$PATH
-          export CC=${PWD}/output/bin/${{matrix.target}}-gcc
-          export CXX=${PWD}/output/bin/${{matrix.target}}-g++
+          export PATH=${PWD}/${{matrix.target}}-bootstrap/bin:$PATH
+
+          cat<<EOF>config.mak
+          TARGET = x86_64-linux-musl
+
+          BINUTILS_VER = 2.41
+          GCC_VER = 13.2.0
+          MUSL_VER = 1.2.4
+          GMP_VER = 6.3.0
+          MPC_VER = 1.3.1
+          MPFR_VER = 4.2.1
+          ISL_VER = 0.26
+          LINUX_VER = 6.6.2
+
+          DL_CMD = curl -C - -Ls -o
+
+          COMMON_CONFIG += CC="x86_64-linux-musl-gcc -static --static" CXX="x86_64-linux-musl-g++ -static --static"
+          COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-s"
+          BINUTILS_CONFIG += --disable-gprofng
+          EOF
+
           make -j$(nproc --all)
+          mv output ${{matrix.target}}-toolchain
 
       - name: Checkout output
         run: |
-          file output/bin/*
+          file ${{matrix.target}}-*/bin/*
 
       # - name: Compress ${{matrix.target}}-cross
       #   run: |
@@ -68,8 +88,8 @@ jobs:
       #        tar -cvzf ${{matrix.target}}-cross.tar.gz ${{matrix.target}}-cross
       #        ls -al
 
-      - name: Upload ${{matrix.target}}-cross artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{matrix.target}}-cross.tar.xz
-          path: ${{matrix.target}}-cross.tar.xz
+      # - name: Upload ${{matrix.target}}-cross artifacts
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ${{matrix.target}}-cross.tar.xz
+      #     path: ${{matrix.target}}-cross.tar.xz
