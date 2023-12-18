@@ -15,7 +15,7 @@ jobs:
 
       - name: build for musl
         run: |
-          sudo apt install musl-tools
+          sudo apt install musl
           musl-gcc --version
 
           cat<<EOF>hello.c
@@ -26,8 +26,10 @@ jobs:
           }
           EOF
 
-          musl-gcc hello.c
-          file a.out
-
           clang --target=x86_64-linux-musl hello.c
           file a.out
+
+          sudo dpkg --add-architecture arm64
+          sudo apt update || true
+          sudo apt install musl-dev:arm64
+
