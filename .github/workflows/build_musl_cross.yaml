@@ -83,7 +83,7 @@ jobs:
 
           DL_CMD = curl -C - -Ls -o
 
-          COMMON_CONFIG += CC="${{matrix.host}}-gcc -static --static" CXX="${{matrix.host}}-g++ -static --static"
+          # COMMON_CONFIG += CC="${{matrix.host}}-gcc -static --static" CXX="${{matrix.host}}-g++ -static --static"
           COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-s"
           BINUTILS_CONFIG += --disable-gprofng
           EOF
