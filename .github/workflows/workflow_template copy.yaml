@@ -40,7 +40,7 @@ jobs:
           EOF
           sudo mv arm-cross-compile-sources.list /etc/apt/sources.list.d/
           sudo dpkg --add-architecture arm64
-          sudo apt update
+          sudo apt update || true
           sudo apt install musl:arm64
 
           clang --target=aarch64-linux-musl hello.c
