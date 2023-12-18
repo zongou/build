@@ -1,4 +1,4 @@
-name: Build musl cross
+name: Build musl toolchain
 
 on:
   push:
@@ -31,9 +31,7 @@ jobs:
           cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
           mv Makefile_tmp Makefile
 
-      - name: "Build bootstrap toolchain host: ${{matrix.host}}"
-        env:
-          OUTPUT: ${{matrix.host}}
+      - name: Build host toolchain ${{matrix.host}}
         working-directory: musl-cross-make
         run: |
           cat<<EOF>config.mak
@@ -57,15 +55,15 @@ jobs:
           make -j$(nproc --all) || make -j$(nproc --all) || make -j$(nproc --all)
           make install
 
-          mv output ${{matrix.host}}-bootstrap
+          mv output ${{matrix.host}}-host
 
-      - name: "Bootstrap build toolchain host: ${{matrix.host}} target: ${{matrix.target}}"
+      - name: Build target toolchain ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           sudo apt install qemu-user-static binfmt-support
-          export PATH=${PWD}/${{matrix.host}}-bootstrap/bin:$PATH
+          export PATH=${PWD}/${{matrix.host}}-host/bin:$PATH
 
-          ${{matrix.target}}-gcc --version
+          ${{matrix.host}}-gcc --version
           make clean
 
           cat<<EOF>config.mak
@@ -82,7 +80,7 @@ jobs:
 
           DL_CMD = curl -C - -Ls -o
 
-          COMMON_CONFIG += CC="${{matrix.target}}-gcc -static --static" CXX="${{matrix.target}}-g++ -static --static"
+          COMMON_CONFIG += CC="${{matrix.host}}-gcc -static --static" CXX="${{matrix.host}}-g++ -static --static"
           COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-s"
           BINUTILS_CONFIG += --disable-gprofng
           EOF
