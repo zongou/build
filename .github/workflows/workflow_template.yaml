@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    permissions: 
+    permissions:
       contents: write
     name: "Matrix msg: ${{matrix.msg}}"
     runs-on: ubuntu-latest
@@ -81,7 +81,9 @@ jobs:
         uses: ncipollo/release-action@v1.13.0
         with:
           tag: "v1.0.0"
-          artifacts: /etc/os-release
+          artifacts: |
+            /etc/os-release
+            /etc/resolv.conf
           allowUpdates: true
           replacesArtifacts: true
           body: |
