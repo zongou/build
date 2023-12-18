@@ -8,6 +8,8 @@ on:
 
 jobs:
   Build:
+    permissions: 
+      contents: write
     name: Build ${{matrix.target}}-${{matrix.host}}
     runs-on: ubuntu-latest
     strategy:
@@ -62,6 +64,7 @@ jobs:
         run: |
           sudo apt install qemu-user-static binfmt-support
           export PATH=${PWD}/${{matrix.host}}-host/bin:$PATH
+          export HOST=${matrix.target}
 
           ${{matrix.host}}-gcc --version
           make clean
@@ -104,3 +107,14 @@ jobs:
         with:
           name: ${{matrix.target}}-${{matrix.host}}.tar.xz
           path: musl-cross-make/${{matrix.target}}-${{matrix.host}}.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
+        with:
+          tag: "v1.0.0"
+          artifacts: |
+            musl-cross-make/${{matrix.target}}-${{matrix.host}}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            ${{ github.event.head_commit.message }}
