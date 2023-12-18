@@ -64,12 +64,12 @@ jobs:
         run: |
           sudo apt install qemu-user-static binfmt-support
           export PATH=${PWD}/${{matrix.host}}-host/bin:$PATH
-          export HOST=${matrix.target}
 
           ${{matrix.host}}-gcc --version
           make clean
 
           cat<<EOF>config.mak
+          HOST = ${{matrix.host}}
           TARGET = ${{matrix.target}}
 
           BINUTILS_VER = 2.41
@@ -85,7 +85,6 @@ jobs:
 
           COMMON_CONFIG += CC="${{matrix.host}}-gcc -static --static" CXX="${{matrix.host}}-g++ -static --static"
           COMMON_CONFIG += CFLAGS="-g0 -Os" CXXFLAGS="-g0 -Os" LDFLAGS="-s"
-          COMMON_CONFIG += HOST="${matrix.target}"
           BINUTILS_CONFIG += --disable-gprofng
           EOF
 
