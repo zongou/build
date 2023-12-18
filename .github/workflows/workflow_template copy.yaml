@@ -15,7 +15,7 @@ jobs:
 
       - name: Print env
         run: |
-          clang --target=aarch64-linux-musl -fuse-ld=lld -xc - <<EOF
+          musl-gcc --target=x86_64-linux-musl -fuse-ld=lld -xc - <<EOF
           #include <stdio.h>
           int main(){
             printf("Hello World\n");
