@@ -12,9 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - aarch64-linux-musl
+        host:
           - x86_64-linux-musl
+          - aarch64-linux-musl
+        target:
+          - x86_64-linux-musl
+          - aarch64-linux-musl
 
     steps:
       - name: Clone musl-cross-make
@@ -27,11 +30,13 @@ jobs:
           cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
           mv Makefile_tmp Makefile
 
-      - name: Build bootstrap toolchain ${{matrix.target}}
+      - name: "Build bootstrap toolchain host: ${{matrix.host}}"
+        env:
+          OUTPUT: ${{matrix.host}}
         working-directory: musl-cross-make
         run: |
           cat<<EOF>config.mak
-          TARGET = $(uname -m)-linux-musl
+          TARGET = ${{matrix.host}}
 
           BINUTILS_VER = 2.41
           GCC_VER = 13.2.0
@@ -51,14 +56,16 @@ jobs:
           make -j$(nproc --all) || make -j$(nproc --all) || make -j$(nproc --all)
           make install
 
-          mv output ${{matrix.target}}-bootstrap
+          mv output ${{matrix.host}}-bootstrap
 
-      - name: Bootstrap build toolchain ${{matrix.target}}
+      - name: "Bootstrap build toolchain host: ${{matrix.host}} target: ${{matrix.target}}"
         working-directory: musl-cross-make
         run: |
-          make distclean
-          export PATH=${PWD}/${{matrix.target}}-bootstrap/bin:$PATH
+          sudo apt install qemu-user-static binfmt-support
+          export PATH=${PWD}/${{matrix.host}}-bootstrap/bin:$PATH
+
           ${{matrix.target}}-gcc --version
+          make clean
 
           cat<<EOF>config.mak
           TARGET = ${{matrix.target}}
@@ -81,20 +88,20 @@ jobs:
 
           make -j$(nproc --all)
           make install
-          mv output ${{matrix.target}}-toolchain
+          mv output ${{matrix.target}}-${{matrix.host}}
 
       - name: Checkout output
+        working-directory: musl-cross-make
         run: |
-          file ${{matrix.target}}-*/bin/*
+          file ${{matrix.target}}-${{matrix.host}}/bin/*
 
-      # - name: Compress ${{matrix.target}}-cross
-      #   run: |
-      #        cd musl-cross
-      #        tar -cvzf ${{matrix.target}}-cross.tar.gz ${{matrix.target}}-cross
-      #        ls -al
+      - name: Compress ${{matrix.target}}-${{matrix.host}}
+        working-directory: musl-cross-make
+        run: |
+          tar -c ${{matrix.target}}-${{matrix.host}} | xz -T0 < ${{matrix.target}}-${{matrix.host}}.tar.xz
 
-      # - name: Upload ${{matrix.target}}-cross artifacts
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: ${{matrix.target}}-cross.tar.xz
-      #     path: ${{matrix.target}}-cross.tar.xz
+      - name: Upload ${{matrix.target}}-cross artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.target}}-${{matrix.host}}.tar.xz
+          path: musl-cross-make/${{matrix.target}}-${{matrix.host}}.tar.xz
