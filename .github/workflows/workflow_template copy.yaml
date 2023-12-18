@@ -28,6 +28,17 @@ jobs:
           clang --target=x86_64-linux-musl hello.c
           file a.out
 
+          gcc --target=x86_64-linux-musl hello.c
+          file a.out
+
+          curl -LkO https://musl.libc.org/releases/musl-1.2.4.tar.gz | gzip -d | tar -x
+          cd musl-1.2.4
+          ./configure
+          make install
+
+          clang --target=aarch64-linux-musl hello.c
+          file a.out
+
           . /etc/os-release
           cat<<EOF>arm-cross-compile-sources.list
           deb [arch=armhf,arm64] http://ports.ubuntu.com/ ${VERSION_CODENAME} main restricted
