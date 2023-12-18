@@ -15,7 +15,7 @@ jobs:
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
-      - name: Build ${{matrix.target}} bootstrap
+      - name: Build bootstrap ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           cat<<EOF>config.mak
@@ -46,7 +46,8 @@ jobs:
           ls -al
           file output/bin/*
 
-      - name: Build ${{matrix.target}}
+      - name: Bootstrap build ${{matrix.target}}
+        working-directory: musl-cross-make
         run: |
           export CC=${PWD}/output/bin/${{matrix.target}}-gcc
           export CXX=${PWD}/output/bin/${{matrix.target}}-g++
