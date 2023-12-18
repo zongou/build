@@ -1,4 +1,5 @@
 name: test build for musl
+run-name: test musl
 on:
   push: 
 
@@ -16,10 +17,14 @@ jobs:
         run: |
           sudo apt install musl-tools
           musl-gcc --version
-          musl-gcc -xc - <<EOF
+
+          cat<<EOF>hello.c
           #include <stdio.h>
           int main(){
             printf("Hello World\n");
             return 0;
           }
           EOF
+
+          musl-gcc hello.c
+          file a.out
