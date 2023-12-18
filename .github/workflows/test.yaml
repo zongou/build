@@ -13,6 +13,10 @@ on:
       #   default: "v1.0"
       #   required: true
 
+permissions:
+  contents: write
+  packages: read
+
 jobs:
   build:
     name: "Matrix msg: ${{matrix.msg}}"
@@ -79,10 +83,4 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
-          tag: "v1.0.0"
           artifacts: 'hello.txt'
-          allowUpdates: true
-          replacesArtifacts: true
-          body: |
-            ${{ github.event.head_commit.message }}
-          token: ${{ secrets.GITHUB_TOKEN }}
