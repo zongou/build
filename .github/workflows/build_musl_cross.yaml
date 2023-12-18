@@ -3,7 +3,7 @@ name: Build musl cross
 on:
   push:
     paths:
-      - ".github/workflows/build_musl_corss.yaml"
+      - ".github/workflows/build_musl_cross.yaml"
   workflow_dispatch:
 
 jobs:
