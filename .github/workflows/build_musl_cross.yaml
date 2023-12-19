@@ -55,7 +55,7 @@ jobs:
       - name: Build host toolchain ${{matrix.host}}
         working-directory: musl-cross-make
         run: |
-          make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
+          make install TARGET=${{matrix.host}} OUTPUT=host-toolchain -j$(nproc)
 
       - name: Checkout host toolchain
         working-directory: musl-cross-make
