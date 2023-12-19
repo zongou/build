@@ -73,7 +73,6 @@ jobs:
           ## env havent take effect yet
           echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
           echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
-          echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
 
       - name: Print system info
         run: |
