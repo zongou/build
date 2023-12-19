@@ -82,7 +82,7 @@ jobs:
       - name: Set variable
         run: |
           echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
-          ## env can not be seen
+          ## env havent take effect yet
           echo DATE=${{env.DATE}}
 
           echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
