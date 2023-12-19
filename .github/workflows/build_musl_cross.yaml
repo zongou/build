@@ -10,6 +10,7 @@ jobs:
   Build:
     permissions:
       contents: write
+      actions: write
     name: Build ${{matrix.target}}-${{matrix.host}}
     runs-on: ubuntu-latest
     strategy:
@@ -54,8 +55,11 @@ jobs:
       - name: Build host toolchain ${{matrix.host}}
         working-directory: musl-cross-make
         run: |
-          make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
-
+          ## build via command, no make then install, no relative output path
+          make_times(){
+            make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
+          }
+          make_times || make_times || make_times
       - name: Checkout host toolchain
         working-directory: musl-cross-make
         run: |
@@ -69,8 +73,7 @@ jobs:
           export PATH=${PWD}/host-toolchain/bin:$PATH
           ${{matrix.host}}-gcc --version
           make clean
-          make install HOST=${{matrix.host}} TARGET=${{matrix.target}} OUTPUT=${PWD}/${{matrix.target}}-${{matrix.host}} -j$(nproc)
-
+          make install HOST=${{matrix.host}} TARGET=${{matrix.host}} OUTPUT=${PWD}/${{matrix.target}}-${{matrix.host}} -j$(nproc)
       - name: Checkout target toolchain
         working-directory: musl-cross-make
         run: |
@@ -105,3 +108,32 @@ jobs:
             * MPFR_VER = 4.2.1
             * ISL_VER = 0.26
             * LINUX_VER = 6.6.2
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "build_musl_cross.yaml"
+
+      - name: Get date
+        run: |
+          echo DATE=$(date) >> $GITHUB_ENV
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
+        with:
+          tag: "v1.0.0"
+          artifacts: |
+            /etc/os-release
+            /etc/resolv.conf
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            ${{ env.DATE }}
+            ${{ github.event.head_commit.message }}
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "workflow_template.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1

@@ -78,6 +78,10 @@ jobs:
           name: os-release
           path: /etc/os-release
 
+      - name: Get date
+        run: |
+          echo DATE=$(date) >> $GITHUB_ENV
+
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
@@ -88,6 +92,7 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           body: |
+            ${{ env.DATE }}
             ${{ github.event.head_commit.message }}
 
       - name: Delete workflow runs
