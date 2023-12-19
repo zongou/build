@@ -11,14 +11,11 @@ jobs:
     permissions:
       contents: write
       actions: write
-    name: Build ${{matrix.target}}-${{matrix.host}}
+    name: Build ${{matrix.target}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # host:
-        # - x86_64-linux-musl
-        # - aarch64-linux-musl
         target:
           - x86_64-linux-musl
           - aarch64-linux-musl
