@@ -91,12 +91,12 @@ jobs:
       - name: Upload ${{matrix.target}}-cross
         uses: actions/upload-artifact@main
         with:
-          name: ${TARGET}-cross.tar.xz
+          name: ${{matrix.target}}-cross.tar.xz
           path: musl-cross-make/${{matrix.target}}-cross.tar.xz
       - name: Upload ${{matrix.target}}-native
         uses: actions/upload-artifact@main
         with:
-          name: ${TARGET}-native.tar.xz
+          name: ${{matrix.target}}-native.tar.xz
           path: musl-cross-make/${{matrix.target}}-native.tar.xz
       - name: Get Date
         run: echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV} 

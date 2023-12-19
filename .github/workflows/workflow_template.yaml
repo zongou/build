@@ -48,6 +48,8 @@ jobs:
       - name: Test
         run: |
           echo ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
+          echo GITHUB_RUN_ID=${GITHUB_RUN_ID}
+          echo GITHUB_SERVER_URL=${GITHUB_SERVER_URL}
           command -v upx && upx --version
           command -v clang && clang --version
 
