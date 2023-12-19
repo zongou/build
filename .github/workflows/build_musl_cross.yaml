@@ -134,6 +134,6 @@ jobs:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
         with:
-          delete_workflow_pattern: "workflow_template.yaml"
+          delete_workflow_pattern: "build_musl_cross.yaml"
           retain_days: 0
           keep_minimum_runs: 1
