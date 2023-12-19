@@ -36,37 +36,37 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: Update cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            run_url
-          key: workflow_template-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            workflow_template
-
-      # - name: Restore cache
-      #   id: cache-restore
-      #   uses: actions/cache/restore@v3
+      # - name: Update cache
+      #   uses: actions/cache@v3
       #   with:
       #     path: |
       #       run_url
-      #     key: workflow_template
+      #     key: workflow_template-${{ runner.os }}-${{ github.run_id }}
+      #     restore-keys: |
+      #       workflow_template
+
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            run_url
+          key: workflow_template
 
       - name: Test retored cache and update
         run: |
           test -f run_url && echo "preview run url: $(cat run_url)"
           echo ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}} > run_url
 
-      # - name: Save cache
-      #   id: cache-save
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       run_url
-      #     key: primes-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-      #     restore-keys: |
-      #       ${{steps.cache-restore.outputs.cache-primary-key}}
+      - name: Save cache
+        id: cache-save
+        uses: actions/cache@v3
+        with:
+          path: |
+            run_url
+          key: workflow_template-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ${{steps.cache-restore.outputs.cache-primary-key}}
 
       - name: Set variable
         run: |
