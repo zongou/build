@@ -88,3 +88,10 @@ jobs:
           replacesArtifacts: true
           body: |
             ${{ github.event.head_commit.message }}
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          retain_days: 0
+          keep_minimum_runs: 5
+          dry_run: true # optional
