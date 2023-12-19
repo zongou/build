@@ -67,7 +67,7 @@ jobs:
       - name: Checkout ${{matrix.target}}-cross
         working-directory: musl-cross-make
         run: |
-          ls -al
+          tree -aL 1
           file ${TARGET}-cross/bin/*
       - name: Native build ${{matrix.target}}
         working-directory: musl-cross-make
@@ -80,7 +80,7 @@ jobs:
       - name: Checkout ${{matrix.target}}-native
         working-directory: musl-cross-make
         run: |
-          ls -al
+          tree -aL 1
           file ${TARGET}-native/bin/*
       - name: Compress
         working-directory: musl-cross-make
