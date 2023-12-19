@@ -50,38 +50,18 @@ jobs:
           STAT = -static --static
           FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
 
-          ifneq ($(NATIVE),)
-          COMMON_CONFIG += CC="$(HOST)-gcc ${STAT}" CXX="$(HOST)-g++ ${STAT}" FC="$(HOST)-gfortran ${STAT}"
+          ifneq (\$(NATIVE),)
+          COMMON_CONFIG += CC="\$(HOST)-gcc \${STAT}" CXX="\$(HOST)-g++ \${STAT}" FC="\$(HOST)-gfortran \${STAT}"
           else
-          COMMON_CONFIG += CC="gcc ${STAT}" CXX="g++ ${STAT}" FC="gfortran ${STAT}"
+          COMMON_CONFIG += CC="gcc \${STAT}" CXX="g++ \${STAT}" FC="gfortran \${STAT}"
           endif
 
-          COMMON_CONFIG += CFLAGS="${FLAG}" CXXFLAGS="${FLAG}" FFLAGS="${FLAG}" LDFLAGS="-s ${STAT}"
+          COMMON_CONFIG += CFLAGS="\${FLAG}" CXXFLAGS="\${FLAG}" FFLAGS="\${FLAG}" LDFLAGS="-s \${STAT}"
 
           BINUTILS_CONFIG += --enable-gold=yes
           GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
-
 
           DL_CMD = curl -C - -Ls -o
-
-          STAT = -static --static
-          FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
-
-          ifneq ($(NATIVE),)
-          COMMON_CONFIG += CC="$(HOST)-gcc ${STAT}" CXX="$(HOST)-g++ ${STAT}" FC="$(HOST)-gfortran ${STAT}"
-          else
-          COMMON_CONFIG += CC="gcc ${STAT}" CXX="g++ ${STAT}" FC="gfortran ${STAT}"
-          endif
-
-          COMMON_CONFIG += CFLAGS="${FLAG}" CXXFLAGS="${FLAG}" FFLAGS="${FLAG}" LDFLAGS="-s ${STAT}"
-
-          BINUTILS_CONFIG += --enable-gold=yes
-          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
-
-
-          STAT = -static --static
-          COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
-          BINUTILS_CONFIG += --disable-gprofng
           EOF
 
       - name: Build host toolchain ${{matrix.host}}
