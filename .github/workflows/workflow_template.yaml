@@ -108,10 +108,10 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           body: |
+            [action](${{env.GITHUB_RUN_URL}})
             ${{env.DATE}}
             ${{env.WORKFLOW_FILENAME}}
             ${{github.event.head_commit.message}}
-            [action](${{env.GITHUB_RUN_URL}})
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
