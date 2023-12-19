@@ -36,6 +36,23 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
+
+      - name: Set variable
+        run: |
+          ## env havent take effect yet
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
+          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
+          echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
+
+          echo ${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} > run_url
+
+      - name: Cache Primes
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: run_url
+          key: workflow_template
+
       - name: Print system info
         run: |
           cat /etc/os-release
@@ -78,13 +95,6 @@ jobs:
           cat <<EOF
           heredoc quoted <<"EOF" ${PWD}
           EOF
-
-      - name: Set variable
-        run: |
-          ## env havent take effect yet
-          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
-          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
-          echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
 
       - name: Print the variables we set
         run: |
