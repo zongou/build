@@ -36,25 +36,14 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: Update cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            run_url
-          key: workflow_template-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            workflow_template
-
-      - name: Test retored cache and update
-        run: |
-          test -f run_url && echo "preview run url: $(cat run_url)"
-
-      - name: Set variable
-        run: |
-          ## env havent take effect yet
-          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
-          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
-          echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
+      # - name: Update cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       run_url
+      #     key: workflow_template-${{ runner.os }}-${{ github.run_id }}
+      #     restore-keys: |
+      #       workflow_template
 
       - name: Restore cache
         id: cache-restore
@@ -63,6 +52,10 @@ jobs:
           path: |
             run_url
           key: workflow_template
+
+      - name: Test retored cache and update
+        run: |
+          test -f run_url && echo "preview run url: $(cat run_url)"
 
       - name: Save cache
         id: cache-save
@@ -73,7 +66,14 @@ jobs:
           key: primes-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
             ${{steps.cache-restore.outputs.cache-primary-key}}
-          
+
+      - name: Set variable
+        run: |
+          ## env havent take effect yet
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
+          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
+          echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
+
       - name: Print system info
         run: |
           cat /etc/os-release
