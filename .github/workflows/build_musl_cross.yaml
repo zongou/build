@@ -16,12 +16,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        host:
-          # - x86_64-linux-musl
-          - aarch64-linux-musl
+        # host:
+        # - x86_64-linux-musl
+        # - aarch64-linux-musl
         target:
-          # - x86_64-linux-musl
+          - x86_64-linux-musl
           - aarch64-linux-musl
+    env:
+      TARGET: ${{matrix.target}}
 
     steps:
       - name: Clone musl-cross-make
@@ -33,11 +35,10 @@ jobs:
           ## Tar no verbose
           cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
           mv Makefile_tmp Makefile
-
       - name: Write config.mak
         working-directory: musl-cross-make
         run: |
-          cat<<'EOF'>config.mak
+          cat<<EOF>config.mak
           BINUTILS_VER = 2.41
           GCC_VER = 13.2.0
           MUSL_VER = 1.2.4
@@ -46,91 +47,72 @@ jobs:
           MPFR_VER = 4.2.1
           ISL_VER = 0.26
           LINUX_VER = 6.6.2
-
-          STAT = -static --static
-          FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
-
-          ifneq (\$(NATIVE),)
-          COMMON_CONFIG += CC="\$(HOST)-gcc \${STAT}" CXX="\$(HOST)-g++ \${STAT}" FC="\$(HOST)-gfortran \${STAT}"
-          else
-          COMMON_CONFIG += CC="gcc \${STAT}" CXX="g++ \${STAT}" FC="gfortran \${STAT}"
-          endif
-
-          COMMON_CONFIG += CFLAGS="\${FLAG}" CXXFLAGS="\${FLAG}" FFLAGS="\${FLAG}" LDFLAGS="-s \${STAT}"
-
-          BINUTILS_CONFIG += --enable-gold=yes
-          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
-
           DL_CMD = curl -C - -Ls -o
+          STAT = -static --static
+          COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
+          BINUTILS_CONFIG += --disable-gprofng
           EOF
-
-      - name: Build host toolchain ${{matrix.host}}
+      - name: Cross build ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           ## build via command, no make then install, no relative output path
           make_fail_retry(){
-            make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
+            make_command(){
+              make install \
+                TARGET=${TARGET} OUTPUT=${PWD}/${TARGET}-cross \
+                -j$(nproc)
+            }
+            make_command || make_command || make_command
           }
-          make_fail_retry || make_fail_retry || make_fail_retry
 
+          make_fail_retry
+          rm -rf build/local/${TARGET}
       - name: Checkout host toolchain
         working-directory: musl-cross-make
         run: |
-          ls -a1
-          file host-toolchain/bin/*
-
-      - name: Build target toolchain ${{matrix.target}}
+          ls -al
+          file ${TARGET}-cross/bin/*
+      - name: Native build ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           sudo apt install qemu-user-static binfmt-support
-
-          export PATH=${PWD}/host-toolchain/bin:$PATH
-          HOST=${{matrix.host}}
-          TARGET=${{matrix.target}}
-          CC=${HOST}-gcc
-          CXX=${HOST}-g++
-
-          if test "${HOST}x" = "${TARGET}x"; then
-            OUTPUT="${PWD}/${HOST}"
-          else
-            OUTPUT="${PWD}/${TARGET}-${HOST}"
-          fi
-          echo OUTPUT=${OUTPUT} >> ${GITHUB_ENV}
-          echo OUTPUT_DIRNAME=$(dirname ${OUTPUT}) >> ${GITHUB_ENV}
-
-          make clean
-          make install \
-            HOST=${HOST} \
-            TARGET=${TARGET} \
-            OUTPUT="${OUTPUT}" \
-            -j$(nproc)
-
+          export PATH=${PWD}/${TARGET}-cross/bin:$PATH
+          make install NATIVE=1 \
+            TARGET=${TARGET} CROSS_COMPILE=${TARGET}- OUTPUT=${PWD}/${TARGET}-native \
+            -j$(($(nproc) - 1))
       - name: Checkout target toolchain
         working-directory: musl-cross-make
         run: |
-          ls -a1
-          file ${{env.OUTPUT_DIRNAME}}/bin/*
-
-      - name: Compress ${{env.OUTPUT_DIRNAME}}
+          ls -al
+          file ${TARGET}-native/bin/*
+      - name: Compress
         working-directory: musl-cross-make
         run: |
-          tar -c ${{env.OUTPUT_DIRNAME}} | xz -T0 > ${{env.OUTPUT_DIRNAME}}.tar.xz
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+          tar -c ${TARGET}-cross | xz -T0 > ${TARGET}-cross.tar.xz
+          tar -c ${TARGET}-native | xz -T0 > ${TARGET}-native.tar.xz
+      - name: Upload ${{matrix.target}}-cross
+        uses: actions/upload-artifact@main
         with:
-          name: ${{env.OUTPUT_DIRNAME}}.tar.xz
-          path: ${{env.OUTPUT_DIRNAME}}.tar.xz
-
+          name: ${TARGET}-cross.tar.xz
+          path: musl-cross-make/${{matrix.target}}-cross.tar.xz
+      - name: Upload ${{matrix.target}}-native
+        uses: actions/upload-artifact@main
+        with:
+          name: ${TARGET}-native.tar.xz
+          path: musl-cross-make/${{matrix.target}}-native.tar.xz
+      - name: Get Date
+        run: echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV} 
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
           tag: "v1.0.0"
           artifacts: |
-            ${{env.OUTPUT_DIRNAME}}.tar.xz
+            musl-cross-make/${{matrix.target}}-cross.tar.xz
+            musl-cross-make/${{matrix.target}}-native.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
+            ${{env.DATE}}
             * BINUTILS_VER = 2.41
             * GCC_VER = 13.2.0
             * MUSL_VER = 1.2.4
@@ -139,29 +121,6 @@ jobs:
             * MPFR_VER = 4.2.1
             * ISL_VER = 0.26
             * LINUX_VER = 6.6.2
-
-      - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@v2.0.6
-        with:
-          delete_workflow_pattern: "build_musl_cross.yaml"
-
-      - name: Get date
-        run: |
-          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> $GITHUB_ENV
-
-      - name: Upload release
-        uses: ncipollo/release-action@v1.13.0
-        with:
-          tag: "v1.0.0"
-          artifacts: |
-            /etc/os-release
-            /etc/resolv.conf
-          allowUpdates: true
-          replacesArtifacts: true
-          body: |
-            ${{ env.DATE }}
-            ${{ github.event.head_commit.message }}
-
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
         with:
