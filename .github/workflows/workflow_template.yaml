@@ -44,14 +44,28 @@ jobs:
           echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
           echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
 
-          echo ${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} > run_url
-
-      - name: Cache test
-        id: cache-primes
-        uses: actions/cache@v3
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v3
         with:
-          path: run_url
+          path: |
+            run_url
           key: workflow_template
+
+      - name: Test retored cache and create new
+        run: |
+          test -f run_url && echo "preview run url: $(cat run_url)"
+          echo ${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} > run_url
+          echo steps.cache-restore.outputs.cache-primary-key=${{steps.cache-restore.outputs.cache-primary-key}}
+
+      - name: Save cache
+        id: cache-save
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            path/to/dependencies
+            some/other/dependencies
+          key: ${{steps.cache-restore.outputs.cache-primary-key}}
 
       - name: Print system info
         run: |
