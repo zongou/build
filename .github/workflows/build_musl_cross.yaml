@@ -10,16 +10,17 @@ jobs:
   Build:
     permissions:
       contents: write
+      actions: write
     name: Build ${{matrix.target}}-${{matrix.host}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         host:
-          # - x86_64-linux-musl
+          - x86_64-linux-musl
           - aarch64-linux-musl
         target:
-          # - x86_64-linux-musl
+          - x86_64-linux-musl
           - aarch64-linux-musl
 
     steps:
@@ -52,28 +53,28 @@ jobs:
           COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" LDFLAGS="-w -s \${STAT}"
           BINUTILS_CONFIG += --disable-gprofng
           EOF
-      - name: Build host toolchain ${{matrix.host}}
-        working-directory: musl-cross-make
-        run: |
-          make TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
-          make install
 
-      - name: Checkout host toolchain
-        working-directory: musl-cross-make
-        run: |
-          ls -al
-          file host-toolchain/bin/*
+      # - name: Build host toolchain ${{matrix.host}}
+      #   working-directory: musl-cross-make
+      #   run: |
+      #     ## build via command, no make then install, no relative output path
+      #     make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
+
+      # - name: Checkout host toolchain
+      #   working-directory: musl-cross-make
+      #   run: |
+      #     ls -al
+      #     file host-toolchain/bin/*
 
       - name: Build target toolchain ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           sudo apt install qemu-user-static binfmt-support
-          export PATH=${PWD}/host-toolchain/bin:$PATH
+          # export PATH=${PWD}/host-toolchain/bin:$PATH
+          # ${{matrix.host}}-gcc --version
 
-          ${{matrix.host}}-gcc --version
           make clean
-          make install HOST=${{matrix.host}} TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
-          mv output ${{matrix.target}}-${{matrix.host}}
+          make install HOST=${{matrix.host}} TARGET=${{matrix.host}} OUTPUT=${PWD}/${{matrix.target}}-${{matrix.host}} -j$(nproc)
 
       - name: Checkout target toolchain
         working-directory: musl-cross-make
@@ -109,3 +110,10 @@ jobs:
             * MPFR_VER = 4.2.1
             * ISL_VER = 0.26
             * LINUX_VER = 6.6.2
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "build_musl_cross.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1
