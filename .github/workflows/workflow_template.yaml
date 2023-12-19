@@ -79,9 +79,13 @@ jobs:
           name: os-release
           path: /etc/os-release
 
-      - name: Get date
+      - name: Set variable
         run: |
-          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> $GITHUB_ENV
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
+          echo DATE=${{env.DATE}}
+
+          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
+          echo WORKFLOW_FILENAME=${{env.WORKFLOW_FILENAME}}
 
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
