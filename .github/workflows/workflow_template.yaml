@@ -67,6 +67,7 @@ jobs:
           key: workflow_template-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             ${{steps.cache-restore.outputs.cache-primary-key}}
+            workflow_template
 
       - name: Set variable
         run: |
