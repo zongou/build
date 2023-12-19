@@ -37,9 +37,9 @@ jobs:
           # ref: ${{github.event.inputs.tag}}
 
       - uses: actions/cache@v3
-        id: cache
         with:
-          path: path/to/dependencies
+          path: |
+            run_url
           key: workflow_template-${{github.run_id}}
           restore-keys: workflow_template
 
