@@ -70,7 +70,7 @@ jobs:
           STAT = -static --static
           FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
 
-          ifneq ($(NATIVE),)
+          ifneq (\$(NATIVE),)
           COMMON_CONFIG += CC="\$(HOST)-gcc \${STAT}" CXX="\$(HOST)-g++ \${STAT}" FC="\$(HOST)-gfortran \${STAT}"
           else
           COMMON_CONFIG += CC="gcc \${STAT}" CXX="g++ \${STAT}" FC="gfortran \${STAT}"
