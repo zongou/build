@@ -98,7 +98,7 @@ jobs:
         working-directory: musl-cross-make
         run: |
           ls -a1
-          file ${{OUTPUT_DIRNAME}}/bin/*
+          file ${{env.OUTPUT_DIRNAME}}/bin/*
 
       - name: Compress ${{env.OUTPUT_DIRNAME}}
         working-directory: musl-cross-make
