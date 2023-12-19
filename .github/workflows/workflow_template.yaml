@@ -80,7 +80,7 @@ jobs:
 
       - name: Get date
         run: |
-          echo DATE=$(date) >> $GITHUB_ENV
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> $GITHUB_ENV
 
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
