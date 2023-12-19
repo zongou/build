@@ -64,7 +64,7 @@ jobs:
 
           make_fail_retry
           rm -rf build/local/${TARGET}
-      - name: Checkout host toolchain
+      - name: Checkout ${{matrix.target}}-cross
         working-directory: musl-cross-make
         run: |
           ls -al
@@ -77,7 +77,7 @@ jobs:
           make install NATIVE=1 \
             TARGET=${TARGET} CROSS_COMPILE=${TARGET}- OUTPUT=${PWD}/${TARGET}-native \
             -j$(($(nproc) - 1))
-      - name: Checkout target toolchain
+      - name: Checkout ${{matrix.target}}-native
         working-directory: musl-cross-make
         run: |
           ls -al
