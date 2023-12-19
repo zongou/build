@@ -95,4 +95,3 @@ jobs:
           delete_workflow_pattern: "workflow_template.yaml"
           retain_days: 0
           keep_minimum_runs: 1
-          dry_run: false
