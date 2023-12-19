@@ -16,10 +16,10 @@ jobs:
       fail-fast: false
       matrix:
         host:
-          - x86_64-linux-musl
+          # - x86_64-linux-musl
           - aarch64-linux-musl
         target:
-          - x86_64-linux-musl
+          # - x86_64-linux-musl
           - aarch64-linux-musl
 
     steps:
@@ -56,13 +56,13 @@ jobs:
         working-directory: musl-cross-make
         run: |
           make TARGET=${{matrix.host}} -j$(nproc)
-          make install
-          mv output ${{matrix.host}}-host
 
       - name: Checkout host toolchain
         working-directory: musl-cross-make
         run: |
           ls -al
+          make install
+          mv output ${{matrix.host}}-host
           file ${{matrix.host}}-host/bin/*
 
       - name: Build target toolchain ${{matrix.target}}
