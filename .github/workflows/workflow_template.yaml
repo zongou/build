@@ -133,7 +133,7 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           body: |
-            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${github.run_id})
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
             ${{env.DATE}}
             ${{env.WORKFLOW_FILENAME}}
             ${{github.event.head_commit.message}}
