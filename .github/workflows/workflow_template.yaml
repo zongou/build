@@ -73,19 +73,22 @@ jobs:
 
           heredoc
 
+      - name: Set variable
+        run: |
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
+          ## env havent take effect yet
+          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
+
+      - name: Print the variables we set
+        run: |
+          echo DATE=${{env.DATE}}
+          echo WORKFLOW_FILENAME=${{env.WORKFLOW_FILENAME}}
+
       - name: Upload
         uses: actions/upload-artifact@main
         with:
           name: os-release
           path: /etc/os-release
-
-      - name: Set variable
-        run: |
-          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
-          ## env havent take effect yet
-          echo DATE=${{env.DATE}}
-
-          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
 
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
