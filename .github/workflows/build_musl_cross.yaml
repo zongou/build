@@ -27,10 +27,10 @@ jobs:
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
-      - name: Configure caching 
+      - name: Cache Primes
+        id: cache-primes
         uses: actions/cache@v3
         with:
-          key: build_musl_cross
           path: |
             Sources/
             output/
@@ -44,8 +44,8 @@ jobs:
             linux-*/
             isl-*/
             build/
-          restore-keys: |
-           build_musl_cross
+
+          key: build_musl_cross
 
       - name: Patch source
         working-directory: musl-cross-make
