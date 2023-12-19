@@ -1,5 +1,5 @@
 name: Workflow template
-run-name: ${{format('Workflow template ({0})}', github.event.head_commit.message)}}
+run-name: Workflow template (${{github.event.head_commit.message}})
 on:
   push:
     paths: ".github/workflows/workflow_template.yaml"
@@ -47,6 +47,7 @@ jobs:
 
       - name: Test
         run: |
+          echo ${{format('Workflow template ({0})}', 'Mona', 'the', 'Octocat')}}
           command -v upx && upx --version
           command -v clang && clang --version
 
@@ -103,9 +104,9 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           body: |
-            ${{ env.DATE }}
+            ${{env.DATE}}
             ${{env.WORKFLOW_FILENAME}}
-            ${{ github.event.head_commit.message }}
+            ${{github.event.head_commit.message}}
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
