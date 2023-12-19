@@ -58,7 +58,10 @@ jobs:
         working-directory: musl-cross-make
         run: |
           ## build via command, no make then install, no relative output path
-          make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
+          make_times(){
+            make install TARGET=${{matrix.host}} OUTPUT=${PWD}/host-toolchain -j$(nproc)
+          }
+          make_times || make_times || make_times
 
       - name: Checkout host toolchain
         working-directory: musl-cross-make
