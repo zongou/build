@@ -1,5 +1,5 @@
 name: Workflow template
-run-name: ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
+run-name: ${{format('Workflow template ({0})}', github.event.head_commit.message)}}
 on:
   push:
     paths: ".github/workflows/workflow_template.yaml"
