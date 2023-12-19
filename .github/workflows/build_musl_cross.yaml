@@ -27,6 +27,26 @@ jobs:
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: build_musl_cross
+          path: |
+            Sources/
+            output/
+            binutils-*/
+            gcc-*/
+            musl-*/
+            gmp-*/
+            mpc-*/
+            mpfr-*/
+            build-*/
+            linux-*/
+            isl-*/
+            build/
+          restore-keys: |
+           build_musl_cross
+
       - name: Patch source
         working-directory: musl-cross-make
         run: |
@@ -65,16 +85,10 @@ jobs:
         working-directory: musl-cross-make
         run: |
           ## build via command, no make then install, no relative output path
-          make_fail_retry(){
-            make_command(){
-              make install \
-                TARGET=${TARGET} OUTPUT=${PWD}/${TARGET}-cross \
-                -j$(nproc)
-            }
-            make_command || make_command || make_command
-          }
+          make install \
+            TARGET=${TARGET} OUTPUT=${PWD}/${TARGET}-cross \
+            -j$(nproc)
 
-          make_fail_retry
           rm -rf build/local/${TARGET}
       - name: Checkout ${{matrix.target}}-cross
         working-directory: musl-cross-make
