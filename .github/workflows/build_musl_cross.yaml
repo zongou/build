@@ -110,7 +110,7 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           body: |
-            ${{env.DATE}}
+            ${{env.DATE}} [action](https://github.com/${{github.repository}}/actions/runs/${{env.GITHUB_RUN_ID}})
             * BINUTILS_VER = 2.41
             * GCC_VER = 13.2.0
             * MUSL_VER = 1.2.4
