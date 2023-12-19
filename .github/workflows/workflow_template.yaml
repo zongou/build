@@ -52,25 +52,29 @@ jobs:
 
           tree -L 2 ${GITHUB_WORKSPACE}
 
-          heredoc(){
             cat <<EOF
-          heredoc_content
+          heredoc <<EOF ${PWD}
           EOF
 
             cat <<EOF
-            heredoc_content
+            heredoc tab <<EOF ${PWD}
           EOF
 
             cat <<-EOF
-          heredoc_content
+          heredoc <<-EOF ${PWD}
           EOF
 
           cat <<-EOF
-            heredoc_content
+            heredoc tab <<-EOF ${PWD}
           EOF
-          }
 
-          heredoc
+          cat <<EOF
+          heredoc quoted <<'EOF' ${PWD}
+          EOF
+
+          cat <<EOF
+          heredoc quoted <<"EOF" ${PWD}
+          EOF
 
       - name: Set variable
         run: |

@@ -37,7 +37,7 @@ jobs:
       - name: Write config.mak
         working-directory: musl-cross-make
         run: |
-          cat<<EOF>config.mak
+          cat<<'EOF'>config.mak
           BINUTILS_VER = 2.41
           GCC_VER = 13.2.0
           MUSL_VER = 1.2.4
@@ -46,7 +46,39 @@ jobs:
           MPFR_VER = 4.2.1
           ISL_VER = 0.26
           LINUX_VER = 6.6.2
+
+          STAT = -static --static
+          FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
+
+          ifneq ($(NATIVE),)
+          COMMON_CONFIG += CC="$(HOST)-gcc ${STAT}" CXX="$(HOST)-g++ ${STAT}" FC="$(HOST)-gfortran ${STAT}"
+          else
+          COMMON_CONFIG += CC="gcc ${STAT}" CXX="g++ ${STAT}" FC="gfortran ${STAT}"
+          endif
+
+          COMMON_CONFIG += CFLAGS="${FLAG}" CXXFLAGS="${FLAG}" FFLAGS="${FLAG}" LDFLAGS="-s ${STAT}"
+
+          BINUTILS_CONFIG += --enable-gold=yes
+          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
+
+
           DL_CMD = curl -C - -Ls -o
+
+          STAT = -static --static
+          FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
+
+          ifneq ($(NATIVE),)
+          COMMON_CONFIG += CC="$(HOST)-gcc ${STAT}" CXX="$(HOST)-g++ ${STAT}" FC="$(HOST)-gfortran ${STAT}"
+          else
+          COMMON_CONFIG += CC="gcc ${STAT}" CXX="g++ ${STAT}" FC="gfortran ${STAT}"
+          endif
+
+          COMMON_CONFIG += CFLAGS="${FLAG}" CXXFLAGS="${FLAG}" FFLAGS="${FLAG}" LDFLAGS="-s ${STAT}"
+
+          BINUTILS_CONFIG += --enable-gold=yes
+          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
+
+
           STAT = -static --static
           COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
           BINUTILS_CONFIG += --disable-gprofng
@@ -88,10 +120,9 @@ jobs:
 
           make clean
           make install \
+            HOST=${HOST} \
             TARGET=${TARGET} \
             OUTPUT="${OUTPUT}" \
-            CC=${CC} \
-            CXX=${CXX} \
             -j$(nproc)
 
       - name: Checkout target toolchain
