@@ -17,6 +17,7 @@ on:
 jobs:
   build:
     permissions:
+      actions: write
       contents: write
     name: "Matrix msg: ${{matrix.msg}}"
     runs-on: ubuntu-latest
