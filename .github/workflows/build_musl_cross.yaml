@@ -47,7 +47,7 @@ jobs:
           LINUX_VER = 6.6.2
           DL_CMD = curl -C - -Ls -o
           STAT = -static --static
-          COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" LDFLAGS="-w -s \${STAT}"
+          COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
           BINUTILS_CONFIG += --disable-gprofng
           EOF
 
