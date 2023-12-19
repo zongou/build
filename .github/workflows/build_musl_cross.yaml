@@ -55,21 +55,20 @@ jobs:
       - name: Build host toolchain ${{matrix.host}}
         working-directory: musl-cross-make
         run: |
-          make TARGET=${{matrix.host}} -j$(nproc)
+          make TARGET=${{matrix.host}} OUTPUT=host-toolchain -j$(nproc)
 
       - name: Checkout host toolchain
         working-directory: musl-cross-make
         run: |
           ls -al
           make install
-          mv output ${{matrix.host}}-host
-          file ${{matrix.host}}-host/bin/*
+          file host-toolchain/bin/*
 
       - name: Build target toolchain ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           sudo apt install qemu-user-static binfmt-support
-          export PATH=${PWD}/${{matrix.host}}-host/bin:$PATH
+          export PATH=${PWD}/host-toolchain/bin:$PATH
 
           ${{matrix.host}}-gcc --version
           make clean
