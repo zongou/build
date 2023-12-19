@@ -81,16 +81,16 @@ jobs:
 
       - name: Set variable
         run: |
-          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
           ## env havent take effect yet
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
           echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
-          echo GITHUB_RUN_ID=${GITHUB_RUN_ID} >> ${GITHUB_ENV}
+          echo GITHUB_RUN_URL=${GITHUB_SERVER_URL}/${{github.repository}}/actions/runs/${GITHUB_RUN_ID} >> ${GITHUB_ENV}
 
       - name: Print the variables we set
         run: |
           echo DATE=${{env.DATE}}
           echo WORKFLOW_FILENAME=${{env.WORKFLOW_FILENAME}}
-          echo https://github.com/${{github.repository}}/actions/runs/${{env.GITHUB_RUN_ID}}
+          echo GITHUB_RUN_URL=${{env.GITHUB_RUN_URL}}
 
       - name: Upload
         uses: actions/upload-artifact@main
@@ -111,7 +111,7 @@ jobs:
             ${{env.DATE}}
             ${{env.WORKFLOW_FILENAME}}
             ${{github.event.head_commit.message}}
-            [action](https://github.com/${{github.repository}}/actions/runs/${{env.GITHUB_RUN_ID}})
+            [action](${{env.GITHUB_RUN_URL}})
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
