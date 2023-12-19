@@ -47,7 +47,7 @@ jobs:
 
       - name: Test
         run: |
-          echo ${{format('Workflow template ({0})}', 'Mona', 'the', 'Octocat')}}
+          echo "${{format('Workflow template ({0})}', 'Mona', 'the', 'Octocat')}}"
           command -v upx && upx --version
           command -v clang && clang --version
 
