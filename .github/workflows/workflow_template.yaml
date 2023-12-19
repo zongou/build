@@ -47,7 +47,6 @@ jobs:
 
       - name: Test
         run: |
-          echo GITHUB_WORKFLOW=${GITHUB_WORKFLOW}
           command -v upx && upx --version
           command -v clang && clang --version
 
