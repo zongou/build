@@ -49,6 +49,9 @@ jobs:
           STAT = -static --static
           COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
           BINUTILS_CONFIG += --disable-gprofng
+
+          BINUTILS_CONFIG += --enable-gold=yes
+          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
           EOF
       - name: Cross build ${{matrix.target}}
         working-directory: musl-cross-make
