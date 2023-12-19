@@ -36,13 +36,14 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: Cache
+      - name: Update cache
         uses: actions/cache@v3
         with:
           path: |
             run_url
-          key: workflow_template-${{github.run_id}}
-          restore-keys: workflow_template
+          key: workflow_template-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            workflow_template
 
       - name: Test retored cache and update
         run: |
