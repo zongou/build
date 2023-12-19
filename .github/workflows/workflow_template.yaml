@@ -43,6 +43,10 @@ jobs:
           key: workflow_template-${{github.run_id}}
           restore-keys: workflow_template
 
+      - name: Test retored cache and update
+        run: |
+          test -f run_url && echo "preview run url: $(cat run_url)"
+
       - name: Set variable
         run: |
           ## env havent take effect yet
@@ -58,9 +62,6 @@ jobs:
       #       run_url
       #     key: workflow_template
 
-      - name: Test retored cache and create new
-        run: |
-          test -f run_url && echo "preview run url: $(cat run_url)"
 
       # - name: Save cache
       #   id: cache-save
