@@ -133,7 +133,7 @@ jobs:
             ${{env.WORKFLOW_FILENAME}}
             ${{github.event.head_commit.message}}
             https://github.com/zongou/actions/actions/runs/7267285191
-            ${{vars.}}/${github.repository}/actions/${GITHUB_RUN_ID}
+            ${{GITHUB_SERVER_URL}}/${{github.repository}}/actions/${{GITHUB_RUN_ID}}
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
