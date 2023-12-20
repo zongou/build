@@ -63,15 +63,36 @@ jobs:
           BINUTILS_CONFIG += --disable-gprofng
           GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet --with-sysroot=/\${TARGET}
           EOF
-      - name: Cross build ${{matrix.target}}
+      # - name: Cross build ${{matrix.target}}
+      #   working-directory: musl-cross-make
+      #   run: |
+      #     ## build via command, no make then install, no relative output path
+      #     make install \
+      #       TARGET=${TARGET} OUTPUT=${PWD}/${TARGET}-cross \
+      #       -j$(nproc)
+      #     rm -rf build/local/${TARGET}
+      - name: Caching toolchain
+        id: cache-toolchain
+        uses: actions/cache@v3
+        with:
+          path: |
+            musl-cross-make/sources/
+          key: toolchain-${{hashFiles('musl-cross-make/bootstrap_toolchain/')}}
+          restore-keys: |
+            toolchain-${{hashFiles('musl-cross-make/bootstrap_toolchain/')}}
+      - name: Setup Bootstrap toolchain if cache misses
+        if: steps.cache-toolchain.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p bootstrap_toolchain
+          curl -Lk "https://musl.cc/$(uname -a)-linux-musl-native.tgz" | gzip -d | tar -C bootstrap_toolchain
+      - name: Bootstrap Cross build ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
           ## build via command, no make then install, no relative output path
+          export PATH=${PWD}/bootstrap_toolchain/$(uname -a)-linux-musl-native/bin:${PATH}
           make install \
             TARGET=${TARGET} OUTPUT=${PWD}/${TARGET}-cross \
             -j$(nproc)
-
-          rm -rf build/local/${TARGET}
       - name: Checkout ${{matrix.target}}-cross
         working-directory: musl-cross-make
         run: |
@@ -90,7 +111,6 @@ jobs:
         run: |
           tree -aL 1
           file ${TARGET}-native/bin/*
-          mv ../in
       - name: Compress
         working-directory: musl-cross-make
         run: |
