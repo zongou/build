@@ -51,7 +51,7 @@ jobs:
       #   with:
       #     path: |
       #       run_url
-      #     key: workflow_template
+      #     key: workflow_template-
 
       - name: Test retored cache and update
         run: |
@@ -66,8 +66,7 @@ jobs:
       #       run_url
       #     key: workflow_template-${{ runner.os }}-${{ github.run_id }}
       #     restore-keys: |
-      #       ${{steps.cache-restore.outputs.cache-primary-key}}
-      #       workflow_template
+      #       workflow_template-
 
       - name: Set variable
         run: |
