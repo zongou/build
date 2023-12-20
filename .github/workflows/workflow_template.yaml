@@ -53,12 +53,13 @@ jobs:
       #     path: |
       #       run_url
       #     key: workflow_template-
-
       - name: Run when cache hits
         if: steps.cache-run_url.outputs.cache-hit == 'true'
         run: |
           echo "preview run url: $(cat run_url)"
 
+        # Note cache-hit will only be set to true when a cache hit occurs for the exact key match.
+        # For a partial key match via restore-keys or a cache miss, it will be set to false.
       - name: Run when cache misses
         if: steps.cache-run_url.outputs.cache-hit != 'true'
         run: |
