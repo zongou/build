@@ -35,6 +35,7 @@ jobs:
             musl-cross-make/sources/
           key: build_musl_cross-${{hashFiles('musl-cross-make/sources/*.tar.*')}}
           restore-keys: |
+            build_musl_cross-${{hashFiles('musl-cross-make/sources/*.tar.*')}}
             build_musl_cross-
 
       - name: Patch source
