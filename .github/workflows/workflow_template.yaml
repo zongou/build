@@ -123,7 +123,6 @@ jobs:
         run: |
           echo DATE=${{env.DATE}}
           echo WORKFLOW_FILENAME=${{env.WORKFLOW_FILENAME}}
-          echo GITHUB_RUN_URL=${{env.GITHUB_RUN_URL}}
 
       - name: Upload
         uses: actions/upload-artifact@main
