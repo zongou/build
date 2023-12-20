@@ -59,6 +59,7 @@ jobs:
           STAT = -static --static
           COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
           BINUTILS_CONFIG += --disable-gprofng
+          GCC_CONFIG += --with-sysroot=/\${TARGET}
           EOF
       - name: Cross build ${{matrix.target}}
         working-directory: musl-cross-make
