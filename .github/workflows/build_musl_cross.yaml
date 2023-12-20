@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            musl-cross-make/sources/
+            musl-cross-make/sources/*.tar.*
           key: build_musl_cross-${{hashFiles('musl-cross-make/sources/*.tar.*')}}
           restore-keys: |
             build_musl_cross-${{hashFiles('musl-cross-make/sources/*.tar.*')}}
