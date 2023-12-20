@@ -45,7 +45,7 @@ jobs:
           restore-keys: |
             workflow_template-
 
-      # - name: Restore cache
+      # - name: Restore cached run_url
       #   id: cache-restore
       #   uses: actions/cache/restore@v3
       #   with:
@@ -60,13 +60,12 @@ jobs:
 
       # - name: Save cache
       #   id: cache-save
-      #   uses: actions/cache@v3
+      #   uses: actions/cache/save@v3
       #   with:
       #     path: |
       #       run_url
-      #     key: workflow_template-${{ runner.os }}-${{ github.run_id }}
-      #     restore-keys: |
-      #       workflow_template-
+      #     key: ${{ steps.cache-restore.outputs.cache-primary-key }}
+      #     # key: workflow_template-${{ runner.os }}-${{ github.run_id }}
 
       - name: Set variable
         run: |
