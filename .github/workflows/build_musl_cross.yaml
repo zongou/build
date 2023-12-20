@@ -27,25 +27,15 @@ jobs:
       - name: Clone musl-cross-make
         run: git clone https://github.com/DanielMYT/musl-cross-make
 
-      - name: Cache Primes
-        id: cache-primes
+      - name: Cache sources
+        id: cache-sources
         uses: actions/cache@v3
         with:
           path: |
-            Sources/
-            output/
-            binutils-*/
-            gcc-*/
-            musl-*/
-            gmp-*/
-            mpc-*/
-            mpfr-*/
-            build-*/
-            linux-*/
-            isl-*/
-            build/
-
-          key: build_musl_cross
+            sources/
+          key: build_musl_cross-${{hashFiles('musl-cross-make/sources')}}
+          restore-keys: |
+            build_musl_cross-
 
       - name: Patch source
         working-directory: musl-cross-make
@@ -124,7 +114,7 @@ jobs:
           name: ${{matrix.target}}-native.tar.xz
           path: musl-cross-make/${{matrix.target}}-native.tar.xz
       - name: Get Date
-        run: echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV} 
+        run: echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
