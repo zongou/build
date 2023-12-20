@@ -84,7 +84,7 @@ jobs:
         if: steps.cache-toolchain.outputs.cache-hit != 'true'
         run: |
           mkdir -p bootstrap_toolchain
-          curl -Lk "https://musl.cc/$(uname -a)-linux-musl-native.tgz" | gzip -d | tar -C bootstrap_toolchain -xv
+          curl -Lk "https://musl.cc/$(uname -m)-linux-musl-native.tgz" | gzip -d | tar -C bootstrap_toolchain -xv
       - name: Bootstrap Cross build ${{matrix.target}}
         working-directory: musl-cross-make
         run: |
