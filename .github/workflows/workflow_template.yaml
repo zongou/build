@@ -86,7 +86,7 @@ jobs:
       - name: Test
         run: |
           echo "hash /etc/os-release: ${{hashFiles('/etc/os-release')}}"
-          echo "hash workspace: ${{hashFiles('${GITHUB_WORKSPACE}')}}
+          echo "hash workspace: ${{hashFiles('${GITHUB_WORKSPACE}')}}"
           echo ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
           echo ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
           echo GITHUB_RUN_ID=${GITHUB_RUN_ID}
