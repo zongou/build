@@ -55,21 +55,10 @@ jobs:
           MPFR_VER = 4.2.1
           ISL_VER = 0.26
           LINUX_VER = 6.6.2
-
           DL_CMD = curl -C - -Ls -o
           STAT = -static --static
-          FLAG = -g0 -O2 -fno-align-functions -fno-align-jumps -fno-align-loops -fno-align-labels -Wno-error
-
-          ifneq (\$(NATIVE),)
-          COMMON_CONFIG += CC="\$(HOST)-gcc \${STAT}" CXX="\$(HOST)-g++ \${STAT}" FC="\$(HOST)-gfortran \${STAT}"
-          else
-          COMMON_CONFIG += CC="gcc \${STAT}" CXX="g++ \${STAT}" FC="gfortran \${STAT}"
-          endif
-
-          COMMON_CONFIG += CFLAGS="\${FLAG}" CXXFLAGS="\${FLAG}" FFLAGS="\${FLAG}" LDFLAGS="-s \${STAT}"
-
-          BINUTILS_CONFIG += --enable-gold=yes
-          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet
+          COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
+          BINUTILS_CONFIG += --disable-gprofng
           EOF
       - name: Cross build ${{matrix.target}}
         working-directory: musl-cross-make
@@ -80,9 +69,6 @@ jobs:
             -j$(nproc)
 
           rm -rf build/local/${TARGET}
-      - name: HashFiles ${{hashFiles('musl-cross-make/sources')}}
-        run: |
-          echo "hash source: ${{hashFiles('musl-cross-make/sources')}}"
       - name: Checkout ${{matrix.target}}-cross
         working-directory: musl-cross-make
         run: |
