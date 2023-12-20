@@ -80,6 +80,9 @@ jobs:
             -j$(nproc)
 
           rm -rf build/local/${TARGET}
+      - name: HashFiles ${{hashFiles('musl-cross-make/sources')}}
+        run: |
+          echo "hash source: ${{hashFiles('musl-cross-make/sources')}}"
       - name: Checkout ${{matrix.target}}-cross
         working-directory: musl-cross-make
         run: |
@@ -125,7 +128,7 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           body: |
-            ${{env.DATE}} [action](https://github.com/${{github.repository}}/actions/runs/${{env.GITHUB_RUN_ID}})
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
             * BINUTILS_VER = 2.41
             * GCC_VER = 13.2.0
             * MUSL_VER = 1.2.4
