@@ -60,7 +60,7 @@ jobs:
           STAT = -static --static
           COMMON_CONFIG += CFLAGS="-g0 -Os \${STAT}" CXXFLAGS="-g0 -Os \${STAT}" FFLAGS="\${STAT}" LDFLAGS="-w -s \${STAT}"
           BINUTILS_CONFIG += --disable-gprofng
-          GCC_CONFIG += --with-sysroot=/\${TARGET}
+          GCC_CONFIG += --enable-default-pie --enable-static-pie --disable-cet --with-sysroot=/\${TARGET}
           EOF
       - name: Cross build ${{matrix.target}}
         working-directory: musl-cross-make
@@ -89,6 +89,7 @@ jobs:
         run: |
           tree -aL 1
           file ${TARGET}-native/bin/*
+          mv ../in
       - name: Compress
         working-directory: musl-cross-make
         run: |
