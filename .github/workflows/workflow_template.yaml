@@ -37,6 +37,7 @@ jobs:
           # ref: ${{github.event.inputs.tag}}
 
       - name: Update cache
+        id: cache-run_url
         uses: actions/cache@v3
         with:
           path: |
@@ -53,9 +54,18 @@ jobs:
       #       run_url
       #     key: workflow_template-
 
-      - name: Test retored cache and update
+      - name: Run when cache hits
+        if: steps.cache-run_url.outputs.cache-hit
         run: |
-          test -f run_url && echo "preview run url: $(cat run_url)"
+          echo "preview run url: $(cat run_url)"
+
+      - name: Run when cache misses
+        if: steps.cache-run_url.outputs.cache-hit != 'true'
+        run: |
+          echo "cache misses"
+
+      - name: Update cache
+        run: |
           echo "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}" > run_url
 
       # - name: Save cache
