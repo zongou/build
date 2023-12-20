@@ -43,7 +43,7 @@ jobs:
             run_url
           key: workflow_template-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            workflow_template-${{ runner.os }}-${{ github.run_id }}
+            workflow_template-
 
       # - name: Restore cache
       #   id: cache-restore
