@@ -55,7 +55,7 @@ jobs:
       #     key: workflow_template-
 
       - name: Run when cache hits
-        if: steps.cache-run_url.outputs.cache-hit
+        if: steps.cache-run_url.outputs.cache-hit == 'true'
         run: |
           echo "preview run url: $(cat run_url)"
 
