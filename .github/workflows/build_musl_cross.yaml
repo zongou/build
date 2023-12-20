@@ -41,7 +41,7 @@ jobs:
       - name: Patch source
         working-directory: musl-cross-make
         run: |
-          ls musl-cross-make/sources/
+          ls sources/
           ## Tar no verbose
           cat Makefile | sed 's/tar zxvf/tar zxf/' | sed 's/tar jxvf/tar jxf/' | sed 's/tar Jxvf/tar Jxf/' > Makefile_tmp
           mv Makefile_tmp Makefile
