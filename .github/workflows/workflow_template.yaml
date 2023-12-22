@@ -26,8 +26,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msg:
-          - "Hello matrix!"
+        triples: 
+          - {
+              arch_type: 'aarch64-linux-musl',
+              arch_config: '--with-arch=armv8-a --with-abi=lp64'
+            }
+    env: 
+      msg: "Hello env!"
 
     steps:
       - name: Checkout
@@ -36,7 +41,7 @@ jobs:
           repository: ${{github.repository}}
           # ref: ${{github.event.inputs.tag}}
 
-      - name: Update cache
+      - name: Configure cache
         id: cache-run_url
         uses: actions/cache@v3
         with:
@@ -53,6 +58,7 @@ jobs:
       #     path: |
       #       run_url
       #     key: workflow_template-
+
       - name: Run when cache hits
         if: steps.cache-run_url.outputs.cache-hit == 'true'
         run: |
@@ -69,8 +75,9 @@ jobs:
         run: |
           echo "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}" > run_url
 
-      # - name: Save cache
+      # - name: Cache data if Restoring cache missed
       #   id: cache-save
+      #   if: steps.cache-restore.outputs.cache-hit == 'true'
       #   uses: actions/cache/save@v3
       #   with:
       #     path: |
