@@ -21,17 +21,16 @@ jobs:
       contents: write
     name: "Matrix msg: ${{matrix.msg}}"
     runs-on: ubuntu-latest
-    env:
-      arch: ${{github.event.inputs.msg}}
     strategy:
       fail-fast: false
       matrix:
-        triples: 
+        triples:
           - {
-              arch_type: 'aarch64-linux-musl',
-              arch_config: '--with-arch=armv8-a --with-abi=lp64'
+              arch_type: "aarch64-linux-musl",
+              arch_config: "--with-arch=armv8-a --with-abi=lp64",
             }
-    env: 
+    env:
+      arch: ${{github.event.inputs.msg}}
       msg: "Hello env!"
 
     steps:
@@ -58,7 +57,6 @@ jobs:
       #     path: |
       #       run_url
       #     key: workflow_template-
-
       - name: Run when cache hits
         if: steps.cache-run_url.outputs.cache-hit == 'true'
         run: |
