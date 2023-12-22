@@ -56,7 +56,9 @@ jobs:
       #   with:
       #     path: |
       #       run_url
-      #     key: workflow_template-
+      #     keys: |
+      #       workflow_template-
+
       - name: Run when cache hits
         if: steps.cache-run_url.outputs.cache-hit == 'true'
         run: |
