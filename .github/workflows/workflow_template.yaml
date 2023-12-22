@@ -102,6 +102,7 @@ jobs:
 
       - name: Test
         run: |
+          echo env.msg=${{env.msg}}
           echo "hash run_url: ${{hashFiles('run_url')}}"
           echo "hash .git: ${{hashFiles('.git')}}"
           echo ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
