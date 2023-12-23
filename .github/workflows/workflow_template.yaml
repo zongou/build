@@ -105,14 +105,13 @@ jobs:
 
       - name: Test
         run: |
-          echo \$\{{github.event.workflow}}=${{github.event.workflow}}
-          echo "inputs.msg=${{inputs.msg}}"
-          echo "github.event=${{github.event}}"
-          echo "toJSON(github.event)=${{toJSON(github.event)}}"
+          echo "\$\{{github.event.workflow}}=${{github.event.workflow}}"
+          echo "\$\{{inputs.msg}}=${{inputs.msg}}"
+          echo "\$\{{toJSON(github.event)}}=${{toJSON(github.event)}}"
           ${{env.greet_func}}
-          echo env.msg=${{env.msg}}
-          echo "hash run_url: ${{hashFiles('run_url')}}"
-          echo "hash .git: ${{hashFiles('.git')}}"
+          echo "\$\{{env.msg}}=${{env.msg}}"
+          echo "\$\{{hashFiles('run_url')}}=${{hashFiles('run_url')}}"
+          echo "\$\{{hashFiles('.git')}}=${{hashFiles('.git')}}"
           echo ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
           echo ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
           echo GITHUB_RUN_ID=${GITHUB_RUN_ID}
