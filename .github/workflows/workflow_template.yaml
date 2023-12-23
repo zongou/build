@@ -19,7 +19,7 @@ jobs:
     permissions:
       actions: write
       contents: write
-    name: "Matrix msg: ${{matrix.msg}}"
+    name: "Matrix msg: ${{matrix.triples.arch_type}}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -32,6 +32,11 @@ jobs:
     env:
       arch: ${{github.event.inputs.msg}}
       msg: "Hello env!"
+      greet_func: |
+        greet_func(){
+          echo "Hello greet_fun in env"
+        }
+        greet_func
 
     steps:
       - name: Checkout
@@ -101,6 +106,7 @@ jobs:
 
       - name: Test
         run: |
+          ${{env.greet_func}}
           echo env.msg=${{env.msg}}
           echo "hash run_url: ${{hashFiles('run_url')}}"
           echo "hash .git: ${{hashFiles('.git')}}"
