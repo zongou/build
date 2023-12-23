@@ -62,7 +62,6 @@ jobs:
       #     path: |
       #       run_url
       #     key: workflow_template-
-
       - name: Run when cache hits
         if: steps.cache-run_url.outputs.cache-hit == 'true'
         run: |
@@ -106,6 +105,9 @@ jobs:
 
       - name: Test
         run: |
+          echo inputs.msg=${{inputs.msg}}
+          echo github.event=${{github.event}}
+          echo toJSON(github.event)=${{toJSON(github.event)}}
           ${{env.greet_func}}
           echo env.msg=${{env.msg}}
           echo "hash run_url: ${{hashFiles('run_url')}}"
