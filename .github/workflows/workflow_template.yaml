@@ -105,7 +105,7 @@ jobs:
 
       - name: Test
         run: |
-          echo \${{github.event.workflow}}=${{github.event.workflow}}
+          echo \$\{{github.event.workflow}}=${{github.event.workflow}}
           echo "inputs.msg=${{inputs.msg}}"
           echo "github.event=${{github.event}}"
           echo "toJSON(github.event)=${{toJSON(github.event)}}"
