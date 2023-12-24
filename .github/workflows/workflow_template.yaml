@@ -30,8 +30,8 @@ jobs:
               arch_config: "--with-arch=armv8-a --with-abi=lp64",
             }
     env:
-      arch: ${{github.event.inputs.msg}}
-      msg: "Hello env!"
+      arch: ${{github.event.inputs.msg || 'Hello arch!'}}
+      msg: ${{ github.event.inputs.msg || 'Hello env!'}}
       greet_func: |
         greet_func(){
           echo "Hello greet_fun in env"
