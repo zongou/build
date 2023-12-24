@@ -32,6 +32,10 @@ jobs:
     permissions:
       actions: write
       contents: write
+    # defaults:
+      # run:
+        # shell: bash
+        # working-directory: ./scripts
     name: "Matrix msg: ${{matrix.triples.arch_type}}"
     runs-on: ubuntu-latest
     strategy:
