@@ -7,8 +7,8 @@ on:
     inputs:
       msg:
         description: "message:"
-        default: "Hello World!"
-        required: true
+        default: "dispatch input msg!"
+        required: false
       # tag:
       #   description: "Release tag:"
       #   default: "v1.0"
@@ -30,8 +30,8 @@ jobs:
               arch_config: "--with-arch=armv8-a --with-abi=lp64",
             }
     env:
-      arch: ${{github.event.inputs.msg || 'Hello arch!'}}
-      msg: ${{ github.event.inputs.msg || 'Hello env!'}}
+      arch: ${{github.event.inputs.msg || 'default arch!'}}
+      msg: ${{ github.event.inputs.msg || 'default msg!'}}
       greet_func: |
         greet_func(){
           echo "Hello greet_fun in env"
