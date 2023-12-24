@@ -103,6 +103,10 @@ jobs:
       - name: Print env
         run: env
 
+      - name: Run if on workflow.dispatch
+        if: github.event.workflow
+        run: echo On workflow dispatch
+
       - name: Test
         run: |
           echo "\$\{{github.event.workflow}}=${{github.event.workflow}}"
