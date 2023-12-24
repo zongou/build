@@ -15,7 +15,20 @@ on:
       #   required: true
 
 jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: job1
+        run: echo job1 running
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+    steps:
+      - name: job2
+        run: echo job2 running
   build:
+    if: ${{ always() }}
+    needs: [job1, job2]
     permissions:
       actions: write
       contents: write
