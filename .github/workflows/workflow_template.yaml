@@ -124,15 +124,13 @@ jobs:
       - name: Print env
         run: env
 
-      - name: Run if on workflow.dispatch
-        if: github.event.workflow
-        run: echo On workflow dispatch
+      - name: Print github.event
+        run: echo "\$\{{toJSON(github.event)}}=${{toJSON(github.event)}}"
 
       - name: Test
         run: |
           echo "\$\{{github.event.workflow}}=${{github.event.workflow}}"
           echo "\$\{{inputs.msg}}=${{inputs.msg}}"
-          echo "\$\{{toJSON(github.event)}}=${{toJSON(github.event)}}"
           ${{env.greet_func}}
           echo "\$\{{env.msg}}=${{env.msg}}"
           echo "\$\{{hashFiles('run_url')}}=${{hashFiles('run_url')}}"
