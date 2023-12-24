@@ -52,6 +52,14 @@ jobs:
         greet_func
 
     steps:
+      - name: On workflow_dispatch
+        if: github.event.workflow
+        run: echo On workflow_dispatch
+
+      - name: On push
+        if: ${{!github.event.workflow}}
+        run: echo On push
+
       - name: Checkout
         uses: actions/checkout@v4.1.1
         with:
