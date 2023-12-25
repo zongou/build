@@ -20,6 +20,10 @@ on:
         default: default
         required: true
 
+permissions:
+  actions: write
+  contents: write
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
