@@ -232,19 +232,28 @@ jobs:
           tree node-v${{ github.event.inputs.node_version }}/out -L 2
 
       - name: Create archives
-        working-directory: node-v${{ github.event.inputs.node_version }}/out
         run: |
-          tar -c nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }} \
+          tar -C node-v${{ github.event.inputs.node_version }}/out -c nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }} \
           | xz -T0 > nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
 
-          tar -c Release | xz -T0 > Release_dir.tar.xz
+          tar -C node-v${{ github.event.inputs.node_version }}/out -c Release | xz -T0 > Release_dir.tar.xz
 
       - uses: actions/upload-artifact@main
         with:
           name: nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}
-          path: node-v${{ github.event.inputs.node_version }}/out/nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
+          path: nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
 
-      - uses: actions/upload-artifact@main
+      # - uses: actions/upload-artifact@main
+      #   with:
+      #     name: Release_dir
+      #     path: Release_dir.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
         with:
-          name: Release_dir
-          path: node-v${{ github.event.inputs.node_version }}/out/Release_dir.tar.xz
+          tag: "nodejs"
+          artifacts: nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
