@@ -56,3 +56,13 @@ jobs:
         with:
           name: aliyundrive-webdav-v2.3.3.${{matrix.target}}.tar.gz
           path: target/${{matrix.target}}/release/aliyundrive-webdav-${{github.event.inputs.tag}}.${{matrix.target}}.tar.gz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
+        with:
+          tag: "aliyundrive-webdav"
+          artifacts: target/${{matrix.target}}/release/aliyundrive-webdav-${{github.event.inputs.tag}}.${{matrix.target}}.tar.gz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
