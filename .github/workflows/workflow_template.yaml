@@ -188,6 +188,7 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
+          repo: "dev"
           tag: "v1.0.0"
           artifacts: |
             /etc/os-release
