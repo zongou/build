@@ -8,6 +8,10 @@ on:
         default: "v2.3.3"
         required: true
 
+permissions: 
+  contents: write
+  actions: write
+
 jobs:
   build:
     name: build ${{matrix.target}}
@@ -66,3 +70,10 @@ jobs:
           replacesArtifacts: true
           body: |
             [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "build_aliyundrive-webdav.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1
