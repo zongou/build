@@ -1,3 +1,4 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 name: Workflow template
 run-name: Workflow template (${{github.event.head_commit.message}})
 on:
@@ -9,6 +10,13 @@ on:
         description: "message:"
         default: "dispatch input msg!"
         required: false
+      preRelease:
+          description: 'True to print to STDOUT'
+          required: true
+          type: choice
+          options:
+            - true
+            - false
       # tag:
       #   description: "Release tag:"
       #   default: "v1.0"
@@ -188,7 +196,7 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
-          repo: "dev"
+          repo: "zongou/dev"
           tag: "v1.0.0"
           artifacts: |
             /etc/os-release
