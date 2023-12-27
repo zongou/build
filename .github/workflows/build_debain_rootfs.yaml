@@ -11,6 +11,9 @@ on:
         default: bookworm
         required: true
 
+permissions: 
+  contents: write
+
 jobs:
   make_rootfs:
     runs-on: ubuntu-latest
