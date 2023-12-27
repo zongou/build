@@ -64,28 +64,29 @@ jobs:
           " > $1/etc/hosts' \
             - | tar --delete --wildcards "./dev/*" > "${RELEASE_NAME}.tar"
 
-      - name: Compression
-        run: |
-          gzip -kf "${RELEASE_NAME}.tar"
-          echo "${RELEASE_NAME}.tar.gz is ready"
-          xz -kf -T0  "${RELEASE_NAME}.tar"
-          echo "${RELEASE_NAME}.tar.xz is ready"
-
-      - uses: actions/upload-artifact@main
-        with:
-          name: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.gz
-          path: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.gz
+      - name: Package output
+        run: xz -kf -T0  "${RELEASE_NAME}.tar"
 
       - uses: actions/upload-artifact@main
         with:
           name: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
           path: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
-
-      - name: Release Upload
-        uses: d1ceward/draft-assets-release-action@v2.0.0
+  
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: 
-            debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.gz
-            debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
+          prerelease: true
+          tag: "debian-rootfs"
+          artifacts: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "build_debian_rootfs.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1
 
