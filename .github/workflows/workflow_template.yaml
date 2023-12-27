@@ -197,7 +197,7 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.13.0
         with:
-          # prerelease: true
+          prerelease: true
           tag: "test-action"
           artifacts: |
             /etc/os-release
