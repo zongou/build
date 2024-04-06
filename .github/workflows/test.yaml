@@ -1,0 +1,49 @@
+name: Test
+run-name: Build llvm ${{github.event.inputs.tag}}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag:"
+        default: "llvmorg-18.1.1"
+        required: true
+
+jobs:
+  build-llvm:
+    permissions: 
+      contents: write
+      actions: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          [
+            aarch64-linux-musl,
+            x86_64-linux-musl,
+          ]
+    env:
+      ZIG_VERSION: 0.11.0
+
+    steps:
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: llvm/llvm-project
+          ref: ${{github.event.inputs.tag}}
+          fetch-depth: 1
+
+      - name: xz package
+        run: |
+          mv README.md clang+llvm-18.1.1-aarch64-linux-musl
+          tar -c clang+llvm-18.1.1-aarch64-linux-musl | xz -T0 > clang+llvm-18.1.1-aarch64-linux-musl.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: "llvm"
+          artifacts: clang+llvm-18.1.1-aarch64-linux-musl.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})

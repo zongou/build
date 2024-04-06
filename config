@@ -1,0 +1,113 @@
+#!/bin/sh
+## Global configurations
+
+if ! "${CONFIG_LOADED+1}"; then
+	set -eux
+
+	if test "${ANDROID_NDK_ROOT+1}"; then
+		export PATH="${PATH}:${ANDROID_NDK_ROOT}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+	fi
+
+	export TARGET="${TARGET:-aarch64-linux-android24}"
+
+	ANDROID_TARGET_ABI="$(echo "${TARGET}" | grep -E -o -e '.+-.+-android(eabi)?')"
+	ANDROID_TARGET_API="$(echo "${TARGET}" | sed -E 's/.+-linux-android(eabi)?//')"
+
+	echo "ANDROID_TARGET_ABI=${ANDROID_TARGET_ABI}"
+	echo "ANDROID_TARGET_API=${ANDROID_TARGET_API}"
+
+	export CC="${TARGET}-clang"
+	export CXX="${TARGET}-clang++"
+
+	TOOLCHAIN_BIN_DIR="$(dirname "$(command -v "${CC}")")"
+	for tool in ar objcopy ld lld strip objdump ranlib; do
+		for pattern in "${TOOLCHAIN_BIN_DIR}/${TARGET}-${tool}" "${TOOLCHAIN_BIN_DIR}/llvm-${tool}" "${TOOLCHAIN_BIN_DIR}/${tool}"; do
+			if command -v "${pattern}" >/dev/null; then
+				export "$(echo ${tool} | tr "[:lower:]" "[:upper:]")=${pattern}"
+				break
+			fi
+		done
+	done
+
+	## Prepare dirs
+	WORK_DIR="$(realpath .)"
+	SRCS_DIR="${WORK_DIR}/sources"
+	BUILD_DIR="${WORK_DIR}/build"
+	OUTPUT_DIR="${WORK_DIR}/output/${ANDROID_TARGET_ABI}"
+	mkdir -p "${SRCS_DIR}" "${BUILD_DIR}" "${OUTPUT_DIR}"
+
+	## Rust
+	setup_rust_env() {
+		CARGO_BUILD_TARGET="$(echo "${ANDROID_TARGET_ABI}" | sed 's/armv7a/armv7/')"
+		export CARGO_BUILD_TARGET
+
+		for rust_target in \
+			aarch64-linux-android \
+			arm-linux-androideabi \
+			armv7-linux-androideabi \
+			i686-linux-android \
+			thumbv7neon-linux-androideabi \
+			x86_64-linux-android; do
+			export "CARGO_TARGET_$(echo "${rust_target}" | tr "[:lower:]" "[:upper:]" | tr '-' '_')_LINKER=${CC}"
+		done
+	}
+
+	## Go
+	setup_go_env() {
+		case "${TARGET}" in
+		aarch64-linux-android*) export CGO_ENABLED=1 GOOS=android GOARCH=arm64 ;;
+		armv7a-linux-androideabi*) export CGO_ENABLED=1 GOOS=android GOARCH=arm ;;
+		x86_64-linux-android*) export CGO_ENABLED=1 GOOS=android GOARCH=amd64 ;;
+		i686-linux-android*) export CGO_ENABLED=1 GOOS=android GOARCH=386 ;;
+		esac
+	}
+
+	## pkg-conf
+	export PKG_CONFIG_PATH="${OUTPUT_DIR}/lib/pkgconfig"
+
+	## Mirror
+	# GNU_MIRROR=https://mirrors.kernel.org
+	# GNU_MIRROR=https://mirrors.tuna.tsinghua.edu.cn
+	GNU_MIRROR=http://mirrors.ustc.edu.cn
+	GNU_MIRROR=${GNU_MIRROR:-https://ftp.gnu.org}
+
+	## CMake
+	# cat <<-EOF >"${WORK_DIR}/cross-${ANDROID_TARGET_ABI}.cmake"
+	# 	SET(CMAKE_SYSTEM_NAME \$1)
+
+	# 	set(CMAKE_C_COMPILER "${CC}")
+	# 	set(CMAKE_CXX_COMPILER "${CXX}")
+
+	# 	set(CMAKE_FIND_ROOT_PATH "${OUTPUT_DIR}")
+	# 	set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+	# 	set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+	# 	set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+	# 	set(OPENSSL_USE_STATIC_LIBS TRUE)
+	# EOF
+
+	JOBS="$(nproc --all)"
+	export JOBS
+
+	get_source() {
+		if ! test -f "${SRCS_DIR}/${PKG_BASENAME}${PKG_EXTNAME}"; then
+			curl -Lk "${PKG_SRCURL}" >"${SRCS_DIR}/${PKG_BASENAME}.tmp"
+			mv "${SRCS_DIR}/${PKG_BASENAME}.tmp" "${SRCS_DIR}/${PKG_BASENAME}${PKG_EXTNAME}"
+		fi
+
+		rm -rf "${BUILD_DIR:?}/${PKG_BASENAME}"
+		case "${PKG_EXTNAME}" in
+		.tar.gz)
+			gzip -d <"${SRCS_DIR}/${PKG_BASENAME}${PKG_EXTNAME}" | tar -C "${WORK_DIR}/build" -xv
+			;;
+		.tar.xz)
+			xz -T0 -d <"${SRCS_DIR}/${PKG_BASENAME}${PKG_EXTNAME}" | tar -C "${WORK_DIR}/build" -xv
+			;;
+		.tar.bz2)
+			bzip2 -d <"${SRCS_DIR}/${PKG_BASENAME}${PKG_EXTNAME}" | tar -C "${WORK_DIR}/build" -xv
+			;;
+		esac
+	}
+
+	export CONFIG_LOADED=true
+fi

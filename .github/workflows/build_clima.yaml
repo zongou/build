@@ -1,0 +1,79 @@
+name: Build clima android
+run-name: Build clima android ${{github.event.inputs.tag}}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag:"
+        default: "v2.3.3"
+        required: true
+
+permissions: 
+  contents: write
+  actions: write
+
+jobs:
+  build:
+    name: Build ${{matrix.target}}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [aarch64-linux-android, x86_64-linux-android, armv7-linux-androideabi, i686-linux-android]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: Canop/clima
+          ref: ${{github.event.inputs.tag}}
+
+      - name: build
+        run: |
+          rustup target add ${{matrix.target}}
+          ANDROID_TARGET=${{matrix.target == 'armv7-linux-androideabi' && 'armv7a-linux-androideabi' || matrix.target}}
+          ANDROID_API_LEVEL=24
+          export CC=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${ANDROID_TARGET}${ANDROID_API_LEVEL}-clang
+          export AR=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+
+          cat <<EOF>~/.cargo/config.toml
+          [profile.release]
+          opt-level = "s"
+          lto = true
+          strip = true
+          
+          [target.${{matrix.target}}]
+          linker = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${ANDROID_TARGET}${ANDROID_API_LEVEL}-clang++"
+          EOF
+
+          cargo build --release --target=${{matrix.target}}
+
+      - name: Compressing with UPX
+        working-directory: target/${{matrix.target}}/release
+        run: |
+          upx --version
+          upx --best clima
+          tar -c clima | gzip > clima-${{github.event.inputs.tag}}.${{matrix.target}}.tar.gz
+
+      - name: Upload
+        uses: actions/upload-artifact@main
+        with:
+          name: clima-v2.3.3.${{matrix.target}}.tar.gz
+          path: target/${{matrix.target}}/release/clima-${{github.event.inputs.tag}}.${{matrix.target}}.tar.gz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.13.0
+        with:
+          tag: "clima"
+          artifacts: target/${{matrix.target}}/release/clima-${{github.event.inputs.tag}}.${{matrix.target}}.tar.gz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "build_clima.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1

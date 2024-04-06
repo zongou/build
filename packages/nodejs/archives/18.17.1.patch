@@ -1,0 +1,152 @@
+diff --git a/configure.py b/configure.py
+index 7006ee65..f4484c87 100755
+--- a/configure.py
++++ b/configure.py
+@@ -1291,7 +1291,7 @@ def configure_node(o):
+ 
+   # Enable branch protection for arm64
+   if target_arch == 'arm64':
+-    o['cflags']+=['-msign-return-address=all']
++    warn('-msign-return-address=all no longer exists!')
+     o['variables']['arm_fpu'] = options.arm_fpu or 'neon'
+ 
+   if options.node_snapshot_main is not None:
+diff --git a/deps/v8/include/v8-inspector.h b/deps/v8/include/v8-inspector.h
+index ce5430bd..15516943 100644
+--- a/deps/v8/include/v8-inspector.h
++++ b/deps/v8/include/v8-inspector.h
+@@ -21,6 +21,19 @@ class StackTrace;
+ class Value;
+ }  // namespace v8
+ 
++
++
++#ifndef NODE_EXTERN
++#ifdef _WIN32
++# ifndef BUILDING_NODE_EXTENSION
++#  define NODE_EXTERN __declspec(dllexport)
++# else
++#  define NODE_EXTERN __declspec(dllimport)
++# endif
++#else
++# define NODE_EXTERN __attribute__((visibility("default")))
++#endif
++#endif
+ namespace v8_inspector {
+ 
+ namespace internal {
+@@ -153,7 +166,7 @@ class V8_EXPORT V8StackTrace {
+   virtual std::unique_ptr<V8StackTrace> clone() = 0;
+ };
+ 
+-class V8_EXPORT V8InspectorSession {
++class NODE_EXTERN V8InspectorSession {
+  public:
+   virtual ~V8InspectorSession() = default;
+ 
+diff --git a/deps/v8/include/v8.h b/deps/v8/include/v8.h
+index 1067d3eb..0a2653eb 100644
+--- a/deps/v8/include/v8.h
++++ b/deps/v8/include/v8.h
+@@ -85,4 +85,20 @@ class Platform;
+ 
+ }  // namespace v8
+ 
++
++
++#define HAS_ARRAYBUFFER_NEW_WITHOUT_STL 1
++
++namespace v8
++{
++// do not new two ArrayBuffer with the same data and length
++V8_EXPORT Local<ArrayBuffer> ArrayBuffer_New_Without_Stl(Isolate* isolate, 
++      void* data, size_t byte_length, v8::BackingStore::DeleterCallback deleter,
++      void* deleter_data);
++V8_EXPORT Local<ArrayBuffer> ArrayBuffer_New_Without_Stl(Isolate* isolate, 
++      void* data, size_t byte_length);
++V8_EXPORT void* ArrayBuffer_Get_Data(Local<ArrayBuffer> array_buffer, size_t &byte_length);
++V8_EXPORT void* ArrayBuffer_Get_Data(Local<ArrayBuffer> array_buffer);
++}
++
+ #endif  // INCLUDE_V8_H_
+diff --git a/deps/v8/src/api/api.cc b/deps/v8/src/api/api.cc
+index 8d224bea..4801a4ed 100644
+--- a/deps/v8/src/api/api.cc
++++ b/deps/v8/src/api/api.cc
+@@ -10723,3 +10723,48 @@ TryToCopyAndConvertArrayToCppBuffer<CTypeInfoBuilder<double>::Build().GetId(),
+ 
+ #undef TRACE_BS
+ #include "src/api/api-macros-undef.h"
++
++namespace v8
++{
++Local<ArrayBuffer> ArrayBuffer_New_Without_Stl(Isolate* isolate, 
++      void* data, size_t byte_length, BackingStore::DeleterCallback deleter,
++      void* deleter_data)
++{
++    auto Backing = ArrayBuffer::NewBackingStore(
++            data, byte_length,deleter,
++            deleter_data);
++    return ArrayBuffer::New(isolate, std::move(Backing));
++}
++
++V8_EXPORT Local<ArrayBuffer> ArrayBuffer_New_Without_Stl(Isolate* isolate, 
++      void* data, size_t byte_length)
++{
++#if V8_MAJOR_VERSION < 9
++  CHECK_IMPLIES(byte_length != 0, data != nullptr);
++  CHECK_LE(byte_length, i::JSArrayBuffer::kMaxByteLength);
++  i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
++
++  std::shared_ptr<i::BackingStore> backing_store = LookupOrCreateBackingStore(
++      i_isolate, data, byte_length, i::SharedFlag::kNotShared, ArrayBufferCreationMode::kExternalized);
++
++  i::Handle<i::JSArrayBuffer> obj =
++      i_isolate->factory()->NewJSArrayBuffer(std::move(backing_store));
++  obj->set_is_external(true);
++  return Utils::ToLocal(obj);
++#else
++  auto Backing = ArrayBuffer::NewBackingStore(
++          data, byte_length, BackingStore::EmptyDeleter, nullptr);
++  return ArrayBuffer::New(isolate, std::move(Backing));
++#endif
++}
++
++void* ArrayBuffer_Get_Data(Local<ArrayBuffer> array_buffer, size_t &byte_length)
++{
++    byte_length = array_buffer->GetBackingStore()->ByteLength();
++    return array_buffer->GetBackingStore()->Data();
++}
++void* ArrayBuffer_Get_Data(Local<ArrayBuffer> array_buffer)
++{
++    return array_buffer->GetBackingStore()->Data();
++}
++}
+diff --git a/deps/v8/src/trap-handler/trap-handler.h b/deps/v8/src/trap-handler/trap-handler.h
+index 1aa7a305..be8fbc06 100644
+--- a/deps/v8/src/trap-handler/trap-handler.h
++++ b/deps/v8/src/trap-handler/trap-handler.h
+@@ -17,23 +17,7 @@ namespace v8 {
+ namespace internal {
+ namespace trap_handler {
+ 
+-// X64 on Linux, Windows, MacOS, FreeBSD.
+-#if V8_HOST_ARCH_X64 && V8_TARGET_ARCH_X64 &&                        \
+-    ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN || \
+-     V8_OS_FREEBSD)
+-#define V8_TRAP_HANDLER_SUPPORTED true
+-// Arm64 (non-simulator) on Mac.
+-#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_ARM64 && V8_OS_DARWIN
+-#define V8_TRAP_HANDLER_SUPPORTED true
+-// Arm64 simulator on x64 on Linux, Mac, or Windows.
+-#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_X64 && \
+-    (V8_OS_LINUX || V8_OS_DARWIN)
+-#define V8_TRAP_HANDLER_VIA_SIMULATOR
+-#define V8_TRAP_HANDLER_SUPPORTED true
+-// Everything else is unsupported.
+-#else
+ #define V8_TRAP_HANDLER_SUPPORTED false
+-#endif
+ 
+ // Setup for shared library export.
+ #if defined(BUILDING_V8_SHARED) && defined(V8_OS_WIN)

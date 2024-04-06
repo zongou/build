@@ -1,0 +1,218 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+name: Workflow template
+run-name: Workflow template (${{github.event.head_commit.message}})
+on:
+  # push:
+  #   paths: ".github/workflows/template_old.yaml"
+  workflow_dispatch:
+    inputs:
+      msg:
+        description: "message:"
+        default: "dispatch input msg!"
+        required: false
+      preRelease:
+          description: 'True to print to STDOUT'
+          required: true
+          type: choice
+          options:
+            - true
+            - false
+      # tag:
+      #   description: "Release tag:"
+      #   default: "v1.0"
+      #   required: true
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: job1
+        run: echo job1 running
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+    steps:
+      - name: job2
+        run: echo job2 running
+  build:
+    if: ${{ always() }}
+    needs: [job1, job2]
+    permissions:
+      actions: write
+      contents: write
+      repository-projects: write
+    # defaults:
+      # run:
+        # shell: bash
+        # working-directory: ./scripts
+    name: "Matrix msg: ${{matrix.triples.arch_type}}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        triples:
+          - {
+              arch_type: "aarch64-linux-musl",
+              arch_config: "--with-arch=armv8-a --with-abi=lp64",
+            }
+    env:
+      arch: ${{github.event.inputs.msg || 'default arch!'}}
+      msg: ${{ github.event.inputs.msg || 'default msg!'}}
+      greet_func: |
+        greet_func(){
+          echo "Hello greet_fun in env"
+        }
+        greet_func
+
+    steps:
+      - name: On workflow_dispatch
+        if: github.event.workflow
+        run: echo On workflow_dispatch
+
+      - name: Not on workflow_dispatch
+        if: ${{!github.event.workflow}}
+        run: echo On push
+
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: ${{github.repository}}
+          # ref: ${{github.event.inputs.tag}}
+
+      - name: Configure cache
+        id: cache-run_url
+        uses: actions/cache@v4
+        with:
+          path: |
+            run_url
+          key: workflow_template-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            workflow_template-
+
+      # - name: Restore cached run_url
+      #   id: cache-restore
+      #   uses: actions/cache/restore@v4
+      #   with:
+      #     path: |
+      #       run_url
+      #     key: workflow_template-
+      - name: Run when cache hits
+        if: steps.cache-run_url.outputs.cache-hit == 'true'
+        run: |
+          echo "preview run url: $(cat run_url)"
+
+        # Note cache-hit will only be set to true when a cache hit occurs for the exact key match.
+        # For a partial key match via restore-keys or a cache miss, it will be set to false.
+      - name: Run when cache misses
+        if: steps.cache-run_url.outputs.cache-hit != 'true'
+        run: |
+          echo "cache misses"
+
+      - name: Update cache
+        run: |
+          echo "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}" > run_url
+
+      # - name: Cache data if Restoring cache missed
+      #   id: cache-save
+      #   if: steps.cache-restore.outputs.cache-hit == 'true'
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     path: |
+      #       run_url
+      #     key: ${{ steps.cache-restore.outputs.cache-primary-key }}
+      #     # key: workflow_template-${{ runner.os }}-${{ github.run_id }}
+
+      - name: Set variable
+        run: |
+          ## env havent take effect yet
+          echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
+          echo WORKFLOW_FILENAME=$(echo ${GITHUB_WORKFLOW_REF} | grep -o -E -e "\w+\.yam?l") >> ${GITHUB_ENV}
+
+      - name: Print system info
+        run: |
+          cat /etc/os-release
+          cat /proc/cpuinfo
+          echo "Available cpu count: $(nproc)"
+
+      - name: Print env
+        run: env
+
+      - name: Print github.event
+        run: echo "\$\{{toJSON(github.event)}}=${{toJSON(github.event)}}"
+
+      - name: Test
+        run: |
+          echo "\$\{{github.event_name}}=${{github.event_name}}"
+          echo "\$\{{github.event.action}}=${{github.event.action}}"
+          echo "\$\{{github.event.workflow}}=${{github.event.workflow}}"
+          echo "\$\{{inputs.msg}}=${{inputs.msg}}"
+          ${{env.greet_func}}
+          echo "\$\{{env.msg}}=${{env.msg}}"
+          echo "\$\{{hashFiles('run_url')}}=${{hashFiles('run_url')}}"
+          echo "\$\{{hashFiles('.git')}}=${{hashFiles('.git')}}"
+          echo ${{format('Workflow template {0} {1} {2}', 'Mona', 'the', 'Octocat')}}
+          echo ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+          echo GITHUB_RUN_ID=${GITHUB_RUN_ID}
+          echo GITHUB_SERVER_URL=${GITHUB_SERVER_URL}
+          command -v upx && upx --version
+          command -v clang && clang --version
+
+          tree -L 2 ${GITHUB_WORKSPACE}
+
+            cat <<EOF
+          heredoc <<EOF ${PWD}
+          EOF
+
+            cat <<EOF
+            heredoc tab <<EOF ${PWD}
+          EOF
+
+            cat <<-EOF
+          heredoc <<-EOF ${PWD}
+          EOF
+
+          cat <<-EOF
+            heredoc tab <<-EOF ${PWD}
+          EOF
+
+          cat <<EOF
+          heredoc quoted <<'EOF' ${PWD}
+          EOF
+
+          cat <<EOF
+          heredoc quoted <<"EOF" ${PWD}
+          EOF
+
+      - name: Print the variables we set
+        run: |
+          echo DATE=${{env.DATE}}
+          echo WORKFLOW_FILENAME=${{env.WORKFLOW_FILENAME}}
+
+      - name: Upload
+        uses: actions/upload-artifact@main
+        with:
+          name: os-release
+          path: /etc/os-release
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          prerelease: true
+          tag: "test-action"
+          artifacts: |
+            /etc/os-release
+            /etc/resolv.conf
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+            ${{env.DATE}}
+            ${{env.WORKFLOW_FILENAME}}
+            ${{github.event.head_commit.message}}
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "workflow_template.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1

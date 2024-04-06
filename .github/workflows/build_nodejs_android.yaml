@@ -1,0 +1,269 @@
+name: Build nodejs android
+run-name: Build nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}, mirror:${{ github.event.inputs.node_mirror }}
+on:
+  workflow_dispatch:
+    inputs:
+      node_version:
+        description: "node version:"
+        default: 21.6.2
+        required: true
+      android_sdk_version:
+        description: "android sdk version:"
+        default: "24"
+        required: true
+      target_arch:
+        description: "target arch:"
+        default: arm64
+        required: true
+      node_mirror:
+        description: "nodejs source mirror:[default|github]"
+        default: default
+        required: true
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Print env
+        run: |
+          env
+          cat /proc/cpuinfo
+          tree -L 2 ${GITHUB_WORKSPACE}
+
+      - name: Get source
+        run: |
+          # nodejs mirrors
+          # default=https://nodejs.org/dist
+          # ustc=https://mirrors.ustc.edu.cn/node
+          # tsinghua=https://mirrors.tuna.tsinghua.edu.cn/nodejs
+          # aliyun=https://registry.npmmirror.com/-/binary/node
+          # tencent=http://mirrors.cloud.tencent.com/nodejs
+
+          case ${{ github.event.inputs.node_mirror }} in
+          default)
+              git clone --depth=1 https://github.com/nodejs/node -b v${{ github.event.inputs.node_version }}
+              mv node node-v${{ github.event.inputs.node_version }}
+              ;;
+          github)
+              source_archive_url="https://github.com/nodejs/node/archive/refs/tags/v${{ github.event.inputs.node_version }}.tar.gz"
+              echo "source_archive_url:${source_archive_url}"
+              curl -Lks "${source_archive_url}" | gzip -d | tar -x
+              ;;
+          *) ;;
+          esac
+
+      - name: Patch source
+        working-directory: node-v${{ github.event.inputs.node_version }}
+        run: |
+          if test -f ${GITHUB_WORKSPACE}/packages/nodejs/${{ github.event.inputs.node_version }}.patch; then
+            patch --strip=1 < ${GITHUB_WORKSPACE}/packages/nodejs/${{ github.event.inputs.node_version }}.patch --no-backup-if-mismatch -t
+          fi
+
+          # Try to patch trap-handler.h
+          if test $(echo ${{ github.event.inputs.node_version }} | grep -Eo -e "^[0-9]+") -gt 20; then
+            cp ${GITHUB_WORKSPACE}/packages/nodejs/21.x.fixed-trap-handler.patch ./android-patches/trap-handler.h.patch
+          fi
+          patch -f ./deps/v8/src/trap-handler/trap-handler.h < ./android-patches/trap-handler.h.patch --no-backup-if-mismatch -t || true
+
+          # g++: error: unrecognized command line option ‘-msign-return-address=all’
+          sed -i "s|o\['cflags'\]+=\['-msign-return-address=all'\]|warn('-msign-return-address=all no longer exists!')|" configure.py
+
+          # g++: error: unrecognized command-line option ‘-mbranch-protection=standard’
+          sed -i "s^-mbranch-protection=standard^^" node.gyp
+
+          # ../deps/zlib/cpu_features.c:43:10: fatal error: 'cpu-features.h' file not found
+          if test -f ./deps/zlib/cpu_features.c; then
+              sed -i 's:#include <cpu-features.h>:#include "cpu-features.c":' ./deps/zlib/cpu_features.c
+          fi
+
+          # ../deps/v8/src/base/debug/stack_trace_posix.cc:156:9: error: use of undeclared identifier 'backtrace_symbols'
+          echo > test/cctest/test_crypto_clienthello.cc
+
+          # build with ninja patch
+          sudo apt install ninja-build
+          patch --strip=1 < ${GITHUB_WORKSPACE}/packages/nodejs/build_with_ninja.patch --no-backup-if-mismatch -t
+
+          # ninja: error: '../../deps/uv/src/unix/pthread-fixes.c', needed by 'obj.host/deps/uv/src/unix/libuv.pthread-fixes.o', missing and no known rule to make it
+          if grep -q "android: remove pthread-fixes.c" deps/uv/ChangeLog; then 
+            if grep -q "'src/unix/pthread-fixes.c'" ./deps/uv/uv.gyp; then
+              sed -i "s|'src/unix/pthread-fixes.c',|# 'src/unix/pthread-fixes.c',|" ./deps/uv/uv.gyp
+            fi
+          fi
+
+      - name: Configure & Build
+        working-directory: node-v${{ github.event.inputs.node_version }}
+        run: |
+          RED='\033[91m'
+          DEF='\033[0m'
+
+          _msg() {
+            printf "$*" >&2
+          }
+
+          msg() {
+            _msg "$*\n"
+          }
+
+          exit_error_msg() {
+            msg "${RED}Error: ${DEF}$1"
+            exit 1
+          }
+
+          configure_common() {
+            # ANDROID_NDK_HOME="/home/user/Downloads/android-ndk-r25c"
+            ANDROID_SDK_VERSION="${{ github.event.inputs.android_sdk_version }}"
+            TARGET_ARCH="${{ github.event.inputs.target_arch }}"
+
+            if ! test -d "${ANDROID_NDK_HOME}"; then
+              exit_error_msg "Invalid path to the Android NDK"
+            fi
+
+            if test "${ANDROID_SDK_VERSION}" -lt 23; then
+              exit_error_msg "Android SDK version must be at least 24 (Android 7.0)"
+            fi
+
+            case ${TARGET_ARCH} in
+            arm)
+              DEST_CPU="arm"
+              TOOLCHAIN_PREFIX="armv7a-linux-androideabi"
+              HOST_M32=" -m32"
+              ;;
+            x86)
+              DEST_CPU="ia32"
+              TOOLCHAIN_PREFIX="i686-linux-android"
+              HOST_M32=" -m32"
+              ;;
+            x86_64)
+              DEST_CPU="x64"
+              TOOLCHAIN_PREFIX="x86_64-linux-android"
+              TARGET_ARCH="x64"
+              HOST_M32=""
+              ;;
+            arm64 | aarch64)
+              DEST_CPU="arm64"
+              TOOLCHAIN_PREFIX="aarch64-linux-android"
+              TARGET_ARCH="arm64"
+              HOST_M32=""
+              ;;
+            *)
+              exit_error_msg "Invalid target architecture, must be one of: arm, arm64, aarch64, x86, x86_64"
+              ;;
+            esac
+
+            msg "\033[92mInfo: \033[0mConfiguring for ${DEST_CPU} ..."
+
+            HOST_OS="linux"
+            HOST_ARCH="x86_64"
+            TOOLCHAIN=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/${HOST_OS}-${HOST_ARCH}
+
+            CC_host="$(command -v gcc)${HOST_M32}"
+            CXX_host="$(command -v g++)${HOST_M32}"
+            export CC_host CXX_host
+
+            export PATH="${PATH}:${TOOLCHAIN}/bin"
+            export CC="${TOOLCHAIN}/bin/${TOOLCHAIN_PREFIX}${ANDROID_SDK_VERSION}-clang"
+            export CXX="${TOOLCHAIN}/bin/${TOOLCHAIN_PREFIX}${ANDROID_SDK_VERSION}-clang++"
+
+            # ../deps/zlib/cpu_features.c:43:10: fatal error: 'cpu-features.h' file not found
+            export CFLAGS=" -I${ANDROID_NDK_HOME}/sources/android/cpufeatures"
+
+            export GYP_DEFINES="\
+                target_arch=${TARGET_ARCH} \
+                v8_target_arch=${TARGET_ARCH} \
+                android_target_arch=${TARGET_ARCH} \
+                host_os=${HOST_OS} \
+                OS=android \
+                android_ndk_path=${ANDROID_NDK_PATH}"
+            }
+
+          configure_and_build_with_make() {
+            if test -f "./configure"; then
+              configure_common
+              ./configure \
+                --dest-cpu=${DEST_CPU} \
+                --dest-os=android \
+                --openssl-no-asm \
+                --cross-compiling \
+                --partly-static
+            fi
+
+            make -j8
+          }
+
+          configure_and_build_with_ninja() {
+            if test -f "./configure"; then
+              configure_common
+              ./configure \
+                --dest-cpu=${DEST_CPU} \
+                --dest-os=android \
+                --openssl-no-asm \
+                --cross-compiling \
+                --partly-static \
+                --ninja
+            fi
+
+            ninja -C out/Release -j8
+          }
+
+          # we have got LD_PRELOAD=/path/to/libandrod-exec.so to handle shebang
+          # https://github.com/zongou/android-exec
+          # # Andorid cannot handle shebang '#!/usr/bin/env'
+          # # [dir]
+          # fix_android_shell_bang(){
+          #   grep -r -e '#!/usr/bin/env' "${1}" -l | while IFS= read -r file; do
+          #     sed -i 's/#!\/usr\/bin\/env/#!\/bin\/env/' "${file}"
+          #   done
+          # }
+
+          # [dir]
+          install_to_dir() {
+            python3 tools/install.py install  "${1}" ""
+          }
+
+          configure_and_build_with_ninja
+
+      - name: Install to dir
+        working-directory: node-v${{ github.event.inputs.node_version }}
+        run: |
+          # [DESTDIR] [PREFIX]
+          python3 tools/install.py install  "out/nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}" ""
+
+      - name: Tree output files
+        run: |
+          tree node-v${{ github.event.inputs.node_version }}/out -L 2
+
+      - name: Package nodejs
+        run: |
+          tar -C node-v${{ github.event.inputs.node_version }}/out -c nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }} \
+          | xz -T0 > nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
+
+      - name: Upload nodejs
+        uses: actions/upload-artifact@main
+        with:
+          name: nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}
+          path: nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
+
+      # - name: Pakcage out dir
+      #   run: tar -C node-v${{ github.event.inputs.node_version }}/out -c Release | xz -T0 > Release_dir.tar.xz
+
+      # - name: Upload out dir
+      #   uses: actions/upload-artifact@main
+      #   with:
+      #     name: Release_dir
+      #     path: Release_dir.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: "nodejs"
+          artifacts: nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})

@@ -1,0 +1,95 @@
+name: Build debian rootfs
+on:
+  workflow_dispatch:
+    inputs:
+      target_arch:
+        description: "target arch:"
+        default: arm64
+        required: true
+      dist_version:
+        description: "dist version:"
+        default: bookworm
+        required: true
+
+permissions: 
+  contents: write
+
+jobs:
+  make_rootfs:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_ARCH: ${{ github.event.inputs.target_arch }}
+      DIST_VERSION: ${{ github.event.inputs.dist_version }}
+      RELEASE_NAME: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt install -y mmdebstrap binfmt-support qemu-user-static arch-test
+
+      - name: Make rootfs
+        run: |
+          echo ${TARGET_ARCH}
+          echo ${DIST_VERSION}
+          echo ${RELEASE_NAME}
+
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            0E98404D386FA1D9 \
+            6ED0E7B82643E131 \
+            F8D2585B8783D481 \
+            54404762BBB6E853 \
+            BDE6D2B9216EC7A8
+
+            # --setup-hook='sed -E -i "s/(deb|security).debian.org/mirrors.ustc.edu.cn/g" $1/etc/apt/sources.list' \
+          sudo mmdebstrap \
+            "${DIST_VERSION}" \
+            --architectures=${TARGET_ARCH} \
+            --variant=minbase \
+            --components="main,contrib" \
+            --skip=download/empty \
+            --include="ca-certificates,xz-utils" \
+            --setup-hook='cat $1/etc/apt/sources.list' \
+            --customize-hook='echo "\
+          nameserver 8.8.8.8
+          nameserver 8.8.4.4\
+          " > $1/etc/resolv.conf' \
+            --customize-hook='echo "\
+          # IPv4.
+          127.0.0.1   localhost.localdomain localhost
+
+          # IPv6.
+          ::1         localhost.localdomain localhost ip6-localhost ip6-loopback
+          fe00::0     ip6-localnet
+          ff00::0     ip6-mcastprefix
+          ff02::1     ip6-allnodes
+          ff02::2     ip6-allrouters
+          ff02::3     ip6-allhosts\
+          " > $1/etc/hosts' \
+            - | tar --delete --wildcards "./dev/*" > "${RELEASE_NAME}.tar"
+
+      - name: Package output
+        run: xz -kf -T0  "${RELEASE_NAME}.tar"
+
+      - uses: actions/upload-artifact@main
+        with:
+          name: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
+          path: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
+  
+      - name: Upload release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          prerelease: true
+          tag: "debian-rootfs"
+          artifacts: debian-rootfs-${{ github.event.inputs.dist_version }}-${{ github.event.inputs.target_arch }}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "build_debian_rootfs.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1
+

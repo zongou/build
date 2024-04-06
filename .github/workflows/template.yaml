@@ -1,0 +1,64 @@
+# https://docs.github.com/en/actions
+name: Template
+on:
+  push:
+    paths: ".github/workflows/template.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  job1:
+    name: "job1: build ${{matrix.target}}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          [
+            aarch64-linux-musl,
+            arm-linux-musleabi,
+            x86-linux-musl,
+            x86_64-linux-musl,
+          ]
+
+    steps:
+      - name: step1
+        run: |
+          pwd
+          df -h
+          nproc --all
+          cat /proc/cpuinfo
+          env
+
+      - name: set env
+        run: echo DATE=$(date +"%Y-%m-%d %H:%M:%S") >> ${GITHUB_ENV}
+
+      - name: get env
+        run: echo env.DATE=${{env.DATE}}
+
+      - name: Upload
+        if: ${{matrix.target == 'aarch64-linux-musl'}}
+        uses: actions/upload-artifact@main
+        with:
+          name: upload
+          path: /etc/os-release
+
+      - name: Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: "template"
+          artifacts: /etc/os-release
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2.0.6
+        with:
+          delete_workflow_pattern: "template.yaml"
+          retain_days: 0
+          keep_minimum_runs: 1

@@ -1,0 +1,14 @@
+diff --git a/node.gyp b/node.gyp
+index a25253e3..0e753a9c 100644
+--- a/node.gyp
++++ b/node.gyp
+@@ -475,9 +475,6 @@
+     },
+ 
+     'conditions': [
+-      ['target_arch=="arm64"', {
+-        'cflags': ['-mbranch-protection=standard'],  # Pointer authentication.
+-      }],
+       ['OS in "aix os400"', {
+         'ldflags': [
+           '-Wl,-bnoerrmsg',

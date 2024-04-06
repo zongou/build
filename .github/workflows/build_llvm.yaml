@@ -1,0 +1,159 @@
+name: Build llvm
+run-name: Build llvm ${{github.event.inputs.tag}}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag:"
+        default: "llvmorg-18.1.1"
+        required: true
+
+jobs:
+  build-llvm:
+    permissions:
+      contents: write
+      actions: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          [
+            aarch64-linux-musl,
+            # arm-linux-musleabi,
+            # x86-linux-musl,
+            x86_64-linux-musl,
+          ]
+    env:
+      ZIG_VERSION: 0.11.0
+
+    steps:
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: llvm/llvm-project
+          ref: ${{github.event.inputs.tag}}
+          fetch-depth: 1
+
+      - name: Patch source code
+        run: |
+          # error: unsupported linker arg: -Bsymbolic-functions
+          # https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
+
+          # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
+          base64 -d <<-EOF | patch -up1
+          ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
+          a2VMaXN0cy50eHQKaW5kZXggZjYwZGI2ZWYwYi4uNTc2OWU4NTQ1MiAxMDA2NDQKLS0tIGEvY2xh
+          bmcvdG9vbHMvQ01ha2VMaXN0cy50eHQKKysrIGIvY2xhbmcvdG9vbHMvQ01ha2VMaXN0cy50eHQK
+          QEAgLTIwLDExICsyMCw2IEBAIGFkZF9jbGFuZ19zdWJkaXJlY3RvcnkoYy1pbmRleC10ZXN0KQog
+          CiBhZGRfY2xhbmdfc3ViZGlyZWN0b3J5KGNsYW5nLXJlbmFtZSkKIGFkZF9jbGFuZ19zdWJkaXJl
+          Y3RvcnkoY2xhbmctcmVmYWN0b3IpCi0jIEZvciBNaW5HVyB3ZSBvbmx5IGVuYWJsZSBzaGFyZWQg
+          bGlicmFyeSBpZiBMTFZNX0xJTktfTExWTV9EWUxJQj1PTi4KLSMgV2l0aG91dCB0aGF0IG9wdGlv
+          biByZXN1bHRpbmcgbGlicmFyeSBpcyB0b28gY2xvc2UgdG8gMl4xNiBETEwgZXhwb3J0cyBsaW1p
+          dC4KLWlmKFVOSVggT1IgKE1JTkdXIEFORCBMTFZNX0xJTktfTExWTV9EWUxJQikpCi0gIGFkZF9j
+          bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
+          RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
+          EOF
+
+          cat clang/tools/CMakeLists.txt
+
+      - name: Create zig wrapper
+        run: |
+          cat <<-'EOF' >zig_wrapper
+          #!/bin/sh
+          set -eu
+
+          if test -h "$0" && ! test "$(basename "$(readlink "$0")")" = "$(basename "$(readlink -f "$0")")"; then
+            BIN=$(readlink "$0") && cd "$(dirname "$0")" && "${BIN}" "$@"
+          else
+            WRAPPER="$(basename "$0")"
+            case "${WRAPPER}" in
+            ar | cc | c++ | dlltool | lib | ranlib | objcopy | ld.lld)
+              set -- "${WRAPPER}" "$@"
+
+              ## Zig doesn't properly handle these flags so we have to rewrite/ignore.
+              ## None of these affect the actual compilation target.
+              ## https://github.com/ziglang/zig/issues/9948
+              case "${WRAPPER}" in
+              cc | c++)
+                for argv in "$@"; do
+                  case "${argv}" in
+                  -Wp,-MD,*)
+                    set -- "$@" "-MD" "-MF" "$(echo "$argv" | sed 's/^-Wp,-MD,//')"
+                    ;;
+                  -Wl,--warn-common | -Wl,--verbose | -Wl,-Map,*) ;;
+                  *)
+                    set -- "$@" "${argv}"
+                    ;;
+                  esac
+                  shift
+                done
+                ;;
+              esac
+              ;;
+            *)
+              printf "Usage:\n  ln -s zig_wrapper [cc|c++|dlltool|lib|ranlib|objcopy|ld.lld]\n" >&2
+              exit
+              ;;
+            esac
+
+            # echo ${WRAPPER_BIN} "$@"
+            "${ZIG-zig}" "$@"
+          fi
+          EOF
+          chmod +x zig_wrapper
+
+          mkdir -p bin
+          for tool in cc c++ dlltool lib ranlib objcopy ld.lld; do
+            ln -snf ../zig_wrapper bin/${tool}
+          done
+
+      - name: Get zig
+        run: |
+          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
+
+      - name: Build
+        env:
+          TARGET: ${{matrix.target}}
+        run: |
+          sudo apt install ninja-build binfmt-support qemu-user-static
+          export ZIG=${PWD}/zig-linux-x86_64-${ZIG_VERSION}/zig
+          export CC="${PWD}/bin/cc --target=${TARGET}"
+          export CXX="${PWD}/bin/c++ --target=${TARGET}"
+          export LDFLAGS="-s"
+
+          mkdir -p build && cd build
+
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_TARGETS_TO_BUILD="all" \
+            -DLLVM_HOST_TRIPLE=${TARGET} \
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+
+          cmake --build . --target install
+
+          tree bin
+          file bin/*
+
+          tree output
+          file output/*
+
+      - name: xz package
+        run: |
+          version=$(echo ${{inputs.tag}} | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
+          echo version=${version} >> ${GITHUB_ENV}
+          mv build/output clang+llvm-18.1.1-${{matrix.target}}
+          tar -c clang+llvm-18.1.1-${{matrix.target}} | xz -T0 > clang+llvm-18.1.1-${{matrix.target}}.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: "llvm"
+          artifacts: clang+llvm-${{env.version}}-${{matrix.target}}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})

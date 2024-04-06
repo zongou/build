@@ -1,0 +1,25 @@
+From 451966c163c7a2e9769d62fd77585af1bc9aca4b Mon Sep 17 00:00:00 2001
+From: Andrew Kelley <andrew@ziglang.org>
+Date: Mon, 7 Nov 2022 19:41:52 -0700
+Subject: [PATCH] clang patch: disable building libclang-cpp.so
+
+---
+ clang/tools/CMakeLists.txt | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/clang/tools/CMakeLists.txt b/clang/tools/CMakeLists.txt
+index f60db6ef0b..5769e85452 100644
+--- a/clang/tools/CMakeLists.txt
++++ b/clang/tools/CMakeLists.txt
+@@ -20,11 +20,6 @@ add_clang_subdirectory(c-index-test)
+ 
+ add_clang_subdirectory(clang-rename)
+ add_clang_subdirectory(clang-refactor)
+-# For MinGW we only enable shared library if LLVM_LINK_LLVM_DYLIB=ON.
+-# Without that option resulting library is too close to 2^16 DLL exports limit.
+-if(UNIX OR (MINGW AND LLVM_LINK_LLVM_DYLIB))
+-  add_clang_subdirectory(clang-shlib)
+-endif()
+ 
+ if(CLANG_ENABLE_ARCMT)
+   add_clang_subdirectory(arcmt-test)
