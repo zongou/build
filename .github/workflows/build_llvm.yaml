@@ -116,6 +116,7 @@ jobs:
         env:
           TARGET: ${{matrix.target}}
         run: |
+          sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
           export ZIG=${PWD}/zig-linux-x86_64-${ZIG_VERSION}/zig
           export CC="${PWD}/bin/cc --target=${TARGET}"
