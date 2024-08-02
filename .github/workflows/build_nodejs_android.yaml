@@ -232,7 +232,7 @@ jobs:
         working-directory: node-v${{ github.event.inputs.node_version }}
         run: |
           # [DESTDIR] [PREFIX]
-          python3 tools/install.py install  "out/nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}" ""
+          python3 tools/install.py install --dest-dir="" --prefix="out/nodejs-v${{ github.event.inputs.node_version }}-android-${{ github.event.inputs.target_arch }}"
 
       - name: Tree output files
         run: |
