@@ -7,15 +7,22 @@ on:
      .github/workflows/test.yaml
 
 jobs:
-  build:
+  container-job:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-
+    container: arm64/node:20.14.0-alpine
     steps:
-      - name: Test
-        run: |
-          # docker pull node:20.14.0-alpine
-          docker run --rm arm64/node:20.14.0-alpine /bin/sh -c 'node --version'
+        - run: node --version
+        - run: npm --version
+        
+  # build:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+
+  #   steps:
+  #     - name: Test
+  #       run: |
+  #         # docker pull node:20.14.0-alpine
+  #         docker run --rm arm64/node:20.14.0-alpine /bin/sh -c 'node --version'
           
 
