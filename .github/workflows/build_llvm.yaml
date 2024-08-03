@@ -44,8 +44,9 @@ jobs:
 
       - name: Patch source code
         run: |
-          # error: unsupported linker arg: -Bsymbolic-functions
-          # https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
+          ## error: unsupported linker arg: -Bsymbolic-functions
+          ## https://github.com/ziglang/zig/issues/18804
+          ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
 
           # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
           base64 -d <<-EOF | patch -up1
