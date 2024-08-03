@@ -34,6 +34,10 @@ jobs:
           ref: ${{github.event.inputs.tag}}
           fetch-depth: 1
 
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+            
+
       - name: Patch source code
         run: |
           # error: unsupported linker arg: -Bsymbolic-functions
