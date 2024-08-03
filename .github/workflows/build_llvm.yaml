@@ -24,8 +24,8 @@ jobs:
         target:
           [
             aarch64-linux-musl,
-            arm-linux-musleabi,
-            x86-linux-musl,
+            # arm-linux-musleabi,
+            # x86-linux-musl,
             x86_64-linux-musl,
           ]
     env:
