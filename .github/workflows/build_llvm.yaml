@@ -17,7 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [
+        target:
+          [
             aarch64-linux-musl,
             arm-linux-musleabi,
             x86-linux-musl,
@@ -139,6 +140,7 @@ jobs:
           cmake --build . --target install
 
       - name: List files
+        run: |
           tree -L 1 bin
           file bin/*
 
