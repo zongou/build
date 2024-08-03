@@ -147,10 +147,10 @@ jobs:
       - name: List files
         run: |
           tree -L 1 bin
-          file bin/*
+          file build/bin/*
 
           tree -L 1 output
-          file output/*
+          file build/output/*
 
       - name: Compress package
         run: |
