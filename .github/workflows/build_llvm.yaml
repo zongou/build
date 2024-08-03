@@ -151,18 +151,21 @@ jobs:
           tree -L 1 output
           file output/*
 
-      - name: xz package
+      - name: Compress package
         run: |
           version=$(echo ${{inputs.tag}} | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
           echo version=${version} >> ${GITHUB_ENV}
-          mv build/output clang+llvm-${version}-${{matrix.target}}
-          tar -c clang+llvm-${version}-${{matrix.target}} | xz -T0 > clang+llvm-${version}-${{matrix.target}}.tar.xz
+          output=$(echo "${{inputs.projects}}" | tr ";" "+")-${version}-${{matrix.target}}
+          echo output=${output} >> ${GITHUB_ENV}
+
+          mv build/output ${output}
+          tar -c ${output} | xz -T0 > ${output}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: "llvm"
-          artifacts: clang+llvm-${{env.version}}-${{matrix.target}}.tar.xz
+          artifacts: ${{env.output}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
