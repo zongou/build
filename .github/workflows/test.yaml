@@ -1,5 +1,5 @@
 name: Test
-run-name: Build llvm ${{github.event.inputs.tag}}
+run-name: "Test: ${{github.event.inputs.tag}}"
 on:
   workflow_dispatch:
   push:
@@ -15,6 +15,7 @@ jobs:
     steps:
       - name: Test
         run: |
-          docker run --rm arm64:20.14.0-alpine /bin/sh -c 'node --version'
+          # docker pull node:20.14.0-alpine
+          docker run --rm arm64/node:20.14.0-alpine /bin/sh -c 'node --version'
           
 
