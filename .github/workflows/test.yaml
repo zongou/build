@@ -36,7 +36,6 @@ jobs:
           # echo ================================================================
           # docker run --platform linux/arm64 arm64v8/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
 
-          docker run --platform linux/arm64 arm64/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-          docker run arm64/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          docker run --platform linux/arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
           
 
