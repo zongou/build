@@ -1,5 +1,5 @@
 name: Test
-run-name: "Test: ${{github.event.inputs.tag}}"
+run-name: "Test: ${{github.event.head_commit.message}}"
 on:
   workflow_dispatch:
   push:
@@ -23,6 +23,9 @@ jobs:
       - name: Test
         run: |
           # docker pull node:20.14.0-alpine
-          docker run --rm node:20.14.0-alpine /bin/sh -c 'node --version'
+          docker run --rm node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          docker run --run --platform linux/arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          docker run --rm arm64v8/node:20.11.1-alpine /bin/sh -c 'uname -m' || true
+          docker run --rm arm64/node:20.11.1-alpine /bin/sh -c 'uname -m' || true
           
 
