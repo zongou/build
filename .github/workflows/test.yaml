@@ -20,9 +20,12 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Test
+      - name: Prepare
         run: |
           sudo apt install binfmt-support qemu-user-static
+          
+      - name: Run
+        run: |
 
           # docker run --rm node:20.14.0-alpine /bin/sh -c 'uname -m' || true
           # echo ================================================================
@@ -37,5 +40,6 @@ jobs:
           # docker run --platform linux/arm64 arm64v8/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
 
           docker run --platform linux/arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          docker run --platform arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
           
 
