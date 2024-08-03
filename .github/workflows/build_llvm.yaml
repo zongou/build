@@ -7,6 +7,10 @@ on:
         description: "Release tag:"
         default: "llvmorg-18.1.8"
         required: true
+      projects:
+        description: "Projects to build:"
+        default: "clang;clang-tools-extra"
+        required: true
 
 jobs:
   build-llvm:
@@ -132,7 +136,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
-            -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE
