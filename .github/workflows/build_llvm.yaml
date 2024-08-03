@@ -19,8 +19,8 @@ jobs:
       matrix:
         target: [
             aarch64-linux-musl,
-            # arm-linux-musleabi,
-            # x86-linux-musl,
+            arm-linux-musleabi,
+            x86-linux-musl,
             x86_64-linux-musl,
           ]
     env:
@@ -36,7 +36,6 @@ jobs:
 
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
-            
 
       - name: Patch source code
         run: |
@@ -139,10 +138,11 @@ jobs:
 
           cmake --build . --target install
 
-          tree bin
+      - name: List files
+          tree -L 1 bin
           file bin/*
 
-          tree output
+          tree -L 1 output
           file output/*
 
       - name: xz package
@@ -156,7 +156,7 @@ jobs:
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: "llvm"
-          artifacts: clang+llvm-${version}-${{matrix.target}}.tar.xz
+          artifacts: clang+llvm-${{env.version}}-${{matrix.target}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
