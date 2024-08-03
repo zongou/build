@@ -128,7 +128,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
-            -DLLVM_ENABLE_PROJECTS="clang-tools-extra" \
+            -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE
@@ -145,14 +145,14 @@ jobs:
         run: |
           version=$(echo ${{inputs.tag}} | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
           echo version=${version} >> ${GITHUB_ENV}
-          mv build/output clang+llvm-18.1.1-${{matrix.target}}
-          tar -c clang+llvm-18.1.1-${{matrix.target}} | xz -T0 > clang+llvm-18.1.1-${{matrix.target}}.tar.xz
+          mv build/output clang+llvm-${version}-${{matrix.target}}
+          tar -c clang+llvm-${version}-${{matrix.target}} | xz -T0 > clang+llvm-${version}-${{matrix.target}}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: "llvm"
-          artifacts: clang+llvm-${{env.version}}-${{matrix.target}}.tar.xz
+          artifacts: clang+llvm-${version}-${{matrix.target}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
