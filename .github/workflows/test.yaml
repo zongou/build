@@ -22,12 +22,18 @@ jobs:
     steps:
       - name: Test
         run: |
-          # docker pull node:20.14.0-alpine
+          sudo apt install binfmt-support qemu-user-static
+
           docker run --rm node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          echo ================================================================
           docker run --rm arm64v8/node:20.11.1-alpine /bin/sh -c 'uname -m' || true
+          echo ================================================================
           docker run --rm arm64/node:20.11.1-alpine /bin/sh -c 'uname -m' || true
+          echo ================================================================
           docker run --platform linux/arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          echo ================================================================
           docker run --platform linux/arm64 arm64/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
+          echo ================================================================
           docker run --platform linux/arm64 arm64v8/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
           
 
