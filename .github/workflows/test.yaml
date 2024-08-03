@@ -2,22 +2,19 @@ name: Test
 run-name: Build llvm ${{github.event.inputs.tag}}
 on:
   workflow_dispatch:
+  push:
+    paths:
+     .github/workflows/test.yaml
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    env:
-      ZIG_VERSION: 0.11.0
 
     steps:
-      - name: test requirements
+      - name: Test
         run: |
-          # https://code.visualstudio.com/docs/remote/linux
-          # kernel >= 4.18, glibc >=2.28, libstdc++ >= 3.4.25, tar
-          ldd --version
-          find /usr -name libstdc++.so.6 | while IFS= read -r f; do
-            strings "$f" | grep GLIBCXX
-          done
+          docker run --rm arm64:20.14.0-alpine /bin/sh -c 'node --version'
+          
 
