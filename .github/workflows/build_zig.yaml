@@ -1,0 +1,251 @@
+name: Build zig
+run-name: Build zig ${{inputs.tag}}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag:"
+        default: "0.13.0"
+        required: true
+
+jobs:
+  build:
+    name: Build zig
+    runs-on: ubuntu-latest
+    # timeout-minutes: 600
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-linux-musl
+          - target: aarch64-linux-musl
+      fail-fast: false
+    env:
+      TARGET: ${{matrix.target}}
+      MCPU: baseline
+      ROOTDIR: .
+      ZIG_TOOLCHAIN_VERSION: 0.13.0
+      ZIG: zig-linux-x86_64-${ZIG_TOOLCHAIN_VERSION}
+    steps:
+      - name: Test
+        run: echo ${ZIG}
+        
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          repository: zig/zig-bootstrap
+          ref: ${{inputs.tag}}
+          fetch-depth: 1
+
+      - name: Set TARGET_OS_CMAKE
+        run: |
+          TARGET_OS_AND_ABI=${TARGET#*-} # Example: linux-gnu
+
+          # Here we map the OS from the target triple to the value that CMake expects.
+          TARGET_OS_CMAKE=${TARGET_OS_AND_ABI%-*} # Example: linux
+          case $TARGET_OS_CMAKE in
+            macos) TARGET_OS_CMAKE="Darwin";;
+            freebsd) TARGET_OS_CMAKE="FreeBSD";;
+            windows) TARGET_OS_CMAKE="Windows";;
+            linux) TARGET_OS_CMAKE="Linux";;
+            native) TARGET_OS_CMAKE="";;
+          esac
+          echo TARGET_OS_CMAKE=${TARGET_OS_CMAKE} >> ${GITHUB_ENV}
+
+      ## https://github.com/termux/termux-packages/issues/20783
+      - name: Patch for old linux kernel
+        run: |
+          patch -up1 <<-EOF
+          RnJvbSAwNjUwMzBlYTAyODJiMDk2MDIzYzRiM2VjNWFiM2NhMGE1Nzg4NjgwIE1vbiBTZXAgMTcg
+          MDA6MDA6MDAgMjAwMQpGcm9tOiB6b25nb3UgPHpvbmdvdUBvdXRsb29rLmNvbT4KRGF0ZTogU3Vu
+          LCA0IEF1ZyAyMDI0IDA4OjQ4OjQ3ICswODAwClN1YmplY3Q6IFtQQVRDSF0gU3VwcG9ydCBvbGQg
+          bGludXgKCi0tLQogemlnL2xpYi9zdGQvemlnL3N5c3RlbS9saW51eC56aWcgfCAyNyArLS0tLS0t
+          LS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMjYg
+          ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvemlnL2xpYi9zdGQvemlnL3N5c3RlbS9saW51eC56
+          aWcgYi96aWcvbGliL3N0ZC96aWcvc3lzdGVtL2xpbnV4LnppZwppbmRleCAyZDJjNDZhNTRhLi5i
+          MDViODY5OTVmIDEwMDY0NAotLS0gYS96aWcvbGliL3N0ZC96aWcvc3lzdGVtL2xpbnV4LnppZwor
+          KysgYi96aWcvbGliL3N0ZC96aWcvc3lzdGVtL2xpbnV4LnppZwpAQCAtMzc0LDEyICszNzQsNiBA
+          QCBmbiBDcHVpbmZvUGFyc2VyKGNvbXB0aW1lIGltcGw6IGFueXR5cGUpIHR5cGUgewogICAgIH07
+          CiB9CiAKLWlubGluZSBmbiBnZXRBQXJjaDY0Q3B1RmVhdHVyZShjb21wdGltZSBmZWF0X3JlZzog
+          W11jb25zdCB1OCkgdTY0IHsKLSAgICByZXR1cm4gYXNtICgibXJzICVbcmV0XSwgIiArKyBmZWF0
+          X3JlZwotICAgICAgICA6IFtyZXRdICI9ciIgKC0+IHU2NCksCi0gICAgKTsKLX0KLQogcHViIGZu
+          IGRldGVjdE5hdGl2ZUNwdUFuZEZlYXR1cmVzKCkgP1RhcmdldC5DcHUgewogICAgIHZhciBmID0g
+          ZnMub3BlbkZpbGVBYnNvbHV0ZSgiL3Byb2MvY3B1aW5mbyIsIC57fSkgY2F0Y2ggfGVycnwgc3dp
+          dGNoIChlcnIpIHsKICAgICAgICAgZWxzZSA9PiByZXR1cm4gbnVsbCwKQEAgLTM4OCwyOCArMzgy
+          LDkgQEAgcHViIGZuIGRldGVjdE5hdGl2ZUNwdUFuZEZlYXR1cmVzKCkgP1RhcmdldC5DcHUgewog
+          CiAgICAgY29uc3QgY3VycmVudF9hcmNoID0gYnVpbHRpbi5jcHUuYXJjaDsKICAgICBzd2l0Y2gg
+          KGN1cnJlbnRfYXJjaCkgewotICAgICAgICAuYXJtLCAuYXJtZWIsIC50aHVtYiwgLnRodW1iZWIg
+          PT4geworICAgICAgICAuYXJtLCAuYXJtZWIsIC50aHVtYiwgLnRodW1iZWIsIC5hYXJjaDY0LCAu
+          YWFyY2g2NF9iZSwgLmFhcmNoNjRfMzIgPT4gewogICAgICAgICAgICAgcmV0dXJuIEFybUNwdWlu
+          Zm9QYXJzZXIucGFyc2UoY3VycmVudF9hcmNoLCBmLnJlYWRlcigpKSBjYXRjaCBudWxsOwogICAg
+          ICAgICB9LAotICAgICAgICAuYWFyY2g2NCwgLmFhcmNoNjRfYmUsIC5hYXJjaDY0XzMyID0+IHsK
+          LSAgICAgICAgICAgIGNvbnN0IHJlZ2lzdGVycyA9IFsxMl11NjR7Ci0gICAgICAgICAgICAgICAg
+          Z2V0QUFyY2g2NENwdUZlYXR1cmUoIk1JRFJfRUwxIiksCi0gICAgICAgICAgICAgICAgZ2V0QUFy
+          Y2g2NENwdUZlYXR1cmUoIklEX0FBNjRQRlIwX0VMMSIpLAotICAgICAgICAgICAgICAgIGdldEFB
+          cmNoNjRDcHVGZWF0dXJlKCJJRF9BQTY0UEZSMV9FTDEiKSwKLSAgICAgICAgICAgICAgICBnZXRB
+          QXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NERGUjBfRUwxIiksCi0gICAgICAgICAgICAgICAgZ2V0
+          QUFyY2g2NENwdUZlYXR1cmUoIklEX0FBNjRERlIxX0VMMSIpLAotICAgICAgICAgICAgICAgIGdl
+          dEFBcmNoNjRDcHVGZWF0dXJlKCJJRF9BQTY0QUZSMF9FTDEiKSwKLSAgICAgICAgICAgICAgICBn
+          ZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NEFGUjFfRUwxIiksCi0gICAgICAgICAgICAgICAg
+          Z2V0QUFyY2g2NENwdUZlYXR1cmUoIklEX0FBNjRJU0FSMF9FTDEiKSwKLSAgICAgICAgICAgICAg
+          ICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NElTQVIxX0VMMSIpLAotICAgICAgICAgICAg
+          ICAgIGdldEFBcmNoNjRDcHVGZWF0dXJlKCJJRF9BQTY0TU1GUjBfRUwxIiksCi0gICAgICAgICAg
+          ICAgICAgZ2V0QUFyY2g2NENwdUZlYXR1cmUoIklEX0FBNjRNTUZSMV9FTDEiKSwKLSAgICAgICAg
+          ICAgICAgICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NE1NRlIyX0VMMSIpLAotICAgICAg
+          ICAgICAgfTsKLQotICAgICAgICAgICAgY29uc3QgY29yZSA9IEBpbXBvcnQoImFybS56aWciKS5h
+          YXJjaDY0LmRldGVjdE5hdGl2ZUNwdUFuZEZlYXR1cmVzKGN1cnJlbnRfYXJjaCwgcmVnaXN0ZXJz
+          KTsKLSAgICAgICAgICAgIHJldHVybiBjb3JlOwotICAgICAgICB9LAogICAgICAgICAuc3BhcmM2
+          NCA9PiB7CiAgICAgICAgICAgICByZXR1cm4gU3BhcmNDcHVpbmZvUGFyc2VyLnBhcnNlKGN1cnJl
+          bnRfYXJjaCwgZi5yZWFkZXIoKSkgY2F0Y2ggbnVsbDsKICAgICAgICAgfSw=
+          EOF
+
+      # - name: Free Disk Space (Ubuntu)
+      #   uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Get zig
+        env:
+          ZIG_VERSION: 0.13.0
+        run: |
+          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
+          # mv zig-linux-x86_64-${ZIG_VERSION} $(dirname ${{ZIG}})
+          echo ${{ZIG}} || true
+
+      - name: Build zlib
+        run: |
+          # First cross compile zlib for the target, as we need the LLVM linked into
+          # the final zig binary to have zlib support enabled.
+          mkdir -p "$ROOTDIR/out/build-zlib-$TARGET-$MCPU"
+          cd "$ROOTDIR/out/build-zlib-$TARGET-$MCPU"
+          cmake "$ROOTDIR/zlib" \
+            -DCMAKE_INSTALL_PREFIX="$ROOTDIR/out/$TARGET-$MCPU" \
+            -DCMAKE_PREFIX_PATH="$ROOTDIR/out/$TARGET-$MCPU" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CROSSCOMPILING=True \
+            -DCMAKE_SYSTEM_NAME="${{env.TARGET_OS_CMAKE}}" \
+            -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+          cmake --build . --target install
+
+      - name: Build zstd
+        run: |
+          # Same deal for zstd.
+          # The build system for zstd is whack so I just put all the files here.
+          mkdir -p "$ROOTDIR/out/$TARGET-$MCPU/lib"
+          cp "$ROOTDIR/zstd/lib/zstd.h" "$ROOTDIR/out/$TARGET-$MCPU/include/zstd.h"
+          cd "$ROOTDIR/out/$TARGET-$MCPU/lib"
+          $ZIG build-lib \
+            --name zstd \
+            -target $TARGET \
+            -mcpu=$MCPU \
+            -fstrip -OReleaseFast \
+            -lc \
+            "$ROOTDIR/zstd/lib/decompress/zstd_ddict.c" \
+            "$ROOTDIR/zstd/lib/decompress/zstd_decompress.c" \
+            "$ROOTDIR/zstd/lib/decompress/huf_decompress.c" \
+            "$ROOTDIR/zstd/lib/decompress/huf_decompress_amd64.S" \
+            "$ROOTDIR/zstd/lib/decompress/zstd_decompress_block.c" \
+            "$ROOTDIR/zstd/lib/compress/zstdmt_compress.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_opt.c" \
+            "$ROOTDIR/zstd/lib/compress/hist.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_ldm.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_fast.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_compress_literals.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_double_fast.c" \
+            "$ROOTDIR/zstd/lib/compress/huf_compress.c" \
+            "$ROOTDIR/zstd/lib/compress/fse_compress.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_lazy.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_compress.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_compress_sequences.c" \
+            "$ROOTDIR/zstd/lib/compress/zstd_compress_superblock.c" \
+            "$ROOTDIR/zstd/lib/deprecated/zbuff_compress.c" \
+            "$ROOTDIR/zstd/lib/deprecated/zbuff_decompress.c" \
+            "$ROOTDIR/zstd/lib/deprecated/zbuff_common.c" \
+            "$ROOTDIR/zstd/lib/common/entropy_common.c" \
+            "$ROOTDIR/zstd/lib/common/pool.c" \
+            "$ROOTDIR/zstd/lib/common/threading.c" \
+            "$ROOTDIR/zstd/lib/common/zstd_common.c" \
+            "$ROOTDIR/zstd/lib/common/xxhash.c" \
+            "$ROOTDIR/zstd/lib/common/debug.c" \
+            "$ROOTDIR/zstd/lib/common/fse_decompress.c" \
+            "$ROOTDIR/zstd/lib/common/error_private.c" \
+            "$ROOTDIR/zstd/lib/dictBuilder/zdict.c" \
+            "$ROOTDIR/zstd/lib/dictBuilder/divsufsort.c" \
+            "$ROOTDIR/zstd/lib/dictBuilder/fastcover.c" \
+            "$ROOTDIR/zstd/lib/dictBuilder/cover.c"
+
+      - name: Rebuild LLVM with Zig.
+        run: |
+          mkdir -p "$ROOTDIR/out/build-llvm-$TARGET-$MCPU"
+          cd "$ROOTDIR/out/build-llvm-$TARGET-$MCPU"
+          cmake "$ROOTDIR/llvm" \
+            -DCMAKE_INSTALL_PREFIX="$ROOTDIR/out/$TARGET-$MCPU" \
+            -DCMAKE_PREFIX_PATH="$ROOTDIR/out/$TARGET-$MCPU" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CROSSCOMPILING=True \
+            -DCMAKE_SYSTEM_NAME="${{env.TARGET_OS_CMAKE}}" \
+            -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DLLVM_ENABLE_BACKTRACES=OFF \
+            -DLLVM_ENABLE_BINDINGS=OFF \
+            -DLLVM_ENABLE_CRASH_OVERRIDES=OFF \
+            -DLLVM_ENABLE_LIBEDIT=OFF \
+            -DLLVM_ENABLE_LIBPFM=OFF \
+            -DLLVM_ENABLE_LIBXML2=OFF \
+            -DLLVM_ENABLE_OCAMLDOC=OFF \
+            -DLLVM_ENABLE_PLUGINS=OFF \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_ENABLE_TERMINFO=OFF \
+            -DLLVM_ENABLE_Z3_SOLVER=OFF \
+            -DLLVM_ENABLE_ZLIB=FORCE_ON \
+            -DLLVM_ENABLE_ZSTD=FORCE_ON \
+            -DLLVM_USE_STATIC_ZSTD=ON \
+            -DLLVM_BUILD_UTILS=OFF \
+            -DLLVM_BUILD_TOOLS=OFF \
+            -DLLVM_BUILD_STATIC=ON \
+            -DLLVM_INCLUDE_UTILS=OFF \
+            -DLLVM_INCLUDE_TESTS=OFF \
+            -DLLVM_INCLUDE_EXAMPLES=OFF \
+            -DLLVM_INCLUDE_BENCHMARKS=OFF \
+            -DLLVM_INCLUDE_DOCS=OFF \
+            -DLLVM_DEFAULT_TARGET_TRIPLE="$TARGET" \
+            -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+            -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+            -DLLVM_TOOL_LTO_BUILD=OFF \
+            -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+            -DCLANG_BUILD_TOOLS=OFF \
+            -DCLANG_INCLUDE_DOCS=OFF \
+            -DCLANG_INCLUDE_TESTS=OFF \
+            -DCLANG_ENABLE_ARCMT=ON \
+            -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+            -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+            -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_LIBCLANG_BUILD=OFF \
+            -DLIBCLANG_BUILD_STATIC=ON \
+            -DLLD_BUILD_TOOLS=OFF
+          cmake --build . --target install
+
+      - name: Build
+        run: ./build ${{ matrix.target }} baseline
+
+      - name: Create tarball
+        run: tar -C out -c zig-${{ matrix.target }}-baseline | xz -T0 > zig-${{ matrix.target }}.tar.xz
+
+      - name: Upload ${{ matrix.target }} tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: zig-${{ matrix.target }}.tar.xz
+          path: zig-${{ matrix.target }}.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: "test"
+          artifacts: zig-${{ matrix.target }}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
