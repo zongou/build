@@ -65,56 +65,56 @@ jobs:
 
           cat clang/tools/CMakeLists.txt
 
-      - name: Create zig wrapper
-        run: |
-          cat <<-'EOF' >zig_wrapper
-          #!/bin/sh
-          set -eu
+      # - name: Create zig wrapper
+      #   run: |
+      #     cat <<-'EOF' >zig_wrapper
+      #     #!/bin/sh
+      #     set -eu
 
-          if test -h "$0" && ! test "$(basename "$(readlink "$0")")" = "$(basename "$(readlink -f "$0")")"; then
-            BIN=$(readlink "$0") && cd "$(dirname "$0")" && "${BIN}" "$@"
-          else
-            WRAPPER="$(basename "$0")"
-            case "${WRAPPER}" in
-            ar | cc | c++ | dlltool | lib | ranlib | objcopy | ld.lld)
-              set -- "${WRAPPER}" "$@"
+      #     if test -h "$0" && ! test "$(basename "$(readlink "$0")")" = "$(basename "$(readlink -f "$0")")"; then
+      #       BIN=$(readlink "$0") && cd "$(dirname "$0")" && "${BIN}" "$@"
+      #     else
+      #       WRAPPER="$(basename "$0")"
+      #       case "${WRAPPER}" in
+      #       ar | cc | c++ | dlltool | lib | ranlib | objcopy | ld.lld)
+      #         set -- "${WRAPPER}" "$@"
 
-              ## Zig doesn't properly handle these flags so we have to rewrite/ignore.
-              ## None of these affect the actual compilation target.
-              ## https://github.com/ziglang/zig/issues/9948
-              case "${WRAPPER}" in
-              cc | c++)
-                for argv in "$@"; do
-                  case "${argv}" in
-                  -Wp,-MD,*)
-                    set -- "$@" "-MD" "-MF" "$(echo "$argv" | sed 's/^-Wp,-MD,//')"
-                    ;;
-                  -Wl,--warn-common | -Wl,--verbose | -Wl,-Map,*) ;;
-                  *)
-                    set -- "$@" "${argv}"
-                    ;;
-                  esac
-                  shift
-                done
-                ;;
-              esac
-              ;;
-            *)
-              printf "Usage:\n  ln -s zig_wrapper [cc|c++|dlltool|lib|ranlib|objcopy|ld.lld]\n" >&2
-              exit
-              ;;
-            esac
+      #         ## Zig doesn't properly handle these flags so we have to rewrite/ignore.
+      #         ## None of these affect the actual compilation target.
+      #         ## https://github.com/ziglang/zig/issues/9948
+      #         case "${WRAPPER}" in
+      #         cc | c++)
+      #           for argv in "$@"; do
+      #             case "${argv}" in
+      #             -Wp,-MD,*)
+      #               set -- "$@" "-MD" "-MF" "$(echo "$argv" | sed 's/^-Wp,-MD,//')"
+      #               ;;
+      #             -Wl,--warn-common | -Wl,--verbose | -Wl,-Map,*) ;;
+      #             *)
+      #               set -- "$@" "${argv}"
+      #               ;;
+      #             esac
+      #             shift
+      #           done
+      #           ;;
+      #         esac
+      #         ;;
+      #       *)
+      #         printf "Usage:\n  ln -s zig_wrapper [cc|c++|dlltool|lib|ranlib|objcopy|ld.lld]\n" >&2
+      #         exit
+      #         ;;
+      #       esac
 
-            # echo ${WRAPPER_BIN} "$@"
-            "${ZIG-zig}" "$@"
-          fi
-          EOF
-          chmod +x zig_wrapper
+      #       # echo ${WRAPPER_BIN} "$@"
+      #       "${ZIG-zig}" "$@"
+      #     fi
+      #     EOF
+      #     chmod +x zig_wrapper
 
-          mkdir -p bin
-          for tool in cc c++ dlltool lib ranlib objcopy ld.lld; do
-            ln -snf ../zig_wrapper bin/${tool}
-          done
+      #     mkdir -p bin
+      #     for tool in cc c++ dlltool lib ranlib objcopy ld.lld; do
+      #       ln -snf ../zig_wrapper bin/${tool}
+      #     done
 
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v2.2.0
