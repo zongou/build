@@ -18,6 +18,7 @@ jobs:
         with:
           path: |
             filea
+            fileb
           key: ${{ runner.os }}-primes
 
       - name: List
