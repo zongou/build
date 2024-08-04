@@ -22,8 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          [
+        target: [
             aarch64-linux-musl,
             # arm-linux-musleabi,
             # x86-linux-musl,
@@ -41,9 +40,6 @@ jobs:
           repository: llvm/llvm-project
           ref: llvmorg-${{inputs.version}}
           fetch-depth: 1
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Patch source code
         run: |
@@ -134,8 +130,8 @@ jobs:
           export CXX="${PWD}/bin/c++ --target=${TARGET}"
           export LDFLAGS="-s"
 
-          mkdir -p build && cd build
-          cmake ../llvm \
+          mkdir -p build
+          cmake -B build llvm \
             -G Ninja \
             -DCMAKE_INSTALL_PREFIX="${PWD}/output}" \
             -DCMAKE_PREFIX_PATH="${PWD}/output" \
@@ -156,9 +152,6 @@ jobs:
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_ENABLE_TERMINFO=OFF \
             -DLLVM_ENABLE_Z3_SOLVER=OFF \
-            -DLLVM_ENABLE_ZLIB=FORCE_ON \
-            -DLLVM_ENABLE_ZSTD=FORCE_ON \
-            -DLLVM_USE_STATIC_ZSTD=ON \
             -DLLVM_BUILD_UTILS=OFF \
             -DLLVM_BUILD_TOOLS=OFF \
             -DLLVM_BUILD_STATIC=ON \
@@ -184,7 +177,12 @@ jobs:
             -DCLANG_TOOL_LIBCLANG_BUILD=OFF \
             -DLIBCLANG_BUILD_STATIC=ON \
             -DLLD_BUILD_TOOLS=OFF
-          cmake --build . --target install
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: build
+        run: cmake -B build --build --target install
 
       - name: List files
         run: |
