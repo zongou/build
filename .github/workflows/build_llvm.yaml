@@ -119,7 +119,19 @@ jobs:
         run: |
           curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
 
-      - name: Build
+      # - name: Configure
+      #   run: |
+      #     mkdir -p build
+      #     cmake -B build llvm \
+      #     -G Ninja \
+      #     -DCMAKE_BUILD_TYPE=Release \
+      #     -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+      #     -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+      #     -DLLVM_TARGETS_TO_BUILD="all" \
+      #     -DLLVM_HOST_TRIPLE=${TARGET} \
+      #     -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+
+      - name: Configure
         env:
           TARGET: ${{matrix.target}}
         run: |
@@ -181,7 +193,7 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
 
-      - name: build
+      - name: Build
         run: cmake -B build --build --target install
 
       - name: List files
