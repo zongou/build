@@ -202,7 +202,7 @@ jobs:
             -DCLANG_TOOL_LIBCLANG_BUILD=OFF \
             -DLIBCLANG_BUILD_STATIC=ON \
             -DLLD_BUILD_TOOLS=OFF
-            
+
           cmake --build . --target install
 
       - name: Cross compile Zig with Zig
@@ -220,19 +220,19 @@ jobs:
             -Dversion-string="${{inputs.tag}}"
 
       - name: Create tarball
-        run: tar -C out -c zig-${{ matrix.target }}-baseline | xz -T0 > zig-${{ matrix.target }}.tar.xz
+        run: tar -C out -c zig-${{matrix.target}}-baseline | xz -T0 > zig-${{matrix.target}}.tar.xz
 
-      - name: Upload ${{ matrix.target }} tarball
+      - name: Upload ${{matrix.target}} tarball
         uses: actions/upload-artifact@v4
         with:
-          name: zig-${{ matrix.target }}.tar.xz
-          path: zig-${{ matrix.target }}.tar.xz
+          name: zig-${{matrix.target}}.tar.xz
+          path: zig-${{matrix.target}}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: "test"
-          artifacts: zig-${{ matrix.target }}.tar.xz
+          artifacts: zig-${{matrix.target}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
