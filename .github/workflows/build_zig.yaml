@@ -36,24 +36,20 @@ jobs:
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
         run: |
-          patch -up1 <<-EOF
-          RnJvbSAwNjUwMzBlYTAyODJiMDk2MDIzYzRiM2VjNWFiM2NhMGE1Nzg4NjgwIE1vbiBTZXAgMTcg
-          MDA6MDA6MDAgMjAwMQpGcm9tOiB6b25nb3UgPHpvbmdvdUBvdXRsb29rLmNvbT4KRGF0ZTogU3Vu
-          LCA0IEF1ZyAyMDI0IDA4OjQ4OjQ3ICswODAwClN1YmplY3Q6IFtQQVRDSF0gU3VwcG9ydCBvbGQg
-          bGludXgKCi0tLQogemlnL2xpYi9zdGQvemlnL3N5c3RlbS9saW51eC56aWcgfCAyNyArLS0tLS0t
-          LS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMjYg
-          ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvemlnL2xpYi9zdGQvemlnL3N5c3RlbS9saW51eC56
-          aWcgYi96aWcvbGliL3N0ZC96aWcvc3lzdGVtL2xpbnV4LnppZwppbmRleCAyZDJjNDZhNTRhLi5i
-          MDViODY5OTVmIDEwMDY0NAotLS0gYS96aWcvbGliL3N0ZC96aWcvc3lzdGVtL2xpbnV4LnppZwor
-          KysgYi96aWcvbGliL3N0ZC96aWcvc3lzdGVtL2xpbnV4LnppZwpAQCAtMzc0LDEyICszNzQsNiBA
-          QCBmbiBDcHVpbmZvUGFyc2VyKGNvbXB0aW1lIGltcGw6IGFueXR5cGUpIHR5cGUgewogICAgIH07
-          CiB9CiAKLWlubGluZSBmbiBnZXRBQXJjaDY0Q3B1RmVhdHVyZShjb21wdGltZSBmZWF0X3JlZzog
-          W11jb25zdCB1OCkgdTY0IHsKLSAgICByZXR1cm4gYXNtICgibXJzICVbcmV0XSwgIiArKyBmZWF0
-          X3JlZwotICAgICAgICA6IFtyZXRdICI9ciIgKC0+IHU2NCksCi0gICAgKTsKLX0KLQogcHViIGZu
-          IGRldGVjdE5hdGl2ZUNwdUFuZEZlYXR1cmVzKCkgP1RhcmdldC5DcHUgewogICAgIHZhciBmID0g
-          ZnMub3BlbkZpbGVBYnNvbHV0ZSgiL3Byb2MvY3B1aW5mbyIsIC57fSkgY2F0Y2ggfGVycnwgc3dp
-          dGNoIChlcnIpIHsKICAgICAgICAgZWxzZSA9PiByZXR1cm4gbnVsbCwKQEAgLTM4OCwyOCArMzgy
-          LDkgQEAgcHViIGZuIGRldGVjdE5hdGl2ZUNwdUFuZEZlYXR1cmVzKCkgP1RhcmdldC5DcHUgewog
+          base64 -d <<EOF | patch -up1
+          ZGlmZiAtLWdpdCBhL3ppZy9saWIvc3RkL3ppZy9zeXN0ZW0vbGludXguemlnIGIvemlnL2xpYi9z
+          dGQvemlnL3N5c3RlbS9saW51eC56aWcKaW5kZXggMmQyYzQ2YTU0Li5iMTFlMGI5MzQgMTAwNjQ0
+          Ci0tLSBhL3ppZy9saWIvc3RkL3ppZy9zeXN0ZW0vbGludXguemlnCisrKyBiL3ppZy9saWIvc3Rk
+          L3ppZy9zeXN0ZW0vbGludXguemlnCkBAIC0zNzQsNDIgKzM3NCwxNyBAQCBmbiBDcHVpbmZvUGFy
+          c2VyKGNvbXB0aW1lIGltcGw6IGFueXR5cGUpIHR5cGUgewogICAgIH07CiB9CiAKLWlubGluZSBm
+          biBnZXRBQXJjaDY0Q3B1RmVhdHVyZShjb21wdGltZSBmZWF0X3JlZzogW11jb25zdCB1OCkgdTY0
+          IHsKLSAgICByZXR1cm4gYXNtICgibXJzICVbcmV0XSwgIiArKyBmZWF0X3JlZwotICAgICAgICA6
+          IFtyZXRdICI9ciIgKC0+IHU2NCksCi0gICAgKTsKLX0KLQogcHViIGZuIGRldGVjdE5hdGl2ZUNw
+          dUFuZEZlYXR1cmVzKCkgP1RhcmdldC5DcHUgewotICAgIHZhciBmID0gZnMub3BlbkZpbGVBYnNv
+          bHV0ZSgiL3Byb2MvY3B1aW5mbyIsIC57fSkgY2F0Y2ggfGVycnwgc3dpdGNoIChlcnIpIHsKKyAg
+          ICB2YXIgZiA9IGZzLm9wZW5GaWxlQWJzb2x1dGUoIi9wcm9jL2NwdWluZm8iLCAueyAuaW50ZW5k
+          ZWRfaW9fbW9kZSA9IC5ibG9ja2luZyB9KSBjYXRjaCB8ZXJyfCBzd2l0Y2ggKGVycikgewogICAg
+          ICAgICBlbHNlID0+IHJldHVybiBudWxsLAogICAgIH07CiAgICAgZGVmZXIgZi5jbG9zZSgpOwog
           CiAgICAgY29uc3QgY3VycmVudF9hcmNoID0gYnVpbHRpbi5jcHUuYXJjaDsKICAgICBzd2l0Y2gg
           KGN1cnJlbnRfYXJjaCkgewotICAgICAgICAuYXJtLCAuYXJtZWIsIC50aHVtYiwgLnRodW1iZWIg
           PT4geworICAgICAgICAuYXJtLCAuYXJtZWIsIC50aHVtYiwgLnRodW1iZWIsIC5hYXJjaDY0LCAu
@@ -77,7 +73,7 @@ jobs:
           YXJjaDY0LmRldGVjdE5hdGl2ZUNwdUFuZEZlYXR1cmVzKGN1cnJlbnRfYXJjaCwgcmVnaXN0ZXJz
           KTsKLSAgICAgICAgICAgIHJldHVybiBjb3JlOwotICAgICAgICB9LAogICAgICAgICAuc3BhcmM2
           NCA9PiB7CiAgICAgICAgICAgICByZXR1cm4gU3BhcmNDcHVpbmZvUGFyc2VyLnBhcnNlKGN1cnJl
-          bnRfYXJjaCwgZi5yZWFkZXIoKSkgY2F0Y2ggbnVsbDsKICAgICAgICAgfSw=
+          bnRfYXJjaCwgZi5yZWFkZXIoKSkgY2F0Y2ggbnVsbDsKICAgICAgICAgfSwK
           EOF
 
       # - name: Free Disk Space (Ubuntu)
