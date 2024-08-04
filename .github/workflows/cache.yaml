@@ -23,14 +23,14 @@ jobs:
 
       - name: Create data if Restoring cache missed
         id: cache-data-create
-        if: steps.cache-data-restore.outputs.cache-hit != 'true'
+        if: steps.cache-data-restore.outputs.cache-hit == 'true'
         run: |
           echo "filea" > filea
           echo "fileb" > fileb
 
       - name: Save data
         id: cache-data-save
-        if: steps.cache-data-create.outputs.cache-hit != 'true'
+        if: steps.cache-data-create.outputs.cache-hit == 'true'
         uses: actions/cache/save@v4
         with:
           path: |
