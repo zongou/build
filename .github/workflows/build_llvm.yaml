@@ -1,5 +1,5 @@
 name: Build llvm
-run-name: Build ${{inputs.projects}} ${{inputs.version}}
+run-name: Build llvm ${{inputs.version}}
 on:
   workflow_dispatch:
     inputs:
@@ -9,12 +9,11 @@ on:
         required: true
       projects:
         description: "Projects to build:"
-        # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
         default: "clang-tools-extra"
         required: true
 
 jobs:
-  build:
+  build-llvm:
     permissions:
       contents: write
       actions: write
@@ -22,8 +21,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [aarch64-linux-musl, x86_64-linux-musl]
-
+        target:
+          [
+            aarch64-linux-musl,
+            x86_64-linux-musl,
+          ]
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -32,12 +34,20 @@ jobs:
           ref: llvmorg-${{inputs.version}}
           fetch-depth: 1
 
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
+
       - name: Patch source code
         run: |
           ## error: unsupported linker arg: -Bsymbolic-functions
           ## https://github.com/ziglang/zig/issues/18804
           ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
-
           # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
           base64 -d <<-EOF | patch -up1
           ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
@@ -52,58 +62,45 @@ jobs:
           bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
           RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
           EOF
-
           cat clang/tools/CMakeLists.txt
-
-      - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v2.2.0
-        with:
-          version: 0.13.0
-          cache: true
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@v1.3.1
-
+      
       - name: Build
+        env:
+          TARGET: ${{matrix.target}}
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
 
-          TARGET=${{matrix.target}}
-          MCPU=baseline
-          ROOTDIR=${{github.workspace}}
-
-          mkdir -p build
-          cmake -B build llvm \
+          mkdir -p build && cd build
+          cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${ROOTDIR}/output" \
+            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
-
-          cmake --build build --target install
+          cmake --build . --target install
 
       - name: List files
         run: |
-          tree output || true
+          tree -L 1 build/output
+          file build/output/*
 
       - name: Compress package
         run: |
           output=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo output=${output} >> ${GITHUB_ENV}
-
-          mv output ${output}
+          mv build/output ${output}
           tar -c ${output} | xz -T0 > ${output}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
-          tag: "llvm"
+          version: "llvm"
           artifacts: ${{env.output}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
