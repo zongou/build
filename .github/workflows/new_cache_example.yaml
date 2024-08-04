@@ -33,8 +33,8 @@ jobs:
       uses: actions/cache/save@v4
       with:
         path: |
-          path/to/dependencies
-          some/other/dependencies
+          filea
+          fileb
         key: ${{ steps.cache-primes-restore.outputs.cache-primary-key }}
 
     - name: Print Primes
