@@ -97,9 +97,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CROSSCOMPILING=True \
             -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
-            -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
             
           cmake --build . --target install
 
@@ -207,7 +207,7 @@ jobs:
       - name: Cross compile Zig with Zig
         run: |
           cd "$ROOTDIR/zig"
-          $ZIG build \
+          zig build \
             --prefix "$ROOTDIR/out/zig-$TARGET-$MCPU" \
             --search-prefix "$ROOTDIR/out/$TARGET-$MCPU" \
             -Dflat \
