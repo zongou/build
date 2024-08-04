@@ -92,7 +92,7 @@ jobs:
           key: ${{ runner.os }}-${{ inputs.tag }}-host_llvm
 
       - name: Build host LLVM
-        if: steps.cache-restore-host_llvm.outputs.cache-hit == 'false'
+        if: steps.cache-restore-host_llvm.outputs.cache-hit != 'true'
         run: |
           # First build the libraries for Zig to link against, as well as native `llvm-tblgen`.
           mkdir -p "$ROOTDIR/out/build-llvm-host"
@@ -128,7 +128,7 @@ jobs:
 
       - name: Cache host LLVM
         id: cache-save
-        if: ${{ steps.cache-restore-host_llvm.outputs.cache-hit == 'false' }}
+        if: ${{ steps.cache-restore-host_llvm.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: |
@@ -144,7 +144,7 @@ jobs:
           key: ${{ runner.os }}-${{ inputs.tag }}-host_zig
 
       - name: Build host Zig
-        if: steps.cache-restore-host_zig.outputs.cache-hit == 'false'
+        if: steps.cache-restore-host_zig.outputs.cache-hit != 'true'
         run: |
           # Now we build Zig, still with system C/C++ compiler, linking against LLVM,
           # Clang, LLD we just built from source.
@@ -162,7 +162,7 @@ jobs:
 
       - name: Cache host Zig
         id: cache-save-host_zig
-        if: ${{ steps.cache-restore-host_zig.outputs.cache-hit == 'false' }}
+        if: ${{ steps.cache-restore-host_zig.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: |
