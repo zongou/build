@@ -1,5 +1,5 @@
 name: Build llvm
-run-name: Build llvm ${{inputs.version}}
+run-name: Build ${{inputs.projects}}-${{inputs.version}}
 on:
   workflow_dispatch:
     inputs:
@@ -9,11 +9,12 @@ on:
         required: true
       projects:
         description: "Projects to build:"
+        # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
         default: "clang-tools-extra"
         required: true
 
 jobs:
-  build-llvm:
+  build:
     permissions:
       contents: write
       actions: write
@@ -21,11 +22,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          [
+        target: [
             aarch64-linux-musl,
             x86_64-linux-musl,
           ]
+    env:
+      TARGET: ${{matrix.target}}
+      MCPU: baseline
+      ZIG_VERSION: 0.13.0
+
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -37,17 +42,13 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
 
-      - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v2.2.0
-        with:
-          version: 0.13.0
-          cache: true
 
       - name: Patch source code
         run: |
           ## error: unsupported linker arg: -Bsymbolic-functions
           ## https://github.com/ziglang/zig/issues/18804
           ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
+
           # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
           base64 -d <<-EOF | patch -up1
           ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
@@ -62,11 +63,34 @@ jobs:
           bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
           RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
           EOF
+
           cat clang/tools/CMakeLists.txt
-      
-      - name: Build
-        env:
-          TARGET: ${{matrix.target}}
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
+
+      # - name: Configure
+      #   run: |
+          # sudo apt update
+          # sudo apt install ninja-build binfmt-support qemu-user-static
+          # export CC="${PWD}/bin/cc --target=${TARGET}"
+          # export CXX="${PWD}/bin/c++ --target=${TARGET}"
+          # export LDFLAGS="-s"
+
+          # mkdir -p build
+          # cmake -B build llvm \
+          # -G Ninja \
+          # -DCMAKE_BUILD_TYPE=Release \
+          # -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+          # -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+          # -DLLVM_TARGETS_TO_BUILD="all" \
+          # -DLLVM_HOST_TRIPLE=${TARGET} \
+          # -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+
+      - name: Configure
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
@@ -74,33 +98,73 @@ jobs:
           mkdir -p build && cd build
           cmake ../llvm \
             -G Ninja \
+            -DCMAKE_INSTALL_PREFIX="${PWD}/output}" \
+            -DCMAKE_PREFIX_PATH="${PWD}/output" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
-            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-            -DLLVM_TARGETS_TO_BUILD="all" \
-            -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+            -DCMAKE_CROSSCOMPILING=True \
+            -DCMAKE_SYSTEM_NAME="Linux" \
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DLLVM_ENABLE_BACKTRACES=OFF \
+            -DLLVM_ENABLE_BINDINGS=OFF \
+            -DLLVM_ENABLE_CRASH_OVERRIDES=OFF \
+            -DLLVM_ENABLE_LIBEDIT=OFF \
+            -DLLVM_ENABLE_LIBPFM=OFF \
+            -DLLVM_ENABLE_LIBXML2=OFF \
+            -DLLVM_ENABLE_OCAMLDOC=OFF \
+            -DLLVM_ENABLE_PLUGINS=OFF \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+            -DLLVM_ENABLE_TERMINFO=OFF \
+            -DLLVM_ENABLE_Z3_SOLVER=OFF \
+            -DLLVM_BUILD_UTILS=OFF \
+            -DLLVM_BUILD_TOOLS=OFF \
+            -DLLVM_BUILD_STATIC=ON \
+            -DLLVM_INCLUDE_UTILS=OFF \
+            -DLLVM_INCLUDE_TESTS=OFF \
+            -DLLVM_INCLUDE_EXAMPLES=OFF \
+            -DLLVM_INCLUDE_BENCHMARKS=OFF \
+            -DLLVM_INCLUDE_DOCS=OFF \
+            -DLLVM_DEFAULT_TARGET_TRIPLE="$TARGET" \
+            -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+            -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+            -DLLVM_TOOL_LTO_BUILD=OFF \
+            -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+            -DCLANG_BUILD_TOOLS=OFF \
+            -DCLANG_INCLUDE_DOCS=OFF \
+            -DCLANG_INCLUDE_TESTS=OFF \
+            -DCLANG_ENABLE_ARCMT=ON \
+            -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+            -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+            -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_LIBCLANG_BUILD=OFF \
+            -DLIBCLANG_BUILD_STATIC=ON \
+            -DLLD_BUILD_TOOLS=OFF
+
           cmake --build . --target install
 
       - name: List files
         run: |
-          tree -L 1 build/output
-          file build/output/*
+          tree -L 1 build/output/bin
+          file build/output/bin/*
+
+          tree -L 1 build/bin
+          file build/bin/*
 
       - name: Compress package
         run: |
           output=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo output=${output} >> ${GITHUB_ENV}
+
           mv build/output ${output}
           tar -c ${output} | xz -T0 > ${output}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
-          version: "llvm"
+          tag: "llvm"
           artifacts: ${{env.output}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
