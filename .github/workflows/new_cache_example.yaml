@@ -3,7 +3,7 @@ run-name: "Caching Primes: ${{github.event.head_commit.message}}"
 on:
   workflow_dispatch:
   push:
-    paths: .github/workflows/cache.yaml
+    paths: .github/workflows/new_cache_example.yaml
 
 jobs:
   build:
