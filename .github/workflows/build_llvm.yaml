@@ -30,6 +30,8 @@ jobs:
             x86_64-linux-musl,
           ]
     env:
+      TARGET: ${{matrix.target}}
+      MCPU: baseline
       ZIG_VERSION: 0.13.0
 
     steps:
