@@ -108,7 +108,6 @@ jobs:
         run: |
           curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
           # mv zig-linux-x86_64-${ZIG_VERSION} $(dirname ${ZIG}
-          echo ${{ZIG}} || true
 
       - name: Build zlib
         run: |
