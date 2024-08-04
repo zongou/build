@@ -37,13 +37,6 @@ jobs:
           ref: llvmorg-${{inputs.version}}
           fetch-depth: 1
 
-      - name: Test
-        run: |
-          echo ROOTDIR=${ROOTDIR}
-          echo PWD=${PWD}
-          echo WORKSPACE=${{github.workspace}}
-          exit 1
-
       - name: Patch source code
         run: |
           ## error: unsupported linker arg: -Bsymbolic-functions
@@ -155,7 +148,7 @@ jobs:
           pwd
           tree -L 1
           tree -L 2
-          
+
           tree -L 1 output/bin || true
           file output/bin/* || true
 
