@@ -132,8 +132,6 @@ jobs:
       #     -DCMAKE_SKIP_INSTALL_RPATH=TRUE
 
       - name: Configure
-        env:
-          TARGET: ${{matrix.target}}
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
