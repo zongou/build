@@ -39,7 +39,7 @@ jobs:
 
       - name: Test
         run: |
-          echo ROOT_DIR=${ROOT_DIR}
+          echo ROOTDIR=${ROOTDIR}
           echo PWD=${PWD}
           echo WORKSPACE=${{github.workspace}}
           exit 1
