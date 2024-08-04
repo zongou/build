@@ -140,8 +140,8 @@ jobs:
           export CXX="${PWD}/bin/c++ --target=${TARGET}"
           export LDFLAGS="-s"
 
-          mkdir -p build && cp build
-          cmake ../llvm \
+          mkdir -p build
+          cmake llvm -B build \
             -G Ninja \
             -DCMAKE_INSTALL_PREFIX="${PWD}/output}" \
             -DCMAKE_PREFIX_PATH="${PWD}/output" \
