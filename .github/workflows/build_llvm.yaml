@@ -200,18 +200,15 @@ jobs:
 
       - name: List files
         run: |
-          tree -L 1 build/output/bin
-          file build/output/bin/*
-
-          tree -L 1 build/bin
-          file build/bin/*
+          tree -L 1 output/bin
+          file output/bin/*
 
       - name: Compress package
         run: |
           output=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo output=${output} >> ${GITHUB_ENV}
 
-          mv build/output ${output}
+          mv output ${output}
           tar -c ${output} | xz -T0 > ${output}.tar.xz
 
       - name: Upload release
