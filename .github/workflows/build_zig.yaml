@@ -89,8 +89,7 @@ jobs:
         with:
           path: |
             out/build-llvm-host
-          # key: ${{ runner.os }}-${{ inputs.tag }}-host_llvm
-          key: ${{ runner.os }}-primes
+          key: ${{ runner.os }}-${{ inputs.tag }}-host_llvm
 
       - name: Build host LLVM
         if: steps.cache-restore-host_llvm.outputs.cache-hit != 'true'
@@ -133,7 +132,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ${{github.workspace}}/out/build-llvm-host
+            out/build-llvm-host
           key: ${{ steps.cache-restore-host_llvm.outputs.cache-primary-key }}
 
       - name: Restore host Zig
@@ -141,7 +140,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{github.workspace}}/out/host
+            out/host
           key: ${{ runner.os }}-${{ inputs.tag }}-host_zig
 
       - name: Build host Zig
@@ -167,7 +166,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            ${{github.workspace}}/out/host
+            out/host
           key: ${{ steps.cache-restore-host_zig.outputs.cache-primary-key }}
 
       - name: Build zlib
