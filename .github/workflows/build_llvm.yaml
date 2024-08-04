@@ -151,7 +151,7 @@ jobs:
             -DLLVM_ENABLE_LIBXML2=OFF \
             -DLLVM_ENABLE_OCAMLDOC=OFF \
             -DLLVM_ENABLE_PLUGINS=OFF \
-            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_ENABLE_TERMINFO=OFF \
             -DLLVM_ENABLE_Z3_SOLVER=OFF \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
