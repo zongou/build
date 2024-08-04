@@ -222,18 +222,7 @@ jobs:
             -Dversion-string="${{inputs.tag}}"
 
       - name: Create tarball
-        run: tar -C out -c zig-${{ matrix.target }}-baseline | xz -T0 > zig-# Finally, we can cross compile Zig itself, with Zig.
-cd "$ROOTDIR/zig"
-$ZIG build \
-  --prefix "$ROOTDIR/out/zig-$TARGET-$MCPU" \
-  --search-prefix "$ROOTDIR/out/$TARGET-$MCPU" \
-  -Dflat \
-  -Dstatic-llvm \
-  -Doptimize=ReleaseFast \
-  -Dstrip \
-  -Dtarget="$TARGET" \
-  -Dcpu="$MCPU" \
-  -Dversion-string="$ZIG_VERSION"${{ matrix.target }}.tar.xz
+        run: tar -C out -c zig-${{ matrix.target }}-baseline | xz -T0 > zig-${{ matrix.target }}.tar.xz
 
       - name: Upload ${{ matrix.target }} tarball
         uses: actions/upload-artifact@v4
