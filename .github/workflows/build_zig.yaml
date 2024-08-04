@@ -89,7 +89,8 @@ jobs:
         with:
           path: |
             ${{github.workspace}}/out/build-llvm-host
-          key: ${{ runner.os }}-${{ inputs.tag }}-host_llvm
+          # key: ${{ runner.os }}-${{ inputs.tag }}-host_llvm
+          key: ${{ runner.os }}-primes
 
       - name: Build host LLVM
         if: steps.cache-restore-host_llvm.outputs.cache-hit != 'true'
