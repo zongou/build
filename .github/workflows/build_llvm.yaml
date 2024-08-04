@@ -72,76 +72,27 @@ jobs:
           version: 0.13.0
           cache: true
 
-      # - name: Configure
-      #   run: |
-          # sudo apt update
-          # sudo apt install ninja-build binfmt-support qemu-user-static
-          # export CC="${PWD}/bin/cc --target=${TARGET}"
-          # export CXX="${PWD}/bin/c++ --target=${TARGET}"
-          # export LDFLAGS="-s"
-
-          # mkdir -p build
-          # cmake -B build llvm \
-          # -G Ninja \
-          # -DCMAKE_BUILD_TYPE=Release \
-          # -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
-          # -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-          # -DLLVM_TARGETS_TO_BUILD="all" \
-          # -DLLVM_HOST_TRIPLE=${TARGET} \
-          # -DCMAKE_SKIP_INSTALL_RPATH=TRUE
-
-      - name: Configure
+      - name: Build
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
 
+          # export CC="${PWD}/bin/cc --target=${TARGET}"
+          # export CXX="${PWD}/bin/c++ --target=${TARGET}"
+          # export LDFLAGS="-s"
+
           mkdir -p build && cd build
           cmake ../llvm \
             -G Ninja \
-            -DCMAKE_INSTALL_PREFIX="${PWD}/output}" \
-            -DCMAKE_PREFIX_PATH="${PWD}/output" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CROSSCOMPILING=True \
-            -DCMAKE_SYSTEM_NAME="Linux" \
+            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+            -DLLVM_TARGETS_TO_BUILD="all" \
+            -DLLVM_HOST_TRIPLE=${TARGET} \
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DLLVM_ENABLE_BACKTRACES=OFF \
-            -DLLVM_ENABLE_BINDINGS=OFF \
-            -DLLVM_ENABLE_CRASH_OVERRIDES=OFF \
-            -DLLVM_ENABLE_LIBEDIT=OFF \
-            -DLLVM_ENABLE_LIBPFM=OFF \
-            -DLLVM_ENABLE_LIBXML2=OFF \
-            -DLLVM_ENABLE_OCAMLDOC=OFF \
-            -DLLVM_ENABLE_PLUGINS=OFF \
-            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-            -DLLVM_ENABLE_TERMINFO=OFF \
-            -DLLVM_ENABLE_Z3_SOLVER=OFF \
-            -DLLVM_BUILD_UTILS=OFF \
-            -DLLVM_BUILD_TOOLS=OFF \
-            -DLLVM_BUILD_STATIC=ON \
-            -DLLVM_INCLUDE_UTILS=OFF \
-            -DLLVM_INCLUDE_TESTS=OFF \
-            -DLLVM_INCLUDE_EXAMPLES=OFF \
-            -DLLVM_INCLUDE_BENCHMARKS=OFF \
-            -DLLVM_INCLUDE_DOCS=OFF \
-            -DLLVM_DEFAULT_TARGET_TRIPLE="$TARGET" \
-            -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
-            -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
-            -DLLVM_TOOL_LTO_BUILD=OFF \
-            -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
-            -DCLANG_BUILD_TOOLS=OFF \
-            -DCLANG_INCLUDE_DOCS=OFF \
-            -DCLANG_INCLUDE_TESTS=OFF \
-            -DCLANG_ENABLE_ARCMT=ON \
-            -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
-            -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
-            -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
-            -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
-            -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
-            -DCLANG_TOOL_LIBCLANG_BUILD=OFF \
-            -DLIBCLANG_BUILD_STATIC=ON \
-            -DLLD_BUILD_TOOLS=OFF
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
 
           cmake --build . --target install
 
@@ -149,9 +100,6 @@ jobs:
         run: |
           tree -L 1 build/output/bin
           file build/output/bin/*
-
-          tree -L 1 build/bin
-          file build/bin/*
 
       - name: Compress package
         run: |
