@@ -14,7 +14,7 @@ on:
         required: true
 
 jobs:
-  build-llvm:
+  build:
     permissions:
       contents: write
       actions: write
