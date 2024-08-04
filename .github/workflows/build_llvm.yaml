@@ -152,8 +152,12 @@ jobs:
 
       - name: List files
         run: |
-          tree -L 1 output/bin
-          file output/bin/*
+          pwd
+          tree -L 1
+          tree -L 2
+          
+          tree -L 1 output/bin || true
+          file output/bin/* || true
 
       - name: Compress package
         run: |
