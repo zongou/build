@@ -1,4 +1,4 @@
-name: Test
+name: Cache example
 run-name: "Test: ${{github.event.head_commit.message}}"
 on:
   workflow_dispatch:
