@@ -5,7 +5,7 @@ on:
     inputs:
       tag:
         description: "Release tag:"
-        default: "llvmorg-18.1.8"
+        default: "18.1.8"
         required: true
       projects:
         description: "Projects to build:"
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4.1.1
         with:
           repository: llvm/llvm-project
-          ref: ${{github.event.inputs.tag}}
+          ref: llvmorg-${{github.event.inputs.tag}}
           fetch-depth: 1
 
       - name: Free Disk Space (Ubuntu)
