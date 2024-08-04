@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore cached data
-        id: cache-data-restore
+      - name: Restore cached Primes
+        id: cache-primes-restore
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -21,19 +21,23 @@ jobs:
             fileb
           key: ${{ runner.os }}-primes
 
-      - name: Create data if Restoring cache missed
-        id: cache-data-create
-        if: steps.cache-data-restore.outputs.cache-hit != 'true'
-        run: |
-          echo "filea" > filea
-          echo "fileb" > fileb
+      # - name: Create Primes if Restoring cache missed
+      #   id: cache-primes-create
+      #   if: steps.cache-primes-restore.outputs.cache-hit != 'true'
+      #   run: |
+      #     echo "Hello" > filea
+      #     echo "World" > fileb
 
-      - name: Save data
-        id: cache-data-save
-        if: steps.cache-data-create.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            filea
-            fileb
-          key: ${{ steps.cache-data-restore.outputs.cache-primary-key }}
+      # - name: Save Primes
+      #   id: cache-primes-save
+      #   if: steps.cache-primes-restore.outputs.cache-hit != 'true'
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     path: |
+      #       filea
+      #       fileb
+      #     key: ${{ steps.cache-primes-restore.outputs.cache-primary-key }}
+
+      - name: Print Primes
+        run: |
+          cat filea fileb
