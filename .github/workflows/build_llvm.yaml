@@ -1,5 +1,5 @@
 name: Build llvm
-run-name: Build llvm ${{inputs.projects}}-${{inputs.tag}}
+run-name: Build ${{inputs.projects}}-${{inputs.tag}}
 on:
   workflow_dispatch:
     inputs:
