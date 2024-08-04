@@ -22,10 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [
-            aarch64-linux-musl,
-            x86_64-linux-musl,
-          ]
+        target: [aarch64-linux-musl, x86_64-linux-musl]
     env:
       TARGET: ${{matrix.target}}
       MCPU: baseline
@@ -39,6 +36,13 @@ jobs:
           repository: llvm/llvm-project
           ref: llvmorg-${{inputs.version}}
           fetch-depth: 1
+
+      - name: Test
+        run: |
+          echo ROOT_DIR=${ROOT_DIR}
+          echo PWD=${PWD}
+          echo WORKSPACE=${{github.workspace}}
+          exit 1
 
       - name: Patch source code
         run: |
