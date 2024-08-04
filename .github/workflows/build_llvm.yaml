@@ -1,5 +1,5 @@
 name: Build llvm
-run-name: Build llvm ${{github.event.inputs.tag}}
+run-name: Build llvm ${{inputs.projects}}-${{inputs.tag}}
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +9,7 @@ on:
         required: true
       projects:
         description: "Projects to build:"
+        # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
         default: "clang;clang-tools-extra"
         required: true
 
@@ -146,11 +147,11 @@ jobs:
 
       - name: List files
         run: |
+          tree -L 1 build/output/bin
+          file build/output/bin/*
+
           tree -L 1 build/bin
           file build/bin/*
-
-          tree -L 1 build/output
-          file build/output/*
 
       - name: Compress package
         run: |
