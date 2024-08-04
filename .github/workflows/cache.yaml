@@ -19,21 +19,25 @@ jobs:
           path: |
             filea
             fileb
-          key: ${{ runner.os }}-primes
+          key: ${{ runner.os }}-data
 
       - name: Create data if Restoring cache missed
         id: cache-data-create
-        if: steps.cache-data-restore.outputs.cache-hit == 'true'
+        if: steps.cache-data-restore.outputs.cache-hit != 'true'
         run: |
-          echo "filea" > filea
-          echo "fileb" > fileb
+          echo "Hello" > filea
+          echo "World" > fileb
 
       - name: Save data
         id: cache-data-save
-        if: steps.cache-data-create.outputs.cache-hit == 'true'
+        if: steps.cache-data-create.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
             filea
             fileb
           key: ${{ steps.cache-data-restore.outputs.cache-primary-key }}
+
+      - name: Print data
+        run: |
+          cat filea fileb
