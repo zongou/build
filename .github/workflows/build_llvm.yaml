@@ -115,30 +115,34 @@ jobs:
             ln -snf ../zig_wrapper bin/${tool}
           done
 
-      - name: Get zig
-        run: |
-          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
 
       # - name: Configure
       #   run: |
-      #     mkdir -p build
-      #     cmake -B build llvm \
-      #     -G Ninja \
-      #     -DCMAKE_BUILD_TYPE=Release \
-      #     -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
-      #     -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-      #     -DLLVM_TARGETS_TO_BUILD="all" \
-      #     -DLLVM_HOST_TRIPLE=${TARGET} \
-      #     -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+          # sudo apt update
+          # sudo apt install ninja-build binfmt-support qemu-user-static
+          # export CC="${PWD}/bin/cc --target=${TARGET}"
+          # export CXX="${PWD}/bin/c++ --target=${TARGET}"
+          # export LDFLAGS="-s"
+
+          # mkdir -p build
+          # cmake -B build llvm \
+          # -G Ninja \
+          # -DCMAKE_BUILD_TYPE=Release \
+          # -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+          # -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+          # -DLLVM_TARGETS_TO_BUILD="all" \
+          # -DLLVM_HOST_TRIPLE=${TARGET} \
+          # -DCMAKE_SKIP_INSTALL_RPATH=TRUE
 
       - name: Configure
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
-          export ZIG=${PWD}/zig-linux-x86_64-${ZIG_VERSION}/zig
-          export CC="${PWD}/bin/cc --target=${TARGET}"
-          export CXX="${PWD}/bin/c++ --target=${TARGET}"
-          export LDFLAGS="-s"
 
           mkdir -p build
           cmake llvm -B build \
@@ -148,9 +152,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CROSSCOMPILING=True \
             -DCMAKE_SYSTEM_NAME="Linux" \
-            -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DLLVM_ENABLE_BACKTRACES=OFF \
             -DLLVM_ENABLE_BINDINGS=OFF \
             -DLLVM_ENABLE_CRASH_OVERRIDES=OFF \

@@ -20,26 +20,18 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Prepare
-        run: |
-          sudo apt install binfmt-support qemu-user-static
+      # - name: Prepare
+      #   run: |
+      #     sudo apt install binfmt-support qemu-user-static
           
-      - name: Run
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
+      
+      - name: Test
         run: |
-
-          # docker run --rm node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-          # echo ================================================================
-          # docker run --rm arm64v8/node:20.11.1-alpine /bin/sh -c 'uname -m' || true
-          # echo ================================================================
-          # docker run --rm arm64/node:20.11.1-alpine /bin/sh -c 'uname -m' || true
-          # echo ================================================================
-          # docker run --platform linux/arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-          # echo ================================================================
-          # docker run --platform linux/arm64 arm64/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-          # echo ================================================================
-          # docker run --platform linux/arm64 arm64v8/node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-
-          docker run --platform linux/arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-          docker run --platform arm64 node:20.14.0-alpine /bin/sh -c 'uname -m' || true
-          
+          zig version
+          echo ${ZIG}
 
