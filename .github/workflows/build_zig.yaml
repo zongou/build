@@ -128,7 +128,7 @@ jobs:
 
       - name: Cache host LLVM
         id: cache-save
-        if: ${{ steps.cache-restore-host_llvm.outputs.cache-hit != 'true' }}
+        if: steps.cache-restore-host_llvm.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
@@ -162,7 +162,7 @@ jobs:
 
       - name: Cache host Zig
         id: cache-save-host_zig
-        if: ${{ steps.cache-restore-host_zig.outputs.cache-hit != 'true' }}
+        if: steps.cache-restore-host_zig.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
