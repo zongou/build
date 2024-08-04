@@ -23,34 +23,15 @@ jobs:
     env:
       TARGET: ${{matrix.target}}
       MCPU: baseline
-      ROOTDIR: .
-      ZIG_TOOLCHAIN_VERSION: 0.13.0
-      ZIG: zig-linux-x86_64-${ZIG_TOOLCHAIN_VERSION}
+      TARGET_OS_CMAKE: "Linux"
+      ROOTDIR: ${{github.workspace}}
     steps:
-      - name: Test
-        run: echo ${ZIG}
-
       - uses: actions/checkout@v4
         with:
           submodules: true
           repository: zig/zig-bootstrap
           ref: ${{inputs.tag}}
           fetch-depth: 1
-
-      - name: Set TARGET_OS_CMAKE
-        run: |
-          TARGET_OS_AND_ABI=${TARGET#*-} # Example: linux-gnu
-
-          # Here we map the OS from the target triple to the value that CMake expects.
-          TARGET_OS_CMAKE=${TARGET_OS_AND_ABI%-*} # Example: linux
-          case $TARGET_OS_CMAKE in
-            macos) TARGET_OS_CMAKE="Darwin";;
-            freebsd) TARGET_OS_CMAKE="FreeBSD";;
-            windows) TARGET_OS_CMAKE="Windows";;
-            linux) TARGET_OS_CMAKE="Linux";;
-            native) TARGET_OS_CMAKE="";;
-          esac
-          echo TARGET_OS_CMAKE=${TARGET_OS_CMAKE} >> ${GITHUB_ENV}
 
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
@@ -102,14 +83,13 @@ jobs:
       # - name: Free Disk Space (Ubuntu)
       #   uses: jlumbroso/free-disk-space@v1.3.1
 
-      - name: Get zig
-        env:
-          ZIG_VERSION: 0.13.0
-        run: |
-          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
-          # mv zig-linux-x86_64-${ZIG_VERSION} $(dirname ${ZIG}
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
 
-      - name: Build zlib
+      - name: Build zlib with Zig
         run: |
           # First cross compile zlib for the target, as we need the LLVM linked into
           # the final zig binary to have zlib support enabled.
@@ -121,19 +101,19 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CROSSCOMPILING=True \
             -DCMAKE_SYSTEM_NAME="${{env.TARGET_OS_CMAKE}}" \
-            -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
           cmake --build . --target install
 
-      - name: Build zstd
+      - name: Build zstd with Zig
         run: |
           # Same deal for zstd.
           # The build system for zstd is whack so I just put all the files here.
           mkdir -p "$ROOTDIR/out/$TARGET-$MCPU/lib"
           cp "$ROOTDIR/zstd/lib/zstd.h" "$ROOTDIR/out/$TARGET-$MCPU/include/zstd.h"
           cd "$ROOTDIR/out/$TARGET-$MCPU/lib"
-          $ZIG build-lib \
+          zig build-lib \
             --name zstd \
             -target $TARGET \
             -mcpu=$MCPU \
@@ -173,7 +153,7 @@ jobs:
             "$ROOTDIR/zstd/lib/dictBuilder/fastcover.c" \
             "$ROOTDIR/zstd/lib/dictBuilder/cover.c"
 
-      - name: Rebuild LLVM with Zig.
+      - name: Build LLVM with Zig
         run: |
           mkdir -p "$ROOTDIR/out/build-llvm-$TARGET-$MCPU"
           cd "$ROOTDIR/out/build-llvm-$TARGET-$MCPU"
@@ -183,9 +163,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CROSSCOMPILING=True \
             -DCMAKE_SYSTEM_NAME="${{env.TARGET_OS_CMAKE}}" \
-            -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DLLVM_ENABLE_BACKTRACES=OFF \
             -DLLVM_ENABLE_BINDINGS=OFF \
             -DLLVM_ENABLE_CRASH_OVERRIDES=OFF \
@@ -227,11 +207,33 @@ jobs:
             -DLLD_BUILD_TOOLS=OFF
           cmake --build . --target install
 
-      - name: Build
-        run: ./build ${{ matrix.target }} baseline
+      - name: Cross compile Zig with Zig
+        run: |
+          cd "$ROOTDIR/zig"
+          $ZIG build \
+            --prefix "$ROOTDIR/out/zig-$TARGET-$MCPU" \
+            --search-prefix "$ROOTDIR/out/$TARGET-$MCPU" \
+            -Dflat \
+            -Dstatic-llvm \
+            -Doptimize=ReleaseFast \
+            -Dstrip \
+            -Dtarget="$TARGET" \
+            -Dcpu="$MCPU" \
+            -Dversion-string="${{inputs.tag}}"
 
       - name: Create tarball
-        run: tar -C out -c zig-${{ matrix.target }}-baseline | xz -T0 > zig-${{ matrix.target }}.tar.xz
+        run: tar -C out -c zig-${{ matrix.target }}-baseline | xz -T0 > zig-# Finally, we can cross compile Zig itself, with Zig.
+cd "$ROOTDIR/zig"
+$ZIG build \
+  --prefix "$ROOTDIR/out/zig-$TARGET-$MCPU" \
+  --search-prefix "$ROOTDIR/out/$TARGET-$MCPU" \
+  -Dflat \
+  -Dstatic-llvm \
+  -Doptimize=ReleaseFast \
+  -Dstrip \
+  -Dtarget="$TARGET" \
+  -Dcpu="$MCPU" \
+  -Dversion-string="$ZIG_VERSION"${{ matrix.target }}.tar.xz
 
       - name: Upload ${{ matrix.target }} tarball
         uses: actions/upload-artifact@v4
