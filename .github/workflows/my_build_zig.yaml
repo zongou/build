@@ -41,12 +41,6 @@ jobs:
         with:
           llvm-version: 18
 
-      - name: Setup lld and output dir
-        run: |
-          sudo apt update
-          sudo apt install lld-18 liblld-18-dev
-          mkdir -p out/host
-
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
         run: |
