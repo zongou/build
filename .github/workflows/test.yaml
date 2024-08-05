@@ -10,19 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # - uses: actions/checkout@v4
 
-      - name: Restore cached data
-        id: cache-data-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            filea
-            fileb
-          key: ${{ runner.os }}-primes
-
-      - name: List
-        id: cache-data-save
-        if: steps.cache-data-restore.outputs.cache-hit == 'true'
+      - name: find llvm-config
         run: |
-          ls -l out/build-llvm-host
+          find /usr/bin/ -name "llvm-config*"    
+
