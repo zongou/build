@@ -36,14 +36,6 @@ jobs:
           ref: ${{inputs.tag}}
           fetch-depth: 1
 
-      - name: Clone zig
-        run: |
-          git clone https://github.com/ziglang/zig.git --branch=${{inputs.tag}}
-          ## https://github.com/termux/termux-packages/issues/20783
-          Revert breaking commit
-          cd zig
-          git revert a0de077600a35e41ce861398eaf3c8e832fee42e
-
       # - name: Setup LLVM
       #   uses: ZhongRuoyu/setup-llvm@v0.1.1
       #   with:
@@ -277,6 +269,16 @@ jobs:
           path: |
             out
           key: ${{steps.cache-restore-target_llvm.outputs.cache-primary-key}}
+
+      - name: Clone zig
+        run: |
+          rm -rf zig
+          git clone https://github.com/ziglang/zig.git --branch=${{inputs.tag}}
+          ## https://github.com/termux/termux-packages/issues/20783
+          
+          ## Revert breaking commit
+          cd zig
+          git revert a0de077600a35e41ce861398eaf3c8e832fee42e
 
       - name: Build target zig
         run: |
