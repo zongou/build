@@ -26,3 +26,6 @@ jobs:
           command -v lld  || true
           command -v ld.lld || true
 
+          sudo apt update
+          sudo apt search lld
+
