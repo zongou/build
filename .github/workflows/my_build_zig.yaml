@@ -183,9 +183,6 @@ jobs:
             -DLLVM_ENABLE_PROJECTS="lld;clang" \
             -DLLVM_ENABLE_TERMINFO=OFF \
             -DLLVM_ENABLE_Z3_SOLVER=OFF \
-            -DLLVM_ENABLE_ZLIB=FORCE_ON \
-            -DLLVM_ENABLE_ZSTD=FORCE_ON \
-            -DLLVM_USE_STATIC_ZSTD=ON \
             -DLLVM_BUILD_UTILS=OFF \
             -DLLVM_BUILD_TOOLS=OFF \
             -DLLVM_BUILD_STATIC=ON \
