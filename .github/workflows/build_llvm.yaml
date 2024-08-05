@@ -87,9 +87,6 @@ jobs:
 
       - name: Configure
         run: |
-          export CC="zig cc --target=${TARGET}"
-          export CC="zig c++ --target=${TARGET}"
-
           mkdir -p ${BUILD_DIR} ${INSTALL_DIR}
           cmake -S llvm -B ${BUILD_DIR} \
             -G Ninja \
@@ -98,7 +95,10 @@ jobs:
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
 
       - name: Build
         run: cmake --build ${BUILD_DIR} --target install
