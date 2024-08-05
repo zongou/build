@@ -17,5 +17,6 @@ jobs:
           sudo apt update
           sudo apt search llvm
           sudo apt install llvm-18
-          find /usr/bin/ -name "llvm-config*"    
+          find /usr/bin/ -name "llvm-config*"
+          llvm-config --version
 
