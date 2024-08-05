@@ -96,9 +96,9 @@ jobs:
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
-            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
+            -DCMAKE_C_COMPILER="zig;cc;-s;-target;$TARGET" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-s;-target;$TARGET" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-s;-target;$TARGET"
 
       - name: Build
         run: cmake --build ${BUILD_DIR} --target install
