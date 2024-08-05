@@ -55,7 +55,7 @@ jobs:
         run: |
           git revert a0de077600a35e41ce861398eaf3c8e832fee42e
 
-      - name: Set
+      - name: Set TARGET_OS_AND_ABI
         run: |
           TARGET_OS_AND_ABI=${TARGET#*-} # Example: linux-gnu
 
@@ -132,7 +132,16 @@ jobs:
             out
           key: ${{steps.cache-restore-host_zig.outputs.cache-primary-key}}
 
-      - name: Build target LLVM and Zig
+      - name: Restore target LLVM
+        id: cache-restore-target_llvm
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            out
+          key: build_zig-${{ runner.os }}-${{ inputs.tag }}-target_llvm
+
+      - name: Build target LLVM
+        if: steps.cache-restore-target_llvm.outputs.cache-hit != 'true'
         run: |
           # Now we have Zig as a cross compiler.
           ZIG="$ROOTDIR/out/host/bin/zig"
@@ -258,6 +267,16 @@ jobs:
             -DLLD_BUILD_TOOLS=OFF
           cmake --build . --target install
 
+      - name: Cache target LLVM
+        if: steps.cache-restore-target_llvm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            out
+          key: ${{steps.cache-restore-target_llvm.outputs.cache-primary-key}}
+
+      - name: Build target zig
+        run: |
           # Finally, we can cross compile Zig itself, with Zig.
           cd "$ROOTDIR/zig"
           $ZIG build \
