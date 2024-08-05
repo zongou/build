@@ -15,7 +15,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          sudo cat <<EOF > /etc/profiles.d/my_profile.sh
+          sudo cat <<EOF > /etc/profile.d/my_profile.sh
           export CHARSET=\${CHARSET:-UTF-8}
           export LANG=\${LANG:-C.UTF-8}
           export LC_COLLATE=\${LC_COLLATE:-C}
