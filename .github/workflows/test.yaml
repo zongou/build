@@ -12,18 +12,30 @@ jobs:
     steps:
       # - uses: actions/checkout@v4
 
-      - name: Restore host LLVM and Zig
-        id: cache-restore-host_zig
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            out
-          key: build_zig-Linux-0.13.0-host
-
-      - name: Cache host LLVM and Zig
-        if: steps.cache-restore-host_zig.outputs.cache-hit == 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            out
-          key: build_zig-0.13.0-host
+    - name: Debugging with tmate
+      # You may pin to the exact commit or the version.
+      # uses: mxschmitt/action-tmate@b3db6e16e597d92037c8647e54acc5d2b1b48dee
+      uses: mxschmitt/action-tmate@v3.18
+      with:
+        # If apt should be executed with sudo or without
+        sudo: # optional, default is auto
+        # Whether or not to install dependencies for tmate on linux (openssh-client, xz-utils)
+        install-dependencies: # optional, default is true
+        # Whether to authorize only the public SSH keys of the user triggering the workflow (defaults to true if the GitHub profile of the user has a public SSH key)
+        limit-access-to-actor: # optional, default is auto
+        # In detached mode, the workflow job will continue while the tmate session is active
+        detached: # optional, default is false
+        # How long in seconds to wait for a connection to be established
+        connect-timeout-seconds: # optional, default is 600
+        # The hostname for your tmate server (e.g. ssh.example.org)
+        tmate-server-host: # optional, default is 
+        # The port for your tmate server (e.g. 2222)
+        tmate-server-port: # optional, default is 
+        # The RSA fingerprint for your tmate server
+        tmate-server-rsa-fingerprint: # optional, default is 
+        # The ed25519 fingerprint for your tmate server
+        tmate-server-ed25519-fingerprint: # optional, default is 
+        # Personal access token (PAT) used to call into GitHub's REST API. We recommend using a service account with the least permissions necessary. Also when generating a new PAT, select the least scopes necessary. [Learn more about creating and using encrypted secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
+    
+        github-token: # optional, default is ${{ github.token }}
+              
