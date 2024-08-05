@@ -182,7 +182,7 @@ jobs:
 
       - name: Build zlib
         run: |
-											$ZIG version
+          $ZIG version
           # First cross compile zlib for the target, as we need the LLVM linked into
           # the final zig binary to have zlib support enabled.
           mkdir -p "$ROOTDIR/out/build-zlib-$TARGET-$MCPU"
