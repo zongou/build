@@ -151,6 +151,8 @@ jobs:
       - name: Build host Zig
         if: steps.cache-restore-host_zig.outputs.cache-hit != 'true'
         run: |
+          # Could NOT find lld (missing: LLD_LIBRARIES LLD_INCLUDE_DIRS) (Required is at least version "18")
+          sudo ln -snf $(command -v lld) /usr/local/bin/lld
           # Now we build Zig, still with system C/C++ compiler, linking against LLVM,
           # Clang, LLD we just built from source.
           mkdir -p "$ROOTDIR/out/build-zig-host"
