@@ -19,13 +19,6 @@ jobs:
     
       - name: find llvm-config
         run: |
-          llvm-config --version
-          clang --version
-          lld --version || true 
-          ld.lld --version || true
-          command -v lld  || true
-          command -v ld.lld || true
-
           sudo apt update
-          sudo apt search lld
+          sudo apt sarch llvm
 
