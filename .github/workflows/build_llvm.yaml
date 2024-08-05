@@ -1,16 +1,16 @@
-name: Build llvm
-run-name: Build ${{inputs.projects}}-${{inputs.tag}}
+name: Build LLVM
+run-name: Build LLVM ${{inputs.version}} ${{inputs.projects}}
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Release tag:"
-        default: "llvmorg-18.1.8"
+      version:
+        description: "LLVM version:"
+        default: "18.1.8"
         required: true
       projects:
         description: "Projects to build:"
         # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
-        default: "clang;clang-tools-extra"
+        default: "clang-tools-extra"
         required: true
 
 jobs:
@@ -22,8 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          [
+        target: [
             aarch64-linux-musl,
             # arm-linux-musleabi,
             # x86-linux-musl,
@@ -31,13 +30,15 @@ jobs:
           ]
     env:
       ZIG_VERSION: 0.13.0
-
+      BUILD_DIR: ${{github.workspace}}/build
+      INSTALL_DIR: ${{github.workspace}}/output
+      TARGET: ${{matrix.target}}
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
         with:
           repository: llvm/llvm-project
-          ref: ${{github.event.inputs.tag}}
+          ref: llvmorg-${{inputs.version}}
           fetch-depth: 1
 
       - name: Free Disk Space (Ubuntu)
@@ -121,53 +122,58 @@ jobs:
         run: |
           curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
 
-      - name: Build
-        env:
-          TARGET: ${{matrix.target}}
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            out
+          key: build_llvm-${{matrix.target}}-${{inputs.version}}
+
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
+
+      - name: Configure
+        run: |
           export ZIG=${PWD}/zig-linux-x86_64-${ZIG_VERSION}/zig
           export CC="${PWD}/bin/cc --target=${TARGET}"
           export CXX="${PWD}/bin/c++ --target=${TARGET}"
           export LDFLAGS="-s"
 
-          mkdir -p build && cd build
+          mkdir -p ${BUILD_DIR} ${INSTALL_DIR}
 
-          cmake ../llvm \
+          cmake -S llvm -B ${BUILD_DIR} \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+            -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE
 
-          cmake --build . --target install
+      - name: Build
+        run: cmake --build ${BUILD_DIR} --target install
 
       - name: List files
         run: |
-          tree -L 1 build/output/bin
-          file build/output/bin/*
-
-          tree -L 1 build/bin
-          file build/bin/*
+          tree ${INSTALL_DIR}
+          tree ${BUILD_DIR}
 
       - name: Compress package
         run: |
-          version=$(echo ${{inputs.tag}} | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
-          echo version=${version} >> ${GITHUB_ENV}
-          output=$(echo "${{inputs.projects}}" | tr ";" "+")-${version}-${{matrix.target}}
-          echo output=${output} >> ${GITHUB_ENV}
+          tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
+          echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
 
-          mv build/output ${output}
-          tar -c ${output} | xz -T0 > ${output}.tar.xz
+          mv ${INSTALL_DIR} ${tarball_name}
+          tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
-          tag: "llvm"
-          artifacts: ${{env.output}}.tar.xz
+          tag: "llvm-${{inputs.version}}"
+          artifacts: ${{env.tarball_name}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
