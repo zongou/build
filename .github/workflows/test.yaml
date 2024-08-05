@@ -21,7 +21,7 @@ jobs:
           key: build_zig-Linux-0.13.0-host
 
       - name: Cache host LLVM and Zig
-        if: steps.cache-restore-host_zig.outputs.cache-hit != 'true'
+        if: steps.cache-restore-host_zig.outputs.cache-hit == 'true'
         uses: actions/cache/save@v4
         with:
           path: |
