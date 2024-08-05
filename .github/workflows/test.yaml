@@ -14,5 +14,7 @@ jobs:
 
       - name: find llvm-config
         run: |
+          sudo apt search llmv-config
+          sudo apt install llvm-config
           find /usr/bin/ -name "llvm-config*"    
 
