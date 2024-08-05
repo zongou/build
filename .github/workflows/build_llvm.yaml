@@ -75,7 +75,7 @@ jobs:
           cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/out" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
@@ -89,21 +89,21 @@ jobs:
       - name: List files
         run: |
           ls -1
-          tree build/output
+          tree out
 
       - name: Compress package
         run: |
-          output=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
-          echo output=${output} >> ${GITHUB_ENV}
+          tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
+          echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
 
-          mv build/output ${output}
-          tar -c ${output} | xz -T0 > ${output}.tar.xz
+          mv out ${tarball_name}
+          tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: "llvm"
-          artifacts: ${{env.output}}.tar.xz
+          artifacts: ${{env.tarball_name}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
