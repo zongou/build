@@ -46,7 +46,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install lld-18 liblld-18-dev
-                  
+
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
         run: |
@@ -156,6 +156,7 @@ jobs:
       - name: Build host Zig
         if: steps.cache-restore-host_zig.outputs.cache-hit != 'true'
         run: |
+          mkdir -p out/host
           # Now we build Zig, still with system C/C++ compiler, linking against LLVM,
           # Clang, LLD we just built from source.
           mkdir -p "$ROOTDIR/out/build-zig-host"
