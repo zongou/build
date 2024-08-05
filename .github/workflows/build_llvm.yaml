@@ -75,7 +75,7 @@ jobs:
           cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/output" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
@@ -88,11 +88,7 @@ jobs:
 
       - name: List files
         run: |
-          tree -L 1 build/output/bin
-          file build/output/bin/*
-
-          tree -L 1 build/bin
-          file build/bin/*
+          tree output
 
       - name: Compress package
         run: |
@@ -101,7 +97,7 @@ jobs:
           output=$(echo "${{inputs.projects}}" | tr ";" "+")-${version}-${{matrix.target}}
           echo output=${output} >> ${GITHUB_ENV}
 
-          mv build/output ${output}
+          mv output ${output}
           tar -c ${output} | xz -T0 > ${output}.tar.xz
 
       - name: Upload release
