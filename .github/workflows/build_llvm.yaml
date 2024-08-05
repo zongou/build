@@ -10,7 +10,7 @@ on:
       projects:
         description: "Projects to build:"
         # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
-        default: "clang;clang-tools-extra"
+        default: "clang-tools-extra"
         required: true
 
 jobs:
@@ -22,16 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          [
-            aarch64-linux-musl,
-            # arm-linux-musleabi,
-            # x86-linux-musl,
-            x86_64-linux-musl,
-          ]
-    env:
-      ZIG_VERSION: 0.13.0
-
+        target: [aarch64-linux-musl, x86_64-linux-musl]
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -42,6 +33,12 @@ jobs:
 
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
 
       - name: Patch source code
         run: |
@@ -66,74 +63,15 @@ jobs:
 
           cat clang/tools/CMakeLists.txt
 
-      - name: Create zig wrapper
-        run: |
-          cat <<-'EOF' >zig_wrapper
-          #!/bin/sh
-          set -eu
-
-          if test -h "$0" && ! test "$(basename "$(readlink "$0")")" = "$(basename "$(readlink -f "$0")")"; then
-            BIN=$(readlink "$0") && cd "$(dirname "$0")" && "${BIN}" "$@"
-          else
-            WRAPPER="$(basename "$0")"
-            case "${WRAPPER}" in
-            ar | cc | c++ | dlltool | lib | ranlib | objcopy | ld.lld)
-              set -- "${WRAPPER}" "$@"
-
-              ## Zig doesn't properly handle these flags so we have to rewrite/ignore.
-              ## None of these affect the actual compilation target.
-              ## https://github.com/ziglang/zig/issues/9948
-              case "${WRAPPER}" in
-              cc | c++)
-                for argv in "$@"; do
-                  case "${argv}" in
-                  -Wp,-MD,*)
-                    set -- "$@" "-MD" "-MF" "$(echo "$argv" | sed 's/^-Wp,-MD,//')"
-                    ;;
-                  -Wl,--warn-common | -Wl,--verbose | -Wl,-Map,*) ;;
-                  *)
-                    set -- "$@" "${argv}"
-                    ;;
-                  esac
-                  shift
-                done
-                ;;
-              esac
-              ;;
-            *)
-              printf "Usage:\n  ln -s zig_wrapper [cc|c++|dlltool|lib|ranlib|objcopy|ld.lld]\n" >&2
-              exit
-              ;;
-            esac
-
-            # echo ${WRAPPER_BIN} "$@"
-            "${ZIG-zig}" "$@"
-          fi
-          EOF
-          chmod +x zig_wrapper
-
-          mkdir -p bin
-          for tool in cc c++ dlltool lib ranlib objcopy ld.lld; do
-            ln -snf ../zig_wrapper bin/${tool}
-          done
-
-      - name: Get zig
-        run: |
-          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
-
       - name: Build
         env:
           TARGET: ${{matrix.target}}
+          MCPU: baseline
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
-          export ZIG=${PWD}/zig-linux-x86_64-${ZIG_VERSION}/zig
-          export CC="${PWD}/bin/cc --target=${TARGET}"
-          export CXX="${PWD}/bin/c++ --target=${TARGET}"
-          export LDFLAGS="-s"
 
           mkdir -p build && cd build
-
           cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -141,7 +79,10 @@ jobs:
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
 
           cmake --build . --target install
 
