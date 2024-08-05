@@ -148,7 +148,9 @@ jobs:
         run: |
           # CMake Error at cmake/Findllvm.cmake:32 (message):
           # unable to find llvm-config
-          sudo ln -snf /usr/bin/llvm-config-15 /usr/local/bin/llvm-config
+          sudo apt update
+          sudo apt install llvm
+          
           # Now we build Zig, still with system C/C++ compiler, linking against LLVM,
           # Clang, LLD we just built from source.
           mkdir -p "$ROOTDIR/out/build-zig-host"
