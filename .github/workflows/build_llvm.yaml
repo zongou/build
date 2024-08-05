@@ -73,6 +73,7 @@ jobs:
       - name: Build
         env:
           TARGET: ${{matrix.target}}
+          MCPU: baseline
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
