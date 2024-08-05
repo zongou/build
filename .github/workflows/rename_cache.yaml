@@ -1,0 +1,35 @@
+name: Rename cache
+run-name: "Rename cache ${{github.event.inputs.from}} -> ${{github.event.inputs.to}}"
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "From:"
+        required: true
+      to:
+        description: "To:"
+        required: true
+      path:
+        description: "path:"
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Restore host LLVM and Zig
+        id: cache-restore-host_zig
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{inputs.path}}
+          key: ${{ github.event.inputs.from }}
+
+      - name: Cache host LLVM and Zig
+        if: steps.cache-restore-host_zig.outputs.cache-hit == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{inputs.path}}
+          key: ${{ github.event.inputs.to }}
