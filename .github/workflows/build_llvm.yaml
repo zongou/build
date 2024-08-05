@@ -1,11 +1,11 @@
 name: Build llvm
-run-name: Build ${{inputs.projects}}-${{inputs.version}}
+run-name: Build ${{inputs.projects}}-${{inputs.tag}}
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "LLVM version:"
-        default: "18.1.8"
+      tag:
+        description: "Release tag:"
+        default: "llvmorg-18.1.8"
         required: true
       projects:
         description: "Projects to build:"
@@ -22,13 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [
+        target:
+          [
             aarch64-linux-musl,
             x86_64-linux-musl,
           ]
     env:
-      TARGET: ${{matrix.target}}
-      MCPU: baseline
       ZIG_VERSION: 0.13.0
 
     steps:
@@ -36,12 +35,11 @@ jobs:
         uses: actions/checkout@v4.1.1
         with:
           repository: llvm/llvm-project
-          ref: llvmorg-${{inputs.version}}
+          ref: ${{github.event.inputs.tag}}
           fetch-depth: 1
 
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
-
 
       - name: Patch source code
         run: |
@@ -73,19 +71,18 @@ jobs:
           cache: true
 
       - name: Build
+        env:
+          TARGET: ${{matrix.target}}
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
 
-          # export CC="${PWD}/bin/cc --target=${TARGET}"
-          # export CXX="${PWD}/bin/c++ --target=${TARGET}"
-          # export LDFLAGS="-s"
-
+          OUTPUT_DIR=${{github.workspace}}/output
           mkdir -p build && cd build
           cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
+            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
@@ -98,22 +95,23 @@ jobs:
 
       - name: List files
         run: |
-          tree -L 1 build/output/bin
-          file build/output/bin/*
+          tree output || true
 
       - name: Compress package
         run: |
-          output=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
-          echo output=${output} >> ${GITHUB_ENV}
+          version=$(echo ${{inputs.tag}} | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
+          echo version=${version} >> ${GITHUB_ENV}
+          release=$(echo "${{inputs.projects}}" | tr ";" "+")-${version}-${{matrix.target}}
+          echo release=${release} >> ${GITHUB_ENV}
 
-          mv build/output ${output}
-          tar -c ${output} | xz -T0 > ${output}.tar.xz
+          mv output ${release}
+          tar -c ${release} | xz -T0 > ${release}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
           tag: "llvm"
-          artifacts: ${{env.output}}.tar.xz
+          artifacts: ${{env.release}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
