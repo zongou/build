@@ -12,11 +12,13 @@ jobs:
     steps:
       # - uses: actions/checkout@v4
 
+      - name: Setup LLVM
+        uses: ZhongRuoyu/setup-llvm@v0.1.1
+        with:
+          llvm-version: 18.1.8
+    
       - name: find llvm-config
         run: |
-          sudo apt update
-          sudo apt search llvm
-          sudo apt install llvm-18
-          find /usr/bin/ -name "llvm-config*"
           llvm-config --version
+          clang --version
 
