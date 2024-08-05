@@ -127,8 +127,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            out
-          key: build_llvm-${{matrix.target}}-${{inputs.version}}
+            build
+          key: build_llvm-${{matrix.target}}-${{inputs.version}}-${{inputs.projects}}
 
       - name: Install dependencies
         run: |
@@ -155,6 +155,14 @@ jobs:
 
       - name: Build
         run: cmake --build ${BUILD_DIR} --target install
+
+      - name: Save cache
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            build
+          key: ${{steps.cache-restore.outputs.cache-primary-key}}
 
       - name: List files
         run: |
