@@ -40,7 +40,7 @@ jobs:
       - name: LLVM Install
         uses: FreeMasen/llvm-install-action@v1.0.0
         with:
-          version: 18
+          version: 18.1.8
 
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
