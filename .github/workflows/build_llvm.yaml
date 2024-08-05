@@ -111,6 +111,9 @@ jobs:
             build
           key: ${{steps.cache-restore.outputs.cache-primary-key}}
 
+      - name: Debugging with tmate
+        uses: mxschmitt/action-tmate@v3.18
+
       - name: List files
         run: |
           tree ${INSTALL_DIR}
