@@ -37,11 +37,11 @@ jobs:
           ref: ${{inputs.tag}}
           fetch-depth: 1
 
-      - name: LLVM Install
-        uses: FreeMasen/llvm-install-action@v1.0.0
+      - name: Setup LLVM
+        uses: KyleMayes/install-llvm-action@v2.0.3
         with:
           version: 18.1.8
-
+                  
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
         run: |
