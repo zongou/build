@@ -16,7 +16,7 @@ jobs:
           helix_vesion=24.07
           helix_url=https://github.com/helix-editor/helix/releases/download/${helix_vesion}/helix-${helix_vesion}-x86_64-linux.tar.xz
           curl -L ${helix_url} | xz -d | tar -C /opt -x
-          ln -snf /opt/helix-${helix_vesion}-x86_64-linux/bin/hx /usr/local/bin/hx
+          ln -snf /opt/helix-${helix_vesion}-x86_64-linux/hx /usr/local/bin/hx
           hx --version
 
       - name: Debugging with tmate
