@@ -10,7 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Debugging with tmate
-      uses: mxschmitt/action-tmate@v3.18
+      - name: Prepare environment
+        run: |
+          sudo apt update
+          helix_vesion=24.07
+          helix_url=https://github.com/helix-editor/helix/releases/download/${helix_vesion}/helix-${helix_vesion}-x86_64-linux.tar.xz
+          curl -L ${helix_url} | xz -d | tar -C /opt -x
+          ln -snf /opt/helix-${helix_vesion}-x86_64-linux/bin/hx /usr/local/bin/hx
+          hx --version
 
-              
+      - name: Debugging with tmate
+        uses: mxschmitt/action-tmate@v3.18
