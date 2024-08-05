@@ -37,6 +37,11 @@ jobs:
           ref: ${{inputs.tag}}
           fetch-depth: 1
 
+      - name: Setup LLVM
+        uses: ZhongRuoyu/setup-llvm@v0.1.1
+        with:
+          llvm-version: 18
+
       ## https://github.com/termux/termux-packages/issues/20783
       - name: Patch for old linux kernel
         run: |
@@ -150,7 +155,7 @@ jobs:
           # unable to find llvm-config
           sudo apt update
           sudo apt install llvm
-          
+
           # Now we build Zig, still with system C/C++ compiler, linking against LLVM,
           # Clang, LLD we just built from source.
           mkdir -p "$ROOTDIR/out/build-zig-host"
