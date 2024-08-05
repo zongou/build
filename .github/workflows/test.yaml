@@ -21,5 +21,8 @@ jobs:
         run: |
           llvm-config --version
           clang --version
-          lld --version || ld.lld --version
+          lld --version || true 
+          ld.lld --version || true
+          command -v lld  || true
+          command -v ld.lld || true
 
