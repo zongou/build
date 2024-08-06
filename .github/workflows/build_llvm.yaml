@@ -1,10 +1,10 @@
-name: Build LLVM
-run-name: Build LLVM ${{inputs.version}} ${{inputs.projects}}
+name: Build llvm
+run-name: Build ${{inputs.projects}}-${{inputs.version}}
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "LLVM version:"
+        description: "Release version:"
         default: "18.1.8"
         required: true
       projects:
@@ -28,10 +28,7 @@ jobs:
             # x86-linux-musl,
             x86_64-linux-musl,
           ]
-    env:
-      BUILD_DIR: ${{github.workspace}}/build
-      INSTALL_DIR: ${{github.workspace}}/output
-      TARGET: ${{matrix.target}}
+
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -43,13 +40,36 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
 
+      - name: Patch source code
+        run: |
+          ## error: unsupported linker arg: -Bsymbolic-functions
+          ## https://github.com/ziglang/zig/issues/18804
+          ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
+
+          # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
+          base64 -d <<-EOF | patch -up1
+          ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
+          a2VMaXN0cy50eHQKaW5kZXggZjYwZGI2ZWYwYi4uNTc2OWU4NTQ1MiAxMDA2NDQKLS0tIGEvY2xh
+          bmcvdG9vbHMvQ01ha2VMaXN0cy50eHQKKysrIGIvY2xhbmcvdG9vbHMvQ01ha2VMaXN0cy50eHQK
+          QEAgLTIwLDExICsyMCw2IEBAIGFkZF9jbGFuZ19zdWJkaXJlY3RvcnkoYy1pbmRleC10ZXN0KQog
+          CiBhZGRfY2xhbmdfc3ViZGlyZWN0b3J5KGNsYW5nLXJlbmFtZSkKIGFkZF9jbGFuZ19zdWJkaXJl
+          Y3RvcnkoY2xhbmctcmVmYWN0b3IpCi0jIEZvciBNaW5HVyB3ZSBvbmx5IGVuYWJsZSBzaGFyZWQg
+          bGlicmFyeSBpZiBMTFZNX0xJTktfTExWTV9EWUxJQj1PTi4KLSMgV2l0aG91dCB0aGF0IG9wdGlv
+          biByZXN1bHRpbmcgbGlicmFyeSBpcyB0b28gY2xvc2UgdG8gMl4xNiBETEwgZXhwb3J0cyBsaW1p
+          dC4KLWlmKFVOSVggT1IgKE1JTkdXIEFORCBMTFZNX0xJTktfTExWTV9EWUxJQikpCi0gIGFkZF9j
+          bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
+          RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
+          EOF
+
+          cat clang/tools/CMakeLists.txt
+
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v2.2.0
         with:
           version: 0.13.0
           cache: true
 
-      - name: Setup Zig wrappers
+      - name: Create zig wrapper
         run: |
           cat <<-'EOF' >zig_wrapper
           #!/bin/sh
@@ -100,82 +120,47 @@ jobs:
             ln -snf ../zig_wrapper bin/${tool}
           done
 
-      - name: Restore cache
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            build
-          key: build_llvm-${{matrix.target}}-${{inputs.version}}-${{inputs.projects}}
-
-      - name: Patch source code
+      - name: Get zig
         run: |
-          ## error: unsupported linker arg: -Bsymbolic-functions
-          ## https://github.com/ziglang/zig/issues/18804
-          ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
+          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
 
-          # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
-          base64 -d <<-EOF | patch -up1
-          ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
-          a2VMaXN0cy50eHQKaW5kZXggZjYwZGI2ZWYwYi4uNTc2OWU4NTQ1MiAxMDA2NDQKLS0tIGEvY2xh
-          bmcvdG9vbHMvQ01ha2VMaXN0cy50eHQKKysrIGIvY2xhbmcvdG9vbHMvQ01ha2VMaXN0cy50eHQK
-          QEAgLTIwLDExICsyMCw2IEBAIGFkZF9jbGFuZ19zdWJkaXJlY3RvcnkoYy1pbmRleC10ZXN0KQog
-          CiBhZGRfY2xhbmdfc3ViZGlyZWN0b3J5KGNsYW5nLXJlbmFtZSkKIGFkZF9jbGFuZ19zdWJkaXJl
-          Y3RvcnkoY2xhbmctcmVmYWN0b3IpCi0jIEZvciBNaW5HVyB3ZSBvbmx5IGVuYWJsZSBzaGFyZWQg
-          bGlicmFyeSBpZiBMTFZNX0xJTktfTExWTV9EWUxJQj1PTi4KLSMgV2l0aG91dCB0aGF0IG9wdGlv
-          biByZXN1bHRpbmcgbGlicmFyeSBpcyB0b28gY2xvc2UgdG8gMl4xNiBETEwgZXhwb3J0cyBsaW1p
-          dC4KLWlmKFVOSVggT1IgKE1JTkdXIEFORCBMTFZNX0xJTktfTExWTV9EWUxJQikpCi0gIGFkZF9j
-          bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
-          RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
-          EOF
-
-          cat clang/tools/CMakeLists.txt
-
-      - name: Install dependencies
+      - name: Build
+        env:
+          TARGET: ${{matrix.target}}
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
+          export CC="${PWD}/bin/cc --target=${TARGET}"
+          export CXX="${PWD}/bin/c++ --target=${TARGET}"
+          export LDFLAGS="-s"
 
-      - name: Configure
-        run: |
-          mkdir -p ${BUILD_DIR} ${INSTALL_DIR}
-          cmake -S llvm -B ${BUILD_DIR} \
+          mkdir -p build && cd build
+
+          cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
+            -DCMAKE_INSTALL_PREFIX="${PWD}/output" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
-            -DCMAKE_C_COMPILER="${{github.workspace}}/bin/cc" \
-            -DCMAKE_CXX_COMPILER="${{github.workspace}}/bin/c++" \
-            -DCMAKE_ASM_COMPILER="${{github.workspace}}/bin/cc"
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
 
-      - name: Build
-        run: cmake --build ${BUILD_DIR} --target install
-
-      - name: Save cache
-        if: steps.cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            build
-          key: ${{steps.cache-restore.outputs.cache-primary-key}}
-
-      - name: Debugging with tmate
-        uses: mxschmitt/action-tmate@v3.18
+          cmake --build . --target install
 
       - name: List files
         run: |
-          tree ${INSTALL_DIR}
-          tree ${BUILD_DIR}
+          tree -L 1 build/output/bin
+          file build/output/bin/*
+
+          tree -L 1 build/bin
+          file build/bin/*
 
       - name: Compress package
         run: |
-          tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
+          tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${version}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
 
-          mv ${INSTALL_DIR} ${tarball_name}
+          mv build/output ${tarball_name}
           tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
 
       - name: Upload release
