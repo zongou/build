@@ -270,10 +270,10 @@ jobs:
             out
           key: ${{steps.cache-restore-target_llvm.outputs.cache-primary-key}}
 
-      - name: Clone zig
-        run: |
-          rm -rf zig
-          git clone https://github.com/ziglang/zig.git --branch=${{inputs.tag}}
+      # - name: Clone zig
+        # run: |
+          # rm -rf zig
+          # git clone https://github.com/ziglang/zig.git --branch=${{inputs.tag}}
           ## https://github.com/termux/termux-packages/issues/20783
 
           ## Revert breaking commit
