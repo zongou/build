@@ -278,6 +278,8 @@ jobs:
 
           ## Revert breaking commit
           cd zig
+          git config user.email user@email.com
+          git config user.name user
           git revert a0de077600a35e41ce861398eaf3c8e832fee42e
 
       - name: Build target zig
