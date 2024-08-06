@@ -123,15 +123,12 @@ jobs:
       - name: Build
         env:
           TARGET: ${{matrix.target}}
+          MCPU: baseline
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
-          export CC="${PWD}/bin/cc --target=${TARGET}"
-          export CXX="${PWD}/bin/c++ --target=${TARGET}"
-          export LDFLAGS="-s"
 
           mkdir -p build && cd build
-
           cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -139,7 +136,10 @@ jobs:
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
+            -DCMAKE_C_COMPILER="${{github.workspace}}/bin/cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="${{github.workspace}}/bin/c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="${{github.workspace}}/bin/cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
 
           cmake --build . --target install
 
