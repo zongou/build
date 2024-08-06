@@ -42,13 +42,13 @@ jobs:
           version: 0.13.0
           cache: true
 
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Patch source code
         run: |
@@ -92,7 +92,7 @@ jobs:
         run: |
           cmake --build ${BUILD_DIR} --target install
 
-      - name: List files
+      - name: Check
         run: |
           tree -L 1 ${BUILD_DIR}/bin
 
