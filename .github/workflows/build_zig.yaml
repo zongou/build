@@ -284,6 +284,7 @@ jobs:
 
       - name: Build target zig
         run: |
+          ZIG="$ROOTDIR/out/host/bin/zig"
           # Finally, we can cross compile Zig itself, with Zig.
           cd "$ROOTDIR/zig"
           $ZIG build \
