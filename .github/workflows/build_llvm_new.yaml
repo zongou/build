@@ -36,6 +36,17 @@ jobs:
           ref: llvmorg-${{inputs.version}}
           fetch-depth: 1
 
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install ninja-build binfmt-support qemu-user-static
+
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@v1.3.1
 
@@ -62,18 +73,7 @@ jobs:
 
           cat clang/tools/CMakeLists.txt
 
-      - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v2.2.0
-        with:
-          version: 0.13.0
-          cache: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install ninja-build binfmt-support qemu-user-static
-
-      - name: Build
+      - name: Configure
         run: |
           mkdir -p ${BUILD_DIR}
           cmake -S llvm -B ${BUILD_DIR} \
@@ -88,13 +88,15 @@ jobs:
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
 
+      - name: Build
+        run: |
           cmake --build ${BUILD_DIR} --target install
 
       - name: List files
         run: |
           tree -L 1 ${BUILD_DIR}/bin
 
-      - name: Compress package
+      - name: Compress
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${version}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
