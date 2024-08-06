@@ -120,10 +120,6 @@ jobs:
             ln -snf ../zig_wrapper bin/${tool}
           done
 
-      - name: Get zig
-        run: |
-          curl -Lk https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz | xz -d | tar -x
-
       - name: Build
         env:
           TARGET: ${{matrix.target}}
