@@ -147,7 +147,7 @@ jobs:
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
-            -DCMAKE_C_COMPILER="${{github.workspace}}/bin/cc \
+            -DCMAKE_C_COMPILER="${{github.workspace}}/bin/cc" \
             -DCMAKE_CXX_COMPILER="${{github.workspace}}/bin/c++" \
             -DCMAKE_ASM_COMPILER="${{github.workspace}}/bin/cc"
 
