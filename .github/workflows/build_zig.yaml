@@ -277,11 +277,11 @@ jobs:
           ## https://github.com/termux/termux-packages/issues/20783
 
           ## Revert breaking commit
-          cd zig
-          git config user.email user@email.com
-          git config user.name user
-          git revert a0de077600a35e41ce861398eaf3c8e832fee42e
-          git revert a4f27e8987ef3e2388839b6452b9f485ab82e7b7
+          # cd zig
+          # git config user.email user@email.com
+          # git config user.name user
+          # git revert a0de077600a35e41ce861398eaf3c8e832fee42e
+          # git revert a4f27e8987ef3e2388839b6452b9f485ab82e7b7
 
       - name: Build target zig
         run: |
