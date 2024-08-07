@@ -27,12 +27,12 @@ jobs:
           curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz -Lk | gzip -d | tar -x
           sudo mv bore /usr/local/bin
 
-          ./ttyd bash -l &
+          ./ttyd --writable bash -l &
           bore local 7681 --to bore.pub
 
-      - name: Run sshx
-        run: |
-          curl -sSf https://sshx.io/get | sh -s run
+      # - name: Run sshx
+      #   run: |
+      #     curl -sSf https://sshx.io/get | sh -s run
 
-      - name: Debugging with tmate
-        uses: mxschmitt/action-tmate@v3.18
+      # - name: Debugging with tmate
+      #   uses: mxschmitt/action-tmate@v3.18
