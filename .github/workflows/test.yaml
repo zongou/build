@@ -45,7 +45,15 @@ jobs:
           cache: true
 
       - name: Build host
+        env:
+          ROOTDIR: ${{github.workspace}}
+          TARGET_OS_CMAKE: Linux
+          BUILD_DIR: ${{github.workspace}}/build
+          OUTPUT_DIR: ${{github.workspace}}/output
+          TARGET: aarch64-linux-musl
+          MCPU: baseline
         run: |
+          mkdir -p ${BUILD_DIR}
           git clone https://github.com/llvm/llvm-project --branch=llvmorg-18.1.8 --depth=1
           cd llvm-project
           mkdir -p "${BUILD_DIR}/llvm-host"

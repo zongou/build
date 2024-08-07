@@ -204,10 +204,10 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build ${BUILD_DIR}/llvm --target install || true
+          cmake --build ${BUILD_DIR}/llvm --target install
 
-      - name: Debugging with tmate
-        uses: mxschmitt/action-tmate@v3.18
+      # - name: Debugging with tmate
+      #   uses: mxschmitt/action-tmate@v3.18
 
       - name: Check
         run: |
