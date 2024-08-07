@@ -83,6 +83,38 @@ jobs:
 
           sed -i '8aset(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")' llvm/utils/TableGen/CMakeLists.txt
 
+      - name: Build host
+        run: |
+          mkdir -p "${BUILD_DIR}/llvm-host"
+          cmake -S "$ROOTDIR/llvm" -B "${BUILD_DIR}/llvm-host" \
+            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/host" \
+            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}/host" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_ENABLE_LIBXML2=OFF \
+            -DLLVM_ENABLE_ZSTD=OFF \
+            -DLLVM_INCLUDE_UTILS=OFF \
+            -DLLVM_INCLUDE_TESTS=OFF \
+            -DLLVM_INCLUDE_EXAMPLES=OFF \
+            -DLLVM_INCLUDE_BENCHMARKS=OFF \
+            -DLLVM_INCLUDE_DOCS=OFF \
+            -DLLVM_ENABLE_BINDINGS=OFF \
+            -DLLVM_ENABLE_OCAMLDOC=OFF \
+            -DLLVM_ENABLE_Z3_SOLVER=OFF \
+            -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+            -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+            -DLLVM_TOOL_LTO_BUILD=OFF \
+            -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+            -DCLANG_BUILD_TOOLS=OFF \
+            -DCLANG_INCLUDE_DOCS=OFF \
+            -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+            -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+            -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_LIBCLANG_BUILD=OFF
+          cmake --build "${BUILD_DIR}/llvm-host" --target llvm-tblgen clang-tblgen
+
       - name: Build dependencies
         run: |
           if ! test -d zlib; then
@@ -156,7 +188,6 @@ jobs:
           cmake -S llvm -B ${BUILD_DIR}/llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/llvm" \
             -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
@@ -165,8 +196,11 @@ jobs:
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/llvm" \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
-            -DLLVM_ENABLE_ZSTD=FORCE_ON
+            -DLLVM_ENABLE_ZSTD=FORCE_ON \
+            -DLLVM_TABLEGEN="${OUTPUT_DIR}/host/bin/llvm-tblgen" \
+            -DCLANG_TABLEGEN="${OUTPUT_DIR}/host/bin/clang-tblgen"
 
       - name: Build
         run: |
