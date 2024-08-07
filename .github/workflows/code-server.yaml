@@ -26,8 +26,8 @@ jobs:
           curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
           chmod +x ttyd
           ./ttyd bash -l &
-          curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -C /opt -xv
-          /opt/bore local 5000 --to bore.pub
+          # curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -C /opt -xv
+          # /opt/bore local 5000 --to bore.pub
 
       - name: Run sshx
         run: |
