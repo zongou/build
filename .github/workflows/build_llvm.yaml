@@ -81,8 +81,6 @@ jobs:
 
           cat clang/tools/CMakeLists.txt
 
-          sed -i '8aset(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")' llvm/utils/TableGen/CMakeLists.txt
-
       - name: Build host
         run: |
           mkdir -p "${BUILD_DIR}/llvm-host"
