@@ -38,9 +38,6 @@ jobs:
       #     curl -L ${dufs_url} | gzip -d | tar -C /usr/local/bin -x
       #     dufs --version
 
-      - name: Debugging with tmate
-        uses: mxschmitt/action-tmate@v3.18
-
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v2.2.0
         with:
