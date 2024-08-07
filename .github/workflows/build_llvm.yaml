@@ -105,7 +105,7 @@ jobs:
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
 
-          mv build/output ${tarball_name}
+          mv ${OUTPUT_DIR} ${tarball_name}
           tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
 
       - name: Upload release
