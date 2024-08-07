@@ -155,6 +155,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/llvm" \
+            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
@@ -162,7 +163,6 @@ jobs:
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
             -DLLVM_ENABLE_ZSTD=FORCE_ON
 
