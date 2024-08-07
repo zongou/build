@@ -54,7 +54,7 @@ jobs:
           MCPU: baseline
         run: |
           zlib_version=1.3.1
-          curl https://github.com/madler/zlib/releases/download/v${zlib_version/zlib-${zlib_version}.tar.xz -LkSs | xz -d | tar -x
+          curl https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.xz -LkSs | xz -d | tar -x
 
           mv zlib-${zlib_version} zlib
           cd zlib
