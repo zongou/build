@@ -71,7 +71,7 @@ jobs:
         with:
           path: |
             out
-          key: build_zig-host-${{inputs.tag}}
+          key: build_zig-${{inputs.tag}}-host
 
       - name: Build host LLVM and Zig
         if: steps.cache-restore-host_zig.outputs.cache-hit != 'true'
@@ -133,7 +133,7 @@ jobs:
         with:
           path: |
             out
-          key: build_zig-target_llvm-${{matrix.target}}-${{ inputs.tag }}
+          key: build_zig-${{inputs.tag}}-target_llvm-${{matrix.target}}
 
       - name: Build target LLVM
         if: steps.cache-restore-target_llvm.outputs.cache-hit != 'true'
