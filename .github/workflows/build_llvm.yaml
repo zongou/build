@@ -97,8 +97,8 @@ jobs:
 
       - name: Check
         run: |
-          tree -L ${OUTPUT_DIR}/bin
-          tree -L ${OUTPUT_DIR}
+          tree ${OUTPUT_DIR}/bin
+          tree ${OUTPUT_DIR}
 
       - name: Compress
         run: |
