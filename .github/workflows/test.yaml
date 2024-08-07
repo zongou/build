@@ -86,7 +86,9 @@ jobs:
             -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
             -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
             -DCLANG_TOOL_LIBCLANG_BUILD=OFF
-          cmake --build "${BUILD_DIR}/llvm-host" --target llvm-tblgen clang-tblgen || true
+          cmake --build "${BUILD_DIR}/llvm-host" --target llvm-tblgen clang-tblgen
 
-      - name: Debugging with tmate
-        uses: mxschmitt/action-tmate@v3.18
+          ls $BUILD_DIR/llvm-host/bin
+
+      # - name: Debugging with tmate
+      #   uses: mxschmitt/action-tmate@v3.18
