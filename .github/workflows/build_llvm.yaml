@@ -102,7 +102,8 @@ jobs:
 
       - name: Build
         run: |
-          cmake --build ${BUILD_DIR} --target install
+          # cmake --build ${BUILD_DIR} --target install
+          ninja build -C ${BUILD_DIR}
 
       - name: Cache store build dir
         if: steps.cache-restore-build_dir.outputs.cache-hit != 'true'
