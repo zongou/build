@@ -19,20 +19,32 @@ jobs:
           version: 0.13.0
           cache: true
 
-      - name: Setup vscode server
-        run: |
-          # curl -Lk https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64 | gzip -d | tar -C /opt -xv
-          curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
-          chmod +x ttyd
-          curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz -Lk | gzip -d | tar -x
-          sudo mv bore /usr/local/bin
-
-          ./ttyd --writable bash -l &
-          bore local 7681 --to bore.pub
-
       # - name: Run sshx
       #   run: |
       #     curl -sSf https://sshx.io/get | sh -s run
 
       # - name: Debugging with tmate
       #   uses: mxschmitt/action-tmate@v3.18
+
+      # - name: Get ttyd
+      #   run: |
+      #     curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
+      #     chmod +x ttyd
+      #     sudo mv ttyd /usr/local/bin
+      #     # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l
+
+      - name: Get bore
+        run: |
+          curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz -Lk | gzip -d | tar -x
+          sudo mv bore /usr/local/bin
+          # bore local 7681 --to bore.pub
+
+      - name: Get code-server
+        run: |
+          curl "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" -Lk | gzip -d | tar -x
+          sudo mv code /usr/local/bin
+
+      - name: Start server
+        run: |
+          code serve-web --host ::0 --without-connection-token &
+          bore local 8000 --to bore.pub
