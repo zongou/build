@@ -10,8 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.7
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: llvm/llvm-project
+          ref: llvmorg-18.1.8
+          fetch-depth: 1
 
       # - name: Prepare environment
       #   run: |
@@ -54,10 +58,8 @@ jobs:
           MCPU: baseline
         run: |
           mkdir -p ${BUILD_DIR}
-          git clone https://github.com/llvm/llvm-project --branch=llvmorg-18.1.8 --depth=1
-          cd llvm-project
           mkdir -p "${BUILD_DIR}/llvm-host"
-          cmake -S "$ROOTDIR/llvm" -B "${BUILD_DIR}/llvm-host" \
+          cmake -S llvm -B "${BUILD_DIR}/llvm-host" \
             -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/host" \
             -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}/host" \
             -DCMAKE_BUILD_TYPE=Release \
