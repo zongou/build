@@ -73,7 +73,7 @@ jobs:
             -DCMAKE_RANLIB="$ROOTDIR/out/host/bin/llvm-ranlib"
           cmake --build . --target install
 
-          curl https://github.com/facebook/zstd/releases/download/v1.5.6/zstd-1.5.6.tar.gz | gzip -d | tar -x
+          curl https://github.com/facebook/zstd/releases/download/v1.5.6/zstd-1.5.6.tar.gz -LkSs | gzip -d | tar -x
           mv zstd-1.5.6 zstd
 
           cp "$ROOTDIR/zstd/lib/zstd.h" "$ROOTDIR/out/$TARGET-$MCPU/include/zstd.h"
