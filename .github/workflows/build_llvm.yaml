@@ -199,8 +199,8 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/llvm" \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
             -DLLVM_ENABLE_ZSTD=FORCE_ON \
-            -DLLVM_TABLEGEN="${OUTPUT_DIR}/host/bin/llvm-tblgen" \
-            -DCLANG_TABLEGEN="${OUTPUT_DIR}/host/bin/clang-tblgen"
+            -DLLVM_TABLEGEN="${BUILD_DIR}/llvm-host/bin/llvm-tblgen" \
+            -DCLANG_TABLEGEN="${BUILD_DIR}/llvm-host/bin/clang-tblgen"
 
       - name: Build
         run: |
