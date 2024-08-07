@@ -19,9 +19,9 @@ jobs:
           version: 0.13.0
           cache: true
 
-      - name: Setup vscode server
-        run: |
-          curl -Lk https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64 | gzip -d | tar -C /opt -xv
+      # - name: Setup vscode server
+      #   run: |
+      #     curl -Lk https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64 | gzip -d | tar -C /opt -xv
 
       - name: Debugging with tmate
         uses: mxschmitt/action-tmate@v3.18
