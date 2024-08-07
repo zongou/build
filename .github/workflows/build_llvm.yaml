@@ -76,16 +76,7 @@ jobs:
 
           cat clang/tools/CMakeLists.txt
 
-      - name: Cache restore build dir
-        id: cache-restore-build_dir
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            build
-          key: build_llvm-${{inputs.version}}-${{matrix.target}}-${{inputs.projects}}
-
       - name: Configure
-        if: steps.cache-restore-build_dir.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${BUILD_DIR}
           cmake -S llvm -B ${BUILD_DIR} \
@@ -102,16 +93,7 @@ jobs:
 
       - name: Build
         run: |
-          # cmake --build ${BUILD_DIR} --target install
-          ninja build -C ${BUILD_DIR}
-
-      - name: Cache store build dir
-        if: steps.cache-restore-build_dir.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            build
-          key: ${{steps.cache-restore-build_dir.outputs.cache-primary-key}}
+          cmake --build ${BUILD_DIR} --target install
 
       - name: Check
         run: |
