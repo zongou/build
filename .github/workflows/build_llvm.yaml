@@ -58,6 +58,13 @@ jobs:
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
 
+          ## For buillding lld
+          ## /home/runner/work/build/build/build/llvm/bin/llvm-min-tblgen: not found
+          sudo apt install -y musl
+          sudo dpkg --add-architecture arm64
+          sudo apt update
+          sudo apt install -y musl:arm64
+
       - name: Patch source code
         run: |
           ## error: unsupported linker arg: -Bsymbolic-functions
