@@ -51,4 +51,4 @@ jobs:
         run: |
           sudo dpkg --add-architecture arm64
           sudo apt update
-          sudo apt install -y musl:arm64
+          sudo apt install musl:arm64
