@@ -85,6 +85,7 @@ jobs:
           key: build_llvm-${{inputs.version}}-${{matrix.target}}-${{inputs.projects}}
 
       - name: Configure
+        if: steps.cache-restore-build_dir.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${BUILD_DIR}
           cmake -S llvm -B ${BUILD_DIR} \
