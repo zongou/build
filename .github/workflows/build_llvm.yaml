@@ -91,8 +91,8 @@ jobs:
 
           mkdir -p ${BUILD_DIR}/zlib
           cmake -S "$ROOTDIR/zlib" -B ${BUILD_DIR}/zlib \
-            -DCMAKE_INSTALL_PREFIX="$ROOTDIR/out/$TARGET-$MCPU" \
-            -DCMAKE_PREFIX_PATH="$ROOTDIR/out/$TARGET-$MCPU" \
+            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
+            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CROSSCOMPILING=True \
             -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
@@ -106,8 +106,8 @@ jobs:
             mv zstd-1.5.6 zstd
           fi
 
-          cp "$ROOTDIR/zstd/lib/zstd.h" "$ROOTDIR/out/$TARGET-$MCPU/include/zstd.h"
-          cd "$ROOTDIR/out/$TARGET-$MCPU/lib"
+          cp "$ROOTDIR/zstd/lib/zstd.h" "${OUTPUT_DIR}/include/zstd.h"
+          cd "${OUTPUT_DIR}/lib"
           zig build-lib \
             --name zstd \
             -target $TARGET \
@@ -150,11 +150,11 @@ jobs:
 
       - name: Configure
         run: |
-          mkdir -p ${BUILD_DIR}
-          cmake -S llvm -B ${BUILD_DIR} \
+          mkdir -p ${BUILD_DIR}/llvm
+          cmake -S llvm -B ${BUILD_DIR}/llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
+            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/llvm" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
@@ -162,25 +162,25 @@ jobs:
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_PREFIX_PATH="$ROOTDIR/out/$TARGET-$MCPU" \
+            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
             -DLLVM_ENABLE_ZSTD=FORCE_ON
 
       - name: Build
         run: |
-          cmake --build ${BUILD_DIR} --target install
+          cmake --build ${BUILD_DIR}/llvm --target install
 
       - name: Check
         run: |
-          tree ${OUTPUT_DIR}/bin
-          tree ${OUTPUT_DIR}
+          tree ${OUTPUT_DIR}/llvm/bin
+          tree ${OUTPUT_DIR}/llvm
 
       - name: Compress
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
 
-          mv ${OUTPUT_DIR} ${tarball_name}
+          mv ${OUTPUT_DIR}/llvm ${tarball_name}
           tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
 
       - name: Upload release
