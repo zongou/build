@@ -113,7 +113,8 @@ jobs:
 
       - name: Check
         run: |
-          tree -L 1 ${BUILD_DIR}/bin
+          tree -L ${OUTPUT_DIR}/bin
+          tree -L ${OUTPUT_DIR}
 
       - name: Compress
         run: |
