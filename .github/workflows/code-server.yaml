@@ -3,7 +3,7 @@ run-name: "Test: ${{github.event.head_commit.message}}"
 on:
   workflow_dispatch:
   push:
-    paths: .github/workflows/test.yaml
+    paths: .github/workflows/code-server.yaml
 
 jobs:
   build:
