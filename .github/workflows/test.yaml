@@ -47,8 +47,39 @@ jobs:
           version: 0.13.0
           cache: true
 
-      - name: Install aarch64 musl
+      - name: Build host
         run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt update
-          sudo apt install musl:arm64
+          git clone https://github.com/llvm/llvm-project --branch=llvmorg-18.1.8 --depth=1
+          cd llvm-project
+          mkdir -p "${BUILD_DIR}/llvm-host"
+          cmake -S "$ROOTDIR/llvm" -B "${BUILD_DIR}/llvm-host" \
+            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/host" \
+            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}/host" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_ENABLE_LIBXML2=OFF \
+            -DLLVM_ENABLE_ZSTD=OFF \
+            -DLLVM_INCLUDE_UTILS=OFF \
+            -DLLVM_INCLUDE_TESTS=OFF \
+            -DLLVM_INCLUDE_EXAMPLES=OFF \
+            -DLLVM_INCLUDE_BENCHMARKS=OFF \
+            -DLLVM_INCLUDE_DOCS=OFF \
+            -DLLVM_ENABLE_BINDINGS=OFF \
+            -DLLVM_ENABLE_OCAMLDOC=OFF \
+            -DLLVM_ENABLE_Z3_SOLVER=OFF \
+            -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+            -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+            -DLLVM_TOOL_LTO_BUILD=OFF \
+            -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+            -DCLANG_BUILD_TOOLS=OFF \
+            -DCLANG_INCLUDE_DOCS=OFF \
+            -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+            -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+            -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+            -DCLANG_TOOL_LIBCLANG_BUILD=OFF
+          cmake --build "${BUILD_DIR}/llvm-host" --target llvm-tblgen clang-tblgen || true
+
+      - name: Debugging with tmate
+        uses: mxschmitt/action-tmate@v3.18
