@@ -1,0 +1,27 @@
+name: Test
+run-name: "Test: ${{github.event.head_commit.message}}"
+on:
+  workflow_dispatch:
+  push:
+    paths: .github/workflows/test.yaml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
+
+      - name: Setup vscode server
+        run: |
+        curl -Lk https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64 | gzip -d | tar -C /opt -xv
+
+      - name: Debugging with tmate
+        uses: mxschmitt/action-tmate@v3.18
