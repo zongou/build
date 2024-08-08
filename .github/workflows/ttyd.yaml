@@ -40,12 +40,12 @@ jobs:
           sudo apt update
           sudo apt install -y micro lrzsz
 
-          curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz -Lk | gzip -d | tar -x
+          curl -Lk https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -x
           sudo mv bore /usr/local/bin
           bore --version
           # bore local 7681 --to bore.pub
 
-          curl https://github.com/cloudflare/cloudflared/releases/download/2024.8.2/cloudflared-fips-linux-amd64 > cloudflared
+          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.8.2/cloudflared-fips-linux-amd64 > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
@@ -66,5 +66,5 @@ jobs:
       - name: Start ttyd
         run: |
           # bore local 7681 --to bore.pub          
-          cloudflared tunnel --url localhost:7681 &
-          ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l
+          ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
+          cloudflared tunnel --url localhost:7681
