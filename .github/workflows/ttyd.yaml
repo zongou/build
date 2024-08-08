@@ -66,8 +66,5 @@ jobs:
       - name: Start ttyd
         run: |
           ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
-          # bore local 7681 --to bore.pub
-          
-      - name: Start cloudflared
-        run: |
+          # bore local 7681 --to bore.pub          
           cloudflared tunnel --url localhost:7681
