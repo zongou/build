@@ -27,49 +27,48 @@ jobs:
 
       - name: Prepare environment
         run: |
-          cat <<EOF >d
-          export CHARSET=\${CHARSET:-UTF-8}
-          export LANG=\${LANG:-C.UTF-8}
-          export LC_COLLATE=\${LC_COLLATE:-C}
-          export TERM=xterm-256color
-          export COLORTERM=truecolor
-          EOF
-
-          sudo mv d /etc/profile.d/my_profile.sh
-
-
-          curl -Lk https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -x
-          sudo mv bore /usr/local/bin
-          bore --version
-          # bore local 7681 --to bore.pub
+          # curl -Lk https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -x
+          # sudo mv bore /usr/local/bin
+          # bore --version
+          # # bore local 7681 --to bore.pub
 
           curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.8.2/cloudflared-fips-linux-amd64 > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
 
-          helix_vesion=24.07
-          helix_url=https://github.com/helix-editor/helix/releases/download/${helix_vesion}/helix-${helix_vesion}-x86_64-linux.tar.xz
-          curl -L ${helix_url} | xz -d | tar -C /opt -x
-          ln -snf /opt/helix-${helix_vesion}-x86_64-linux/hx /usr/local/bin/hx
-          hx --version
+          # helix_vesion=24.07
+          # helix_url=https://github.com/helix-editor/helix/releases/download/${helix_vesion}/helix-${helix_vesion}-x86_64-linux.tar.xz
+          # curl -L ${helix_url} | xz -d | tar -C /opt -x
+          # ln -snf /opt/helix-${helix_vesion}-x86_64-linux/hx /usr/local/bin/hx
+          # hx --version
 
-          # curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
-          curl -Lk https://github.com/zongou/ttyd/releases/download/1.7.7/ttyd-x86_64-linux-musl > ttyd
-          chmod +x ttyd
-          sudo mv ttyd /usr/local/bin
-          ttyd --version
-          # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l
+          # # curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
+          # curl -Lk https://github.com/zongou/ttyd/releases/download/1.7.7/ttyd-x86_64-linux-musl > ttyd
+          # chmod +x ttyd
+          # sudo mv ttyd /usr/local/bin
+          # ttyd --version
+          # # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l
 
           curl -Lk "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" | gzip -d | tar -x
           sudo mv code /usr/local/bin
 
-      - name: Start ttyd
-        run: |
-          sudo apt update
-          sudo apt install -y micro lrzsz
-          ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
-          cloudflared tunnel --url localhost:7681
+      # - name: Start ttyd
+      #   run: |
+      #     cat <<EOF >d
+      #     export CHARSET=\${CHARSET:-UTF-8}
+      #     export LANG=\${LANG:-C.UTF-8}
+      #     export LC_COLLATE=\${LC_COLLATE:-C}
+      #     export TERM=xterm-256color
+      #     export COLORTERM=truecolor
+      #     EOF
+      #     sudo mv d /etc/profile.d/my_profile.sh
+
+      #     sudo apt update
+      #     sudo apt install -y micro lrzsz
+      #     ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
+      #     cloudflared tunnel --url localhost:7681
+
       - name: Start code server
         run: |
           code serve-web --host ::0 --without-connection-token &
