@@ -37,8 +37,6 @@ jobs:
 
           sudo mv d /etc/profile.d/my_profile.sh
 
-          sudo apt update
-          sudo apt install -y micro lrzsz
 
           curl -Lk https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -x
           sudo mv bore /usr/local/bin
@@ -66,9 +64,13 @@ jobs:
           curl -Lk "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" | gzip -d | tar -x
           sudo mv code /usr/local/bin
 
+      - name: Start ttyd
+        run: |
+          sudo apt update
+          sudo apt install -y micro lrzsz
+          ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
+          cloudflared tunnel --url localhost:7681
       - name: Start code server
         run: |
-          # bore local 7681 --to bore.pub          
-          # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
           code serve-web --host ::0 --without-connection-token &
           cloudflared tunnel --url localhost:8000
