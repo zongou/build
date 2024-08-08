@@ -40,16 +40,21 @@ jobs:
           sudo apt update
           sudo apt install -y micro lrzsz
 
+          curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz -Lk | gzip -d | tar -x
+          sudo mv bore /usr/local/bin
+          bore --version
+          # bore local 7681 --to bore.pub
+
+          curl https://github.com/cloudflare/cloudflared/releases/download/2024.8.2/cloudflared-fips-linux-amd64 > cloudflared
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin
+          cloudflared --version
+
           helix_vesion=24.07
           helix_url=https://github.com/helix-editor/helix/releases/download/${helix_vesion}/helix-${helix_vesion}-x86_64-linux.tar.xz
           curl -L ${helix_url} | xz -d | tar -C /opt -x
           ln -snf /opt/helix-${helix_vesion}-x86_64-linux/hx /usr/local/bin/hx
           hx --version
-
-          curl https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz -Lk | gzip -d | tar -x
-          sudo mv bore /usr/local/bin
-          bore --version
-          # bore local 7681 --to bore.pub
 
           # curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
           curl -Lk https://github.com/zongou/ttyd/releases/download/1.7.7/ttyd-x86_64-linux-musl > ttyd
@@ -61,4 +66,8 @@ jobs:
       - name: Start ttyd
         run: |
           ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
-          bore local 7681 --to bore.pub
+          # bore local 7681 --to bore.pub
+          
+      - name: Start cloudflared
+        run: |
+          cloudflared tunnel --url localhost:7681
