@@ -1,4 +1,4 @@
-name: ttyd
+name: code-server
 on:
   workflow_dispatch:
   push:
@@ -28,7 +28,7 @@ jobs:
           curl -Lk "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" | gzip -d | tar -x
           sudo mv code /usr/local/bin
 
-      - name: Start code server
+      - name: Start code-server
         run: |
           code serve-web --host ::0 --without-connection-token &
           cloudflared tunnel --url localhost:8000
