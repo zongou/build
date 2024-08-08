@@ -70,5 +70,5 @@ jobs:
         run: |
           # bore local 7681 --to bore.pub          
           # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l &
-          code serve-web --host ::0 --without-connection-token
+          code serve-web --host ::0 --without-connection-token &
           cloudflared tunnel --url localhost:8000
