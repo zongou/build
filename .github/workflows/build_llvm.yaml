@@ -183,7 +183,7 @@ jobs:
       #         -DCLANG_TOOL_LIBCLANG_BUILD=OFF
       #     cmake --build "${HOST_BUILD_DIR}/llvm" --target llvm-tblgen clang-tblgen
 
-      - name: Configure
+      - name: Build ${{matrix.target}} LLVM
         run: |
           cmake -S llvm -B "${TARGET_BUILD_DIR}/llvm" \
               -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
@@ -201,10 +201,8 @@ jobs:
               -DLLVM_BUILD_STATIC=ON \
               -DCLANG_ENABLE_ARCMT=ON \
               -DLIBCLANG_BUILD_STATIC=ON
-
-      - name: Build
-        run: |
-          cmake --build "${TARGET_BUILD_DIR}"/llvm --target install
+            cmake --build "${TARGET_BUILD_DIR}"/llvm --target install
+            
       - name: Check
         run: |
           tree ${TARGET_INSTALL_DIR}/llvm/bin
