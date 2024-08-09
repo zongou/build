@@ -16,7 +16,7 @@ on:
       projects:
         description: "Projects to build:"
         # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
-        default: "clang;compiler-rt;lld;clang-tools-extra"
+        default: "clang;clang-tools-extra"
         required: true
 
 jobs:
@@ -30,8 +30,6 @@ jobs:
       matrix:
         target: [aarch64-linux-musl, x86_64-linux-musl]
     env:
-      ROOTDIR: ${{github.workspace}}
-      TARGET_OS_CMAKE: Linux
       BUILD_DIR: ${{github.workspace}}/build
       OUTPUT_DIR: ${{github.workspace}}/output
       TARGET: ${{matrix.target}}
@@ -56,17 +54,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install ninja-build
-           
-          ## home/runner/work/build/build/build/llvm/bin/clang-ast-dump: Exec format error
-          sudo apt install binfmt-support qemu-user-static
-
+          sudo apt install ninja-build binfmt-support qemu-user-static
       - name: Patch source code
         run: |
           ## error: unsupported linker arg: -Bsymbolic-functions
           ## https://github.com/ziglang/zig/issues/18804
           ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
-
           # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
           base64 -d <<-EOF | patch -up1
           ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
@@ -81,161 +74,34 @@ jobs:
           bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
           RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
           EOF
-
           cat clang/tools/CMakeLists.txt
-
-      - name: Build host
+      - name: Configure
         run: |
-          mkdir -p "${BUILD_DIR}/llvm-host"
-          cmake -S "$ROOTDIR/llvm" -B "${BUILD_DIR}/llvm-host" \
-            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/host" \
-            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}/host" \
+          mkdir -p ${BUILD_DIR}
+          cmake -S llvm -B ${BUILD_DIR} \
+            -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DLLVM_ENABLE_PROJECTS="lld;clang" \
-            -DLLVM_ENABLE_LIBXML2=OFF \
-            -DLLVM_ENABLE_ZSTD=OFF \
-            -DLLVM_INCLUDE_UTILS=OFF \
-            -DLLVM_INCLUDE_TESTS=OFF \
-            -DLLVM_INCLUDE_EXAMPLES=OFF \
-            -DLLVM_INCLUDE_BENCHMARKS=OFF \
-            -DLLVM_INCLUDE_DOCS=OFF \
-            -DLLVM_ENABLE_BINDINGS=OFF \
-            -DLLVM_ENABLE_OCAMLDOC=OFF \
-            -DLLVM_ENABLE_Z3_SOLVER=OFF \
-            -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
-            -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
-            -DLLVM_TOOL_LTO_BUILD=OFF \
-            -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
-            -DCLANG_BUILD_TOOLS=OFF \
-            -DCLANG_INCLUDE_DOCS=OFF \
-            -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
-            -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
-            -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
-            -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
-            -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
-            -DCLANG_TOOL_LIBCLANG_BUILD=OFF
-          cmake --build "${BUILD_DIR}/llvm-host" --target llvm-tblgen clang-tblgen
-
-      - name: Build dependencies
-        run: |
-          if ! test -d zlib; then
-            zlib_version=1.3.1
-            curl https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.xz -LkSs | xz -d | tar -x
-            mv zlib-${zlib_version} zlib
-          fi
-
-          mkdir -p ${BUILD_DIR}/zlib
-          cmake -S "$ROOTDIR/zlib" -B ${BUILD_DIR}/zlib \
             -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
-            -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CROSSCOMPILING=True \
-            -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+            -DLLVM_TARGETS_TO_BUILD="all" \
+            -DLLVM_HOST_TRIPLE=${TARGET} \
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
-          cmake --build ${BUILD_DIR}/zlib --target install
-
-          if ! test -d zstd; then
-            curl https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz -LkSs | gzip -d | tar -x
-            mv zstd-1.5.6 zstd
-          fi
-
-          cp "$ROOTDIR/zstd/lib/zstd.h" "${OUTPUT_DIR}/include/zstd.h"
-          cd "${OUTPUT_DIR}/lib"
-          zig build-lib \
-            --name zstd \
-            -target $TARGET \
-            -mcpu=$MCPU \
-            -fstrip -OReleaseFast \
-            -lc \
-            "$ROOTDIR/zstd/lib/decompress/zstd_ddict.c" \
-            "$ROOTDIR/zstd/lib/decompress/zstd_decompress.c" \
-            "$ROOTDIR/zstd/lib/decompress/huf_decompress.c" \
-            "$ROOTDIR/zstd/lib/decompress/huf_decompress_amd64.S" \
-            "$ROOTDIR/zstd/lib/decompress/zstd_decompress_block.c" \
-            "$ROOTDIR/zstd/lib/compress/zstdmt_compress.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_opt.c" \
-            "$ROOTDIR/zstd/lib/compress/hist.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_ldm.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_fast.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_compress_literals.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_double_fast.c" \
-            "$ROOTDIR/zstd/lib/compress/huf_compress.c" \
-            "$ROOTDIR/zstd/lib/compress/fse_compress.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_lazy.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_compress.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_compress_sequences.c" \
-            "$ROOTDIR/zstd/lib/compress/zstd_compress_superblock.c" \
-            "$ROOTDIR/zstd/lib/deprecated/zbuff_compress.c" \
-            "$ROOTDIR/zstd/lib/deprecated/zbuff_decompress.c" \
-            "$ROOTDIR/zstd/lib/deprecated/zbuff_common.c" \
-            "$ROOTDIR/zstd/lib/common/entropy_common.c" \
-            "$ROOTDIR/zstd/lib/common/pool.c" \
-            "$ROOTDIR/zstd/lib/common/threading.c" \
-            "$ROOTDIR/zstd/lib/common/zstd_common.c" \
-            "$ROOTDIR/zstd/lib/common/xxhash.c" \
-            "$ROOTDIR/zstd/lib/common/debug.c" \
-            "$ROOTDIR/zstd/lib/common/fse_decompress.c" \
-            "$ROOTDIR/zstd/lib/common/error_private.c" \
-            "$ROOTDIR/zstd/lib/dictBuilder/zdict.c" \
-            "$ROOTDIR/zstd/lib/dictBuilder/divsufsort.c" \
-            "$ROOTDIR/zstd/lib/dictBuilder/fastcover.c" \
-            "$ROOTDIR/zstd/lib/dictBuilder/cover.c"
-
-      - name: Configure
-        run: |
-          mkdir -p ${BUILD_DIR}/llvm
-          # cmake -S llvm -B ${BUILD_DIR}/llvm \
-          #   -G Ninja \
-          #   -DCMAKE_BUILD_TYPE=Release \
-          #   -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
-          #   -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-          #   -DLLVM_TARGETS_TO_BUILD="all" \
-          #   -DLLVM_HOST_TRIPLE=${TARGET} \
-          #   -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
-          #   -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-          #   -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-          #   -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-          #   -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}/llvm" \
-          #   -DLLVM_ENABLE_ZLIB=FORCE_ON \
-          #   -DLLVM_ENABLE_ZSTD=FORCE_ON \
-          #   -DLLVM_TABLEGEN="${BUILD_DIR}/llvm-host/bin/llvm-tblgen" \
-          #   -DCLANG_TABLEGEN="${BUILD_DIR}/llvm-host/bin/clang-tblgen"
-
-          cmake -S llvm -B ${BUILD_DIR}/llvm \
-              -G Ninja \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_PREFIX_PATH="${OUTPUT_DIR}" \
-              -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-              -DLLVM_TARGETS_TO_BUILD="all" \
-              -DLLVM_TABLEGEN="${BUILD_DIR}/llvm-host/bin/llvm-tblgen" \
-              -DCLANG_TABLEGEN="${BUILD_DIR}/llvm-host/bin/clang-tblgen"
-              -DLLVM_INSTALL_TOOLCHAIN_ONLY=On \
-              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-
       - name: Build
         run: |
-          cmake --build ${BUILD_DIR}/llvm --target install
-
-      # - name: Debugging with tmate
-      #   uses: mxschmitt/action-tmate@v3.18
-
+          cmake --build ${BUILD_DIR} --target install
       - name: Check
         run: |
-          tree ${OUTPUT_DIR}/llvm/bin
-          tree ${OUTPUT_DIR}/llvm
-
+          tree ${OUTPUT_DIR}/bin
+          tree ${OUTPUT_DIR}
       - name: Compress
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
-
-          mv ${OUTPUT_DIR}/llvm ${tarball_name}
+          mv ${OUTPUT_DIR} ${tarball_name}
           tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
-
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
         with:
