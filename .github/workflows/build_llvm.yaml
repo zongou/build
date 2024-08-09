@@ -97,9 +97,9 @@ jobs:
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_CROSSCOMPILING=True \
               -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
-                  -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
-                  -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
-                  -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU"
+              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU"
             cmake --build "${TARGET_BUILD_DIR}"/zlib --target install
           fi
 
@@ -191,9 +191,9 @@ jobs:
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_CROSSCOMPILING=True \
               -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
-              -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
               -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
               -DLLVM_ENABLE_ZLIB=FORCE_ON \
               -DLLVM_ENABLE_ZSTD=FORCE_ON \
