@@ -16,7 +16,7 @@ on:
       projects:
         description: "Projects to build:"
         # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
-        default: "clang;clang-tools-extra;compiler-rt;lld"
+        default: "clang;clang-tools-extra;lld"
         required: true
 
 jobs:
@@ -202,7 +202,7 @@ jobs:
               -DCLANG_ENABLE_ARCMT=ON \
               -DLIBCLANG_BUILD_STATIC=ON
             cmake --build "${TARGET_BUILD_DIR}"/llvm --target install
-            
+
       - name: Check
         run: |
           tree ${TARGET_INSTALL_DIR}/llvm/bin
