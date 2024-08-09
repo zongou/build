@@ -185,23 +185,22 @@ jobs:
 
       - name: Configure
         run: |
-          mkdir -p "${TARGET_BUILD_DIR}"/llvm
-          cmake -S llvm -B "${TARGET_BUILD_DIR}"/llvm \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
-            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-            -DLLVM_TARGETS_TO_BUILD="all" \
-            -DLLVM_HOST_TRIPLE=${TARGET} \
-            -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
-            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
-            -DLLVM_ENABLE_ZLIB=FORCE_ON \
-            -DLLVM_ENABLE_ZSTD=FORCE_ON \
-            -DLLVM_USE_STATIC_ZSTD=ON \
-            -DLLVM_BUILD_STATIC=ON
+          cmake -S llvm -B "${TARGET_BUILD_DIR}/llvm" \
+              -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
+              -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_CROSSCOMPILING=True \
+              -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
+              -DCMAKE_C_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_CXX_COMPILER="$ZIG;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_ASM_COMPILER="$ZIG;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+              -DLLVM_ENABLE_ZLIB=FORCE_ON \
+              -DLLVM_ENABLE_ZSTD=FORCE_ON \
+              -DLLVM_USE_STATIC_ZSTD=ON \
+              -DLLVM_BUILD_STATIC=ON \
+              -DCLANG_ENABLE_ARCMT=ON \
+              -DLIBCLANG_BUILD_STATIC=ON
 
       - name: Build
         run: |
