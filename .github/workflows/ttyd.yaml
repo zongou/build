@@ -50,6 +50,11 @@ jobs:
           ttyd --version
           # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l
 
+          curl -Lk https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 > shfmt
+          chmod +x shfmt
+          sudo mv shfmt /usr/local/bin
+          shfmt --version
+
       - name: Start ttyd
         run: |
           cat <<EOF >d
