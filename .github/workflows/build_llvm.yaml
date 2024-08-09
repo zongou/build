@@ -34,6 +34,10 @@ jobs:
       OUTPUT_DIR: ${{github.workspace}}/output
       TARGET: ${{matrix.target}}
       MCPU: baseline
+      ROOTDIR: ${{github.workspace}}
+      HOST_BUILD_DIR: ${{github.workspace}}/build/host
+      TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
+      TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -55,6 +59,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install ninja-build binfmt-support qemu-user-static
+
       - name: Patch source code
         run: |
           ## error: unsupported linker arg: -Bsymbolic-functions
@@ -75,32 +80,141 @@ jobs:
           RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
           EOF
           cat clang/tools/CMakeLists.txt
+          
+      - name: Build dependencies
+        if: contains(inputs.projects, 'lld')
+        run: |
+          if ! test -f "${TARGET_INSTALL_DIR}"/lib/libz.a; then
+            if ! test -d zlib; then
+              zlib_version=1.3.1
+              curl https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.xz -LkSs | xz -d | tar -x
+              mv zlib-${zlib_version} zlib
+            fi
+            mkdir -p "${TARGET_BUILD_DIR}"/zlib
+            cmake -S "$ROOTDIR/zlib" -B "${TARGET_BUILD_DIR}"/zlib \
+              -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}" \
+              -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_CROSSCOMPILING=True \
+              -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
+              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
+            cmake --build "${TARGET_BUILD_DIR}"/zlib --target install
+          fi
+
+          if ! test -f "${TARGET_INSTALL_DIR}"/lib/libzstd.a; then
+            if ! test -d zstd; then
+              curl https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz -LkSs | gzip -d | tar -x
+              mv zstd-1.5.6 zstd
+            fi
+            cp "$ROOTDIR/zstd/lib/zstd.h" "${TARGET_INSTALL_DIR}/include/zstd.h"
+            cd "${TARGET_INSTALL_DIR}/lib"
+            zig build-lib \
+              --name zstd \
+              -target "$TARGET" \
+              -mcpu="$MCPU" \
+              -fstrip -OReleaseFast \
+              -lc \
+              "$ROOTDIR/zstd/lib/decompress/zstd_ddict.c" \
+              "$ROOTDIR/zstd/lib/decompress/zstd_decompress.c" \
+              "$ROOTDIR/zstd/lib/decompress/huf_decompress.c" \
+              "$ROOTDIR/zstd/lib/decompress/huf_decompress_amd64.S" \
+              "$ROOTDIR/zstd/lib/decompress/zstd_decompress_block.c" \
+              "$ROOTDIR/zstd/lib/compress/zstdmt_compress.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_opt.c" \
+              "$ROOTDIR/zstd/lib/compress/hist.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_ldm.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_fast.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_compress_literals.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_double_fast.c" \
+              "$ROOTDIR/zstd/lib/compress/huf_compress.c" \
+              "$ROOTDIR/zstd/lib/compress/fse_compress.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_lazy.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_compress.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_compress_sequences.c" \
+              "$ROOTDIR/zstd/lib/compress/zstd_compress_superblock.c" \
+              "$ROOTDIR/zstd/lib/deprecated/zbuff_compress.c" \
+              "$ROOTDIR/zstd/lib/deprecated/zbuff_decompress.c" \
+              "$ROOTDIR/zstd/lib/deprecated/zbuff_common.c" \
+              "$ROOTDIR/zstd/lib/common/entropy_common.c" \
+              "$ROOTDIR/zstd/lib/common/pool.c" \
+              "$ROOTDIR/zstd/lib/common/threading.c" \
+              "$ROOTDIR/zstd/lib/common/zstd_common.c" \
+              "$ROOTDIR/zstd/lib/common/xxhash.c" \
+              "$ROOTDIR/zstd/lib/common/debug.c" \
+              "$ROOTDIR/zstd/lib/common/fse_decompress.c" \
+              "$ROOTDIR/zstd/lib/common/error_private.c" \
+              "$ROOTDIR/zstd/lib/dictBuilder/zdict.c" \
+              "$ROOTDIR/zstd/lib/dictBuilder/divsufsort.c" \
+              "$ROOTDIR/zstd/lib/dictBuilder/fastcover.c" \
+              "$ROOTDIR/zstd/lib/dictBuilder/cover.c"
+          fi
+
+      - name: Build host llvm
+        run: |
+          mkdir -p "${HOST_BUILD_DIR}/llvm"
+          cmake -S "$ROOTDIR/llvm" -B "${HOST_BUILD_DIR}/llvm" \
+              -DCMAKE_INSTALL_PREFIX="${HOST_BUILD_DIR}" \
+              -DCMAKE_PREFIX_PATH="${HOST_INSTALL_DIR}" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DLLVM_ENABLE_PROJECTS="lld;clang" \
+              -DLLVM_ENABLE_LIBXML2=OFF \
+              -DLLVM_ENABLE_ZSTD=OFF \
+              -DLLVM_INCLUDE_UTILS=OFF \
+              -DLLVM_INCLUDE_TESTS=OFF \
+              -DLLVM_INCLUDE_EXAMPLES=OFF \
+              -DLLVM_INCLUDE_BENCHMARKS=OFF \
+              -DLLVM_INCLUDE_DOCS=OFF \
+              -DLLVM_ENABLE_BINDINGS=OFF \
+              -DLLVM_ENABLE_OCAMLDOC=OFF \
+              -DLLVM_ENABLE_Z3_SOLVER=OFF \
+              -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+              -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+              -DLLVM_TOOL_LTO_BUILD=OFF \
+              -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+              -DCLANG_BUILD_TOOLS=OFF \
+              -DCLANG_INCLUDE_DOCS=OFF \
+              -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+              -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+              -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+              -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+              -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+              -DCLANG_TOOL_LIBCLANG_BUILD=OFF
+          cmake --build "${HOST_BUILD_DIR}/llvm" --target llvm-tblgen clang-tblgen
+
       - name: Configure
         run: |
-          mkdir -p ${BUILD_DIR}
-          cmake -S llvm -B ${BUILD_DIR} \
+          mkdir -p "${TARGET_BUILD_DIR}"/llvm
+          cmake -S llvm -B "${TARGET_BUILD_DIR}"/llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${OUTPUT_DIR}" \
-            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+            -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
+            -DLLVM_ENABLE_PROJECTS="clang;lld" \
             -DLLVM_TARGETS_TO_BUILD="all" \
             -DLLVM_HOST_TRIPLE=${TARGET} \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
             -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
             -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
+            -DLLVM_ENABLE_ZLIB=FORCE_ON \
+            -DLLVM_ENABLE_ZSTD=FORCE_ON \
+            -DLLVM_TABLEGEN="${HOST_BUILD_DIR}/llvm/bin/llvm-tblgen" \
+            -DCLANG_TABLEGEN="${HOST_BUILD_DIR}/llvm/bin/clang-tblgen"
+
       - name: Build
         run: |
-          cmake --build ${BUILD_DIR} --target install
+          cmake --build "${TARGET_BUILD_DIR}"/llvm --target install
       - name: Check
         run: |
-          tree ${OUTPUT_DIR}/bin
-          tree ${OUTPUT_DIR}
+          tree ${TARGET_INSTALL_DIR}/llvm/bin
+          tree ${TARGET_INSTALL_DIR}/llvm
       - name: Compress
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
-          mv ${OUTPUT_DIR} ${tarball_name}
+          mv ${TARGET_INSTALL_DIR}/llvm ${tarball_name}
           tar -c ${tarball_name} | xz -T0 > ${tarball_name}.tar.xz
       - name: Upload release
         uses: ncipollo/release-action@v1.14.0
