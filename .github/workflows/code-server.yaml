@@ -33,6 +33,7 @@ jobs:
           curl -Lk https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 > shfmt
           chmod +x shfmt
           sudo mv shfmt /usr/local/bin
+          shfmt --version
 
           code serve-web --host ::0 --without-connection-token &
           cloudflared tunnel --url localhost:8000
