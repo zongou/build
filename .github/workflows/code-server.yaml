@@ -30,10 +30,9 @@ jobs:
 
       - name: Start code-server
         run: |
-          code --install-extension mads-hartmann.bash-ide-vscode
           curl -Lk https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 > shfmt
           chmod +x shfmt
           sudo mv shfmt /usr/local/bin
-          
+
           code serve-web --host ::0 --without-connection-token &
           cloudflared tunnel --url localhost:8000
