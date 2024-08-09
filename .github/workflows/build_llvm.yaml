@@ -80,7 +80,7 @@ jobs:
           RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
           EOF
           cat clang/tools/CMakeLists.txt
-          
+
       - name: Build dependencies
         if: contains(inputs.projects, 'lld')
         run: |
@@ -97,9 +97,9 @@ jobs:
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_CROSSCOMPILING=True \
               -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
-              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"
+              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU"
             cmake --build "${TARGET_BUILD_DIR}"/zlib --target install
           fi
 
@@ -151,37 +151,37 @@ jobs:
               "$ROOTDIR/zstd/lib/dictBuilder/cover.c"
           fi
 
-      - name: Build host llvm
-        run: |
-          mkdir -p "${HOST_BUILD_DIR}/llvm"
-          cmake -S "$ROOTDIR/llvm" -B "${HOST_BUILD_DIR}/llvm" \
-              -DCMAKE_INSTALL_PREFIX="${HOST_BUILD_DIR}" \
-              -DCMAKE_PREFIX_PATH="${HOST_INSTALL_DIR}" \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DLLVM_ENABLE_PROJECTS="lld;clang" \
-              -DLLVM_ENABLE_LIBXML2=OFF \
-              -DLLVM_ENABLE_ZSTD=OFF \
-              -DLLVM_INCLUDE_UTILS=OFF \
-              -DLLVM_INCLUDE_TESTS=OFF \
-              -DLLVM_INCLUDE_EXAMPLES=OFF \
-              -DLLVM_INCLUDE_BENCHMARKS=OFF \
-              -DLLVM_INCLUDE_DOCS=OFF \
-              -DLLVM_ENABLE_BINDINGS=OFF \
-              -DLLVM_ENABLE_OCAMLDOC=OFF \
-              -DLLVM_ENABLE_Z3_SOLVER=OFF \
-              -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
-              -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
-              -DLLVM_TOOL_LTO_BUILD=OFF \
-              -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
-              -DCLANG_BUILD_TOOLS=OFF \
-              -DCLANG_INCLUDE_DOCS=OFF \
-              -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
-              -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
-              -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
-              -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
-              -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
-              -DCLANG_TOOL_LIBCLANG_BUILD=OFF
-          cmake --build "${HOST_BUILD_DIR}/llvm" --target llvm-tblgen clang-tblgen
+      # - name: Build host llvm
+      #   run: |
+      #     mkdir -p "${HOST_BUILD_DIR}/llvm"
+      #     cmake -S "$ROOTDIR/llvm" -B "${HOST_BUILD_DIR}/llvm" \
+      #         -DCMAKE_INSTALL_PREFIX="${HOST_BUILD_DIR}" \
+      #         -DCMAKE_PREFIX_PATH="${HOST_INSTALL_DIR}" \
+      #         -DCMAKE_BUILD_TYPE=Release \
+      #         -DLLVM_ENABLE_PROJECTS="lld;clang" \
+      #         -DLLVM_ENABLE_LIBXML2=OFF \
+      #         -DLLVM_ENABLE_ZSTD=OFF \
+      #         -DLLVM_INCLUDE_UTILS=OFF \
+      #         -DLLVM_INCLUDE_TESTS=OFF \
+      #         -DLLVM_INCLUDE_EXAMPLES=OFF \
+      #         -DLLVM_INCLUDE_BENCHMARKS=OFF \
+      #         -DLLVM_INCLUDE_DOCS=OFF \
+      #         -DLLVM_ENABLE_BINDINGS=OFF \
+      #         -DLLVM_ENABLE_OCAMLDOC=OFF \
+      #         -DLLVM_ENABLE_Z3_SOLVER=OFF \
+      #         -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+      #         -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+      #         -DLLVM_TOOL_LTO_BUILD=OFF \
+      #         -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+      #         -DCLANG_BUILD_TOOLS=OFF \
+      #         -DCLANG_INCLUDE_DOCS=OFF \
+      #         -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+      #         -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_LIBCLANG_BUILD=OFF
+      #     cmake --build "${HOST_BUILD_DIR}/llvm" --target llvm-tblgen clang-tblgen
 
       - name: Configure
         run: |
@@ -200,8 +200,8 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
             -DLLVM_ENABLE_ZSTD=FORCE_ON \
-            -DLLVM_TABLEGEN="${HOST_BUILD_DIR}/llvm/bin/llvm-tblgen" \
-            -DCLANG_TABLEGEN="${HOST_BUILD_DIR}/llvm/bin/clang-tblgen"
+            -DLLVM_USE_STATIC_ZSTD=ON \
+            -DLLVM_BUILD_STATIC=ON
 
       - name: Build
         run: |
@@ -209,7 +209,7 @@ jobs:
       - name: Check
         run: |
           tree ${TARGET_INSTALL_DIR}/llvm/bin
-          tree ${TARGET_INSTALL_DIR}/llvm
+          file ${TARGET_INSTALL_DIR}/llvm/bin/*
       - name: Compress
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
