@@ -58,7 +58,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install ninja-build binfmt-support qemu-user-static
+          # sudo apt install ninja-build binfmt-support qemu-user-static
+          sudo apt install ninja-build
 
       - name: Patch source code
         run: |
@@ -186,22 +187,24 @@ jobs:
       - name: Build ${{matrix.target}} LLVM
         run: |
           cmake -S llvm -B "${TARGET_BUILD_DIR}/llvm" \
-              -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
-              -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_CROSSCOMPILING=True \
-              -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
-              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
-              -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
-              -DLLVM_ENABLE_ZLIB=FORCE_ON \
-              -DLLVM_ENABLE_ZSTD=FORCE_ON \
-              -DLLVM_USE_STATIC_ZSTD=ON \
-              -DLLVM_BUILD_STATIC=ON \
-              -DCLANG_ENABLE_ARCMT=ON \
-              -DLIBCLANG_BUILD_STATIC=ON
-            cmake --build "${TARGET_BUILD_DIR}"/llvm --target install
+            -G Ninja \
+            -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
+            -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CROSSCOMPILING=True \
+            -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+            -DLLVM_ENABLE_ZLIB=FORCE_ON \
+            -DLLVM_ENABLE_ZSTD=FORCE_ON \
+            -DLLVM_USE_STATIC_ZSTD=ON \
+            -DLLVM_BUILD_STATIC=ON \
+            -DCLANG_ENABLE_ARCMT=ON \
+            -DLIBCLANG_BUILD_STATIC=ON
+
+          cmake --build "${TARGET_BUILD_DIR}/llvm" --target install
 
       - name: Check
         run: |
