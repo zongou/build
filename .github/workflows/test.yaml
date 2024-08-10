@@ -62,6 +62,8 @@ jobs:
           TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
           TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
         run: |
+          sudo apt install ninja-build
+
           ## error: unsupported linker arg: -Bsymbolic-functions
           ## https://github.com/ziglang/zig/issues/18804
           ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
