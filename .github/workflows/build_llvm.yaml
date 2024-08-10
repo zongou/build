@@ -185,7 +185,7 @@ jobs:
       #         -DCLANG_TOOL_LIBCLANG_BUILD=OFF
       #     cmake --build "${HOST_BUILD_DIR}/llvm" --target llvm-tblgen clang-tblgen
 
-      - name: Build ${{matrix.target}} LLVM
+      - name: Build ${{inputs.projects}}
         run: |
           cmake -S llvm -B "${TARGET_BUILD_DIR}/llvm" \
             -G Ninja \
