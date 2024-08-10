@@ -26,7 +26,7 @@ jobs:
       actions: write
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         target: [aarch64-linux-musl, x86_64-linux-musl]
     env:
@@ -203,7 +203,8 @@ jobs:
             -DLLVM_USE_STATIC_ZSTD=ON \
             -DLLVM_BUILD_STATIC=ON \
             -DCLANG_ENABLE_ARCMT=ON \
-            -DLIBCLANG_BUILD_STATIC=ON
+            -DLIBCLANG_BUILD_STATIC=ON \
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
 
           cmake --build "${TARGET_BUILD_DIR}/llvm" --target install
 
