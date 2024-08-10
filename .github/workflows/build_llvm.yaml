@@ -171,8 +171,8 @@ jobs:
 
       - name: Check
         run: |
-          tree ${TARGET_INSTALL_DIR}/llvm/bin
           file ${TARGET_INSTALL_DIR}/llvm/bin/*
+          tree ${TARGET_INSTALL_DIR}/llvm
       - name: Compress
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
