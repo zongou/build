@@ -110,47 +110,7 @@ jobs:
               curl https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz -LkSs | gzip -d | tar -x
               mv zstd-1.5.6 zstd
             fi
-            cp "$ROOTDIR/zstd/lib/zstd.h" "${TARGET_INSTALL_DIR}/include/zstd.h"
-            cd "${TARGET_INSTALL_DIR}/lib"
-            zig build-lib \
-              --name zstd \
-              -target "$TARGET" \
-              -mcpu="$MCPU" \
-              -fstrip -OReleaseFast \
-              -lc \
-              "$ROOTDIR/zstd/lib/decompress/zstd_ddict.c" \
-              "$ROOTDIR/zstd/lib/decompress/zstd_decompress.c" \
-              "$ROOTDIR/zstd/lib/decompress/huf_decompress.c" \
-              "$ROOTDIR/zstd/lib/decompress/huf_decompress_amd64.S" \
-              "$ROOTDIR/zstd/lib/decompress/zstd_decompress_block.c" \
-              "$ROOTDIR/zstd/lib/compress/zstdmt_compress.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_opt.c" \
-              "$ROOTDIR/zstd/lib/compress/hist.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_ldm.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_fast.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_compress_literals.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_double_fast.c" \
-              "$ROOTDIR/zstd/lib/compress/huf_compress.c" \
-              "$ROOTDIR/zstd/lib/compress/fse_compress.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_lazy.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_compress.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_compress_sequences.c" \
-              "$ROOTDIR/zstd/lib/compress/zstd_compress_superblock.c" \
-              "$ROOTDIR/zstd/lib/deprecated/zbuff_compress.c" \
-              "$ROOTDIR/zstd/lib/deprecated/zbuff_decompress.c" \
-              "$ROOTDIR/zstd/lib/deprecated/zbuff_common.c" \
-              "$ROOTDIR/zstd/lib/common/entropy_common.c" \
-              "$ROOTDIR/zstd/lib/common/pool.c" \
-              "$ROOTDIR/zstd/lib/common/threading.c" \
-              "$ROOTDIR/zstd/lib/common/zstd_common.c" \
-              "$ROOTDIR/zstd/lib/common/xxhash.c" \
-              "$ROOTDIR/zstd/lib/common/debug.c" \
-              "$ROOTDIR/zstd/lib/common/fse_decompress.c" \
-              "$ROOTDIR/zstd/lib/common/error_private.c" \
-              "$ROOTDIR/zstd/lib/dictBuilder/zdict.c" \
-              "$ROOTDIR/zstd/lib/dictBuilder/divsufsort.c" \
-              "$ROOTDIR/zstd/lib/dictBuilder/fastcover.c" \
-              "$ROOTDIR/zstd/lib/dictBuilder/cover.c"
+            make -C zstd CC="zig cc --target=${TARGET}" CXX="zig c++ --target=${TARGET}" PREFIX="${TARGET_INSTALL_DIR}" install
           fi
 
       # - name: Build host llvm
