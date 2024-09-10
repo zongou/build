@@ -20,7 +20,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.8.2/cloudflared-fips-linux-amd64 > cloudflared
+          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.8.3/cloudflared-fips-linux-amd64 > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
@@ -30,7 +30,7 @@ jobs:
 
       - name: Start code-server
         run: |
-          curl -Lk https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 > shfmt
+          curl -Lk https://github.com/mvdan/sh/releases/download/v3.9.0/shfmt_v3.9.0_linux_amd64 > shfmt
           chmod +x shfmt
           sudo mv shfmt /usr/local/bin
           shfmt --version
