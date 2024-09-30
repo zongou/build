@@ -278,10 +278,51 @@ jobs:
 
           ## Revert breaking commit
           cd zig
-          git config user.email user@email.com
-          git config user.name user
-          # git revert a0de077600a35e41ce861398eaf3c8e832fee42e
-          git reset --hard 77abd3a96
+          patch -up1 <<-EOF
+          From 2e175f0c0cfb1b33c63bab106c0e78f20ee69ce9 Mon Sep 17 00:00:00 2001
+          From: zongou <zongou@outlook.com>
+          Date: Tue, 1 Oct 2024 01:56:34 +0800
+          Subject: [PATCH] Update linux.zig
+          
+          ---
+           lib/std/zig/system/linux.zig | 21 +--------------------
+           1 file changed, 1 insertion(+), 20 deletions(-)
+          
+          diff --git a/lib/std/zig/system/linux.zig b/lib/std/zig/system/linux.zig
+          index 2d2c46a54ae5..9443f490ef4e 100644
+          --- a/lib/std/zig/system/linux.zig
+          +++ b/lib/std/zig/system/linux.zig
+          @@ -388,28 +388,9 @@ pub fn detectNativeCpuAndFeatures() ?Target.Cpu {
+           
+               const current_arch = builtin.cpu.arch;
+               switch (current_arch) {
+          -        .arm, .armeb, .thumb, .thumbeb => {
+          +        .arm, .armeb, .thumb, .thumbeb, .aarch64, .aarch64_be, .aarch64_32 => {
+                       return ArmCpuinfoParser.parse(current_arch, f.reader()) catch null;
+                   },
+          -        .aarch64, .aarch64_be, .aarch64_32 => {
+          -            const registers = [12]u64{
+          -                getAArch64CpuFeature("MIDR_EL1"),
+          -                getAArch64CpuFeature("ID_AA64PFR0_EL1"),
+          -                getAArch64CpuFeature("ID_AA64PFR1_EL1"),
+          -                getAArch64CpuFeature("ID_AA64DFR0_EL1"),
+          -                getAArch64CpuFeature("ID_AA64DFR1_EL1"),
+          -                getAArch64CpuFeature("ID_AA64AFR0_EL1"),
+          -                getAArch64CpuFeature("ID_AA64AFR1_EL1"),
+          -                getAArch64CpuFeature("ID_AA64ISAR0_EL1"),
+          -                getAArch64CpuFeature("ID_AA64ISAR1_EL1"),
+          -                getAArch64CpuFeature("ID_AA64MMFR0_EL1"),
+          -                getAArch64CpuFeature("ID_AA64MMFR1_EL1"),
+          -                getAArch64CpuFeature("ID_AA64MMFR2_EL1"),
+          -            };
+          -
+          -            const core = @import("arm.zig").aarch64.detectNativeCpuAndFeatures(current_arch, registers);
+          -            return core;
+          -        },
+                   .sparc64 => {
+                       return SparcCpuinfoParser.parse(current_arch, f.reader()) catch null;
+                   },
+          EOF
       - name: Build target zig
         run: |
           ZIG="$ROOTDIR/out/host/bin/zig"
