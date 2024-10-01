@@ -279,15 +279,12 @@ jobs:
           ## Revert breaking commit
           cd zig
           base64 -d <<-EOF | gzip -d | patch -up1
-          H4sIAKWR+2YAA61UUW/aQAx+z6+weEoUckC4RSDUjWisEtKYqnZv04QuiUNPIkd0udu6Vf3v8xVG
-          w9S1KJsf4sT+7M/OnV3IsoQo2kgDYrCV2aAxxeCn3AyaH43BikzK3jEyQPai25OqwDuIizjniXjD
-          BWNTzsclnw6xhNFwmHDuRVH0CosXhuFrTPM5ROPJpB9PIHR6CmSpbQalggIN5uaTMPIbvq9tqopL
-          FMZqbPwA3n0WeoOGkQPuPfDASb5TjYHcao3KrIXOb+ECMiu3RiqW15Y502yPbb5LQ36/jQ4oVQQH
-          IXDVf3xiRtrc2uqoMYOLtwQOzwM7j8uf8Ke3dYatj3G8Twht0UjdKkh1RV1KVe6uhG5Qs9qpk8L7
-          UDKNokDtBwHkwnWm7HY7e0r40G+3dl41Ubua/c/VuJF0hrqhP/tlFH+1Cf8D54ROJk0fc1Hlh1Pz
-          e6vl4nr94eOoF/TPDVku1mma8KvL62HnyFG3yEVnzkVnzrQzZ9qZc3mTdiV1oR1ZV6vOrbrQf2CN
-          nw19mHnRc/c932mkqz6XVb3Txu/RhLvF1Qt+Dwt7YU2djuhxdILZKdNhzh1Vy0MDe0SwhmY+T/jf
-          l8SNA/yfNfELS1bBhkcGAAA=
+          H4sIAAAAAAAAA52RUWuDMBSF3/0Vlz61aNRoFPbQrWGuUJijdHsbQ6JGF9hc0Ti6lf33paN2IqNO
+          70uSE879zuWmIssAoVxIYNaLiK1KptanyK3qo5L8VUlFvTOVAPHZb00UKd+BkzoJ8ZlHmGkSN7Ox
+          5zHsALZtnxANIdRD0XRd7yMtFoDcC9fABPTjqaRtHUNWQMolT+Qdk+KdX29rWqRLzmRd8mo6g6sH
+          VuZcmuoD9ho09WX83k3GyuTZJ8bpFsW89XAdmF+2zYdK3opKQslzoaKWFczhETtPtU/2GoJOKT6l
+          P71UimO26SRcBZvo5hZPZsZ/LasgotQn6+XGbpx612n/rXWlXgJuCMOcQSvbYOdIJh3NpC3msB2s
+          7un5JQwLcmg3cvowHD3+wXqifgNwKnqrFwQAAA==
           EOF
       - name: Build target zig
         run: |
