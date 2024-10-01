@@ -278,47 +278,36 @@ jobs:
 
           ## Revert breaking commit
           cd zig
-          patch -up1 <<-EOF
-          commit acf3d35d0679f7f2f232b327da6272aa03c9f007
-          Author: zongou <zongou@outlook.com>
-          Date:   Tue Oct 1 05:52:58 2024 +0000
-
-              fix
-
-          diff --git a/lib/std/zig/system/linux.zig b/lib/std/zig/system/linux.zig
-          index 2d2c46a54a..9443f490ef 100644
-          --- a/lib/std/zig/system/linux.zig
-          +++ b/lib/std/zig/system/linux.zig
-          @@ -388,28 +388,9 @@ pub fn detectNativeCpuAndFeatures() ?Target.Cpu {
-          
-              const current_arch = builtin.cpu.arch;
-              switch (current_arch) {
-          -        .arm, .armeb, .thumb, .thumbeb => {
-          +        .arm, .armeb, .thumb, .thumbeb, .aarch64, .aarch64_be, .aarch64_32 => {
-                      return ArmCpuinfoParser.parse(current_arch, f.reader()) catch null;
-                  },
-          -        .aarch64, .aarch64_be, .aarch64_32 => {
-          -            const registers = [12]u64{
-          -                getAArch64CpuFeature("MIDR_EL1"),
-          -                getAArch64CpuFeature("ID_AA64PFR0_EL1"),
-          -                getAArch64CpuFeature("ID_AA64PFR1_EL1"),
-          -                getAArch64CpuFeature("ID_AA64DFR0_EL1"),
-          -                getAArch64CpuFeature("ID_AA64DFR1_EL1"),
-          -                getAArch64CpuFeature("ID_AA64AFR0_EL1"),
-          -                getAArch64CpuFeature("ID_AA64AFR1_EL1"),
-          -                getAArch64CpuFeature("ID_AA64ISAR0_EL1"),
-          -                getAArch64CpuFeature("ID_AA64ISAR1_EL1"),
-          -                getAArch64CpuFeature("ID_AA64MMFR0_EL1"),
-          -                getAArch64CpuFeature("ID_AA64MMFR1_EL1"),
-          -                getAArch64CpuFeature("ID_AA64MMFR2_EL1"),
-          -            };
-          -
-          -            const core = @import("arm.zig").aarch64.detectNativeCpuAndFeatures(current_arch, registers);
-          -            return core;
-          -        },
-                  .sparc64 => {
-                      return SparcCpuinfoParser.parse(current_arch, f.reader()) catch null;
-                  },
+          base64 -d <<-EOF | patch -up1
+          ZGlmZiAtLWdpdCBhL2xpYi9zdGQvemlnL3N5c3RlbS9saW51eC56aWcgYi9saWIvc3RkL3ppZy9z
+          eXN0ZW0vbGludXguemlnCmluZGV4IDJkMmM0NmE1NGEuLjk0NDNmNDkwZWYgMTAwNjQ0Ci0tLSBh
+          L2xpYi9zdGQvemlnL3N5c3RlbS9saW51eC56aWcKKysrIGIvbGliL3N0ZC96aWcvc3lzdGVtL2xp
+          bnV4LnppZwpAQCAtMzg4LDI4ICszODgsOSBAQCBwdWIgZm4gZGV0ZWN0TmF0aXZlQ3B1QW5kRmVh
+          dHVyZXMoKSA/VGFyZ2V0LkNwdSB7CiAKICAgICBjb25zdCBjdXJyZW50X2FyY2ggPSBidWlsdGlu
+          LmNwdS5hcmNoOwogICAgIHN3aXRjaCAoY3VycmVudF9hcmNoKSB7Ci0gICAgICAgIC5hcm0sIC5h
+          cm1lYiwgLnRodW1iLCAudGh1bWJlYiA9PiB7CisgICAgICAgIC5hcm0sIC5hcm1lYiwgLnRodW1i
+          LCAudGh1bWJlYiwgLmFhcmNoNjQsIC5hYXJjaDY0X2JlLCAuYWFyY2g2NF8zMiA9PiB7CiAgICAg
+          ICAgICAgICByZXR1cm4gQXJtQ3B1aW5mb1BhcnNlci5wYXJzZShjdXJyZW50X2FyY2gsIGYucmVh
+          ZGVyKCkpIGNhdGNoIG51bGw7CiAgICAgICAgIH0sCi0gICAgICAgIC5hYXJjaDY0LCAuYWFyY2g2
+          NF9iZSwgLmFhcmNoNjRfMzIgPT4gewotICAgICAgICAgICAgY29uc3QgcmVnaXN0ZXJzID0gWzEy
+          XXU2NHsKLSAgICAgICAgICAgICAgICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiTUlEUl9FTDEiKSwK
+          LSAgICAgICAgICAgICAgICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NFBGUjBfRUwxIiks
+          Ci0gICAgICAgICAgICAgICAgZ2V0QUFyY2g2NENwdUZlYXR1cmUoIklEX0FBNjRQRlIxX0VMMSIp
+          LAotICAgICAgICAgICAgICAgIGdldEFBcmNoNjRDcHVGZWF0dXJlKCJJRF9BQTY0REZSMF9FTDEi
+          KSwKLSAgICAgICAgICAgICAgICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NERGUjFfRUwx
+          IiksCi0gICAgICAgICAgICAgICAgZ2V0QUFyY2g2NENwdUZlYXR1cmUoIklEX0FBNjRBRlIwX0VM
+          MSIpLAotICAgICAgICAgICAgICAgIGdldEFBcmNoNjRDcHVGZWF0dXJlKCJJRF9BQTY0QUZSMV9F
+          TDEiKSwKLSAgICAgICAgICAgICAgICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2NElTQVIw
+          X0VMMSIpLAotICAgICAgICAgICAgICAgIGdldEFBcmNoNjRDcHVGZWF0dXJlKCJJRF9BQTY0SVNB
+          UjFfRUwxIiksCi0gICAgICAgICAgICAgICAgZ2V0QUFyY2g2NENwdUZlYXR1cmUoIklEX0FBNjRN
+          TUZSMF9FTDEiKSwKLSAgICAgICAgICAgICAgICBnZXRBQXJjaDY0Q3B1RmVhdHVyZSgiSURfQUE2
+          NE1NRlIxX0VMMSIpLAotICAgICAgICAgICAgICAgIGdldEFBcmNoNjRDcHVGZWF0dXJlKCJJRF9B
+          QTY0TU1GUjJfRUwxIiksCi0gICAgICAgICAgICB9OwotCi0gICAgICAgICAgICBjb25zdCBjb3Jl
+          ID0gQGltcG9ydCgiYXJtLnppZyIpLmFhcmNoNjQuZGV0ZWN0TmF0aXZlQ3B1QW5kRmVhdHVyZXMo
+          Y3VycmVudF9hcmNoLCByZWdpc3RlcnMpOwotICAgICAgICAgICAgcmV0dXJuIGNvcmU7Ci0gICAg
+          ICAgIH0sCiAgICAgICAgIC5zcGFyYzY0ID0+IHsKICAgICAgICAgICAgIHJldHVybiBTcGFyY0Nw
+          dWluZm9QYXJzZXIucGFyc2UoY3VycmVudF9hcmNoLCBmLnJlYWRlcigpKSBjYXRjaCBudWxsOwog
+          ICAgICAgICB9LAo=
           EOF
       - name: Build target zig
         run: |
