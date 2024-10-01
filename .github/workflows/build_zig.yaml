@@ -279,6 +279,12 @@ jobs:
           ## Revert breaking commit
           cd zig
           patch -up1 <<-EOF
+          commit acf3d35d0679f7f2f232b327da6272aa03c9f007
+          Author: zongou <zongou@outlook.com>
+          Date:   Tue Oct 1 05:52:58 2024 +0000
+
+              fix
+
           diff --git a/lib/std/zig/system/linux.zig b/lib/std/zig/system/linux.zig
           index 2d2c46a54a..9443f490ef 100644
           --- a/lib/std/zig/system/linux.zig
@@ -313,7 +319,6 @@ jobs:
                   .sparc64 => {
                       return SparcCpuinfoParser.parse(current_arch, f.reader()) catch null;
                   },
-
           EOF
       - name: Build target zig
         run: |
