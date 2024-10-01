@@ -20,7 +20,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.8.3/cloudflared-fips-linux-amd64 > cloudflared
+          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.9.1/cloudflared-fips-linux-amd64 > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
