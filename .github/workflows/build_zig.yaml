@@ -279,27 +279,18 @@ jobs:
           ## Revert breaking commit
           cd zig
           patch -up1 <<-EOF
-          From 2e175f0c0cfb1b33c63bab106c0e78f20ee69ce9 Mon Sep 17 00:00:00 2001
-          From: zongou <zongou@outlook.com>
-          Date: Tue, 1 Oct 2024 01:56:34 +0800
-          Subject: [PATCH] Update linux.zig
-          
-          ---
-           lib/std/zig/system/linux.zig | 21 +--------------------
-           1 file changed, 1 insertion(+), 20 deletions(-)
-          
           diff --git a/lib/std/zig/system/linux.zig b/lib/std/zig/system/linux.zig
-          index 2d2c46a54ae5..9443f490ef4e 100644
+          index 2d2c46a54a..9443f490ef 100644
           --- a/lib/std/zig/system/linux.zig
           +++ b/lib/std/zig/system/linux.zig
           @@ -388,28 +388,9 @@ pub fn detectNativeCpuAndFeatures() ?Target.Cpu {
-           
-               const current_arch = builtin.cpu.arch;
-               switch (current_arch) {
+          
+              const current_arch = builtin.cpu.arch;
+              switch (current_arch) {
           -        .arm, .armeb, .thumb, .thumbeb => {
           +        .arm, .armeb, .thumb, .thumbeb, .aarch64, .aarch64_be, .aarch64_32 => {
-                       return ArmCpuinfoParser.parse(current_arch, f.reader()) catch null;
-                   },
+                      return ArmCpuinfoParser.parse(current_arch, f.reader()) catch null;
+                  },
           -        .aarch64, .aarch64_be, .aarch64_32 => {
           -            const registers = [12]u64{
           -                getAArch64CpuFeature("MIDR_EL1"),
@@ -319,9 +310,10 @@ jobs:
           -            const core = @import("arm.zig").aarch64.detectNativeCpuAndFeatures(current_arch, registers);
           -            return core;
           -        },
-                   .sparc64 => {
-                       return SparcCpuinfoParser.parse(current_arch, f.reader()) catch null;
-                   },
+                  .sparc64 => {
+                      return SparcCpuinfoParser.parse(current_arch, f.reader()) catch null;
+                  },
+
           EOF
       - name: Build target zig
         run: |
