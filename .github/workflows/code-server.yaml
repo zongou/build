@@ -25,7 +25,7 @@ jobs:
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
 
-          curl -Lk "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" | gzip -d | tar -x
+          curl -Lk "https://update.code.visualstudio.com/latest/cli-alpine-x64/stable" | gzip -d | tar -x
           sudo mv code /usr/local/bin
 
       - name: Start code-server
