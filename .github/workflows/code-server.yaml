@@ -12,12 +12,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - name: Latest Version
-        uses: mogeko/latest-version@v1.1.2
+      - name: Get Cloudflared Latest Release
+        id: get-cloudflared-latest-release
+        uses: pozetroninc/github-action-get-latest-release@v0.8.0
         with:
-          # The repo that needs to be watched.
-          repo: cloudflare/cloudflared
-                
+          repository: cloudflare/cloudflared
+          
+      - run: echo ${{ steps.get-cloudflared-latest-release.outputs.release }}
+      
       - name: Prepare environment
         run: |
           curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.9.1/cloudflared-fips-linux-amd64 > cloudflared
