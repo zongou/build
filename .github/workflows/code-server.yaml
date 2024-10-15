@@ -12,6 +12,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
+      - name: Get Latest Release
+        id: get_latest_release
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const { data } = await octokit.rest.repos.getLatestRelease({
+              owner: "cloudflare",
+              repo: "cloudflared"
+            });
+            console.log(`Latest release tag: ${data.tag_name}`);
+            return data.assets[0].browser_download_url; // Assuming the first asset is the one you want
+
+      - name: Print Download URL
+        run: echo ${{ steps.get_latest_release.outputs.result }}
+
       - name: Prepare environment
         run: |
           curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.9.1/cloudflared-fips-linux-amd64 > cloudflared
