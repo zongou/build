@@ -17,12 +17,11 @@ jobs:
         uses: pozetroninc/github-action-get-latest-release@v0.8.0
         with:
           repository: cloudflare/cloudflared
-          
-      - run: echo ${{ steps.get-cloudflared-latest-release.outputs.release }}
-      
-      - name: Prepare environment
+
+      - name: Setup Environment
         run: |
-          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.9.1/cloudflared-fips-linux-amd64 > cloudflared
+          cloudflared_version=${{ steps.get-cloudflared-latest-release.outputs.release }}
+          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/${cloudflared_version}/cloudflared-fips-linux-amd64 > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
