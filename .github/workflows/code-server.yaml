@@ -33,7 +33,8 @@ jobs:
           mkdir -p /home/runner/.vscode-server/data/Machine
           cat <<EOF>/home/runner/.vscode-server/data/Machine/settings.json
           {
-            "workbench.colorTheme": "Default Dark Modern"
+            "workbench.colorTheme": "Default Dark Modern",
+            "workbench.startupEditor": "none",
           }
           EOF
 
