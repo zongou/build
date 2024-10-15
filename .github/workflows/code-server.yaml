@@ -34,7 +34,6 @@ jobs:
           cat <<EOF>/home/runner/.vscode-server/data/Machine/settings.json
           {
             "workbench.colorTheme": "Default Dark Modern",
-            "workbench.startupEditor": "none",
           }
           EOF
 
