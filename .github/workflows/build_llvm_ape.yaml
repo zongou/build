@@ -34,7 +34,7 @@ jobs:
       OUTPUT_DIR: ${{github.workspace}}/output
     #   TARGET: ${{matrix.target}}
     #   MCPU: baseline
-    #   ROOTDIR: ${{github.workspace}}
+      ROOTDIR: ${{github.workspace}}
     #   HOST_BUILD_DIR: ${{github.workspace}}/build/host
     #   TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
     #   TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
@@ -76,16 +76,15 @@ jobs:
       - name: Build
         run: |
           ARCH=aarch64
-          PREFIX="$COSMO/cosmocc/bin/$ARCH-unknown-cosmo"
-          export CC=$PREFIX-cc
-          export CXX=$PREFIX-c++
-          export LD=$PREFIX-ld
-          export OBJCOPY=$PREFIX-objcopy
-          export AR=$PREFIX-ar
-          export STRIP=$PREFIX-strip
-          export ZIPCOPY=$COSMO/o/tool/build/zipcopy
+          PREFIX="$ARCH-unknown-cosmo"
+          export CC=${PREFIX}-cc
+          export CXX=${PREFIX}-c++
+          export LD=${PREFIX}-ld
+          export OBJCOPY=${PREFIX}-objcopy
+          export AR=${PREFIX}-ar
+          export STRIP=${PREFIX}-strip
 
-          cmake -S "$ROOT_DIR/llvm-project/llvm" -B "${BUILD_DIR}" -G Ninja \
+          cmake -S "$ROOTDIR/llvm" -B "${BUILD_DIR}" -G Ninja \
             -DCMAKE_SKIP_RPATH=true \
             -DCMAKE_BUILD_WITH_INSTALL_RPATH=false \
             -DCMAKE_STRIP="" \
