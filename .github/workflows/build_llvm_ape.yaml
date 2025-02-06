@@ -29,9 +29,9 @@ jobs:
       fail-fast: true
       #   matrix:
       #     target: [aarch64-linux-musl, x86_64-linux-musl]
-      # env:
+    env:
       BUILD_DIR: ${{github.workspace}}/build
-    #   OUTPUT_DIR: ${{github.workspace}}/output
+      OUTPUT_DIR: ${{github.workspace}}/output
     #   TARGET: ${{matrix.target}}
     #   MCPU: baseline
     #   ROOTDIR: ${{github.workspace}}
