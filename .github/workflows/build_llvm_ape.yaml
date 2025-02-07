@@ -5,7 +5,7 @@
 # 123
 
 name: Build LLVM APE
-run-name: Build llvm-${{inputs.version}} ${{inputs.projects}}
+run-name: Build llvm-${{inputs.version}}
 on:
   workflow_dispatch:
     inputs:
@@ -141,7 +141,7 @@ jobs:
         run: |
           file ${TARGET_INSTALL_DIR}/llvm/bin/*
           tree ${TARGET_INSTALL_DIR}/llvm
-          
+
       # - name: Compress
       #   run: |
       #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
