@@ -68,7 +68,7 @@ jobs:
           }
           EOF
 
-          mkdir -p ${TARGET_INSTALL_DIR}/bin/hello
+          mkdir -p ${TARGET_INSTALL_DIR}/bin
           $CC hello.c -o ${TARGET_INSTALL_DIR}/bin/hello
 
       - name: Check
