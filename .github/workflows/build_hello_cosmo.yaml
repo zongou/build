@@ -76,7 +76,7 @@ jobs:
           file ${TARGET_INSTALL_DIR}/bin/hello
           tree ${TARGET_INSTALL_DIR}
 
-      - uses: zongou/ga-vscode-server@0.0.1
+      # - uses: zongou/ga-vscode-server@0.0.1
       
       - uses: actions/upload-artifact@v4
         with:
