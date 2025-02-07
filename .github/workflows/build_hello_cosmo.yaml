@@ -76,11 +76,10 @@ jobs:
           file ${TARGET_INSTALL_DIR}/bin/hello
           tree ${TARGET_INSTALL_DIR}
 
-      # - uses: zongou/ga-vscode-server@0.0.1
-      
-      - uses: actions/upload-artifact@v4
-        with:
-          name: hello-${{matrix.target}}
+          
+          - uses: actions/upload-artifact@v4
+          with:
+          name: hello
           path: ${{github.workspace}}/output/${{matrix.target}}/bin/hello
 
  # Optionally add another job to process or download the artifacts
@@ -98,6 +97,8 @@ jobs:
         # # Optional. Default is $GITHUB_WORKSPACE
         # path:
 
+      - uses: zongou/ga-vscode-server@0.0.1
+
       - name: Install cosmocc
         uses: bjia56/setup-cosmocc@v0.0.3
         # with:
@@ -106,8 +107,8 @@ jobs:
       - name: Process artifacts
         run: |
           mkdir -p ${{github.workspace}}/output/ape/bin/
-          fixupobj ${{github.workspace}}/output/aarch64/bin/hello
-          fixupobj ${{github.workspace}}/output/x86_64/bin/hello
+          fixupobj ${{github.workspace}}/hello-aarch64/hello
+          fixupobj ${{github.workspace}}/hello-x86_64/hello
 
           COSMO=$(dirname $(dirname $(command -v cosmocc)))
 
@@ -116,7 +117,7 @@ jobs:
             -l ${COSMO}/bin/ape-aarch64.elf \
             -M ${COSMO}/bin/ape-m1.c \
             -o ${{github.workspace}}/output/ape/bin/hello.exe \
-            -s ${{github.workspace}}/output/aarch64/bin/hello ${{github.workspace}}/output/x86_64/bin/hello
+            -s ${{github.workspace}}/hello-aarch64/hello ${{github.workspace}}/hello-x86_64/hello
 
       - uses: actions/download-artifact@v4
         with:
