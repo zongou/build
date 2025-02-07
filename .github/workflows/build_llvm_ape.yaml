@@ -27,17 +27,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-      #   matrix:
-      #     target: [aarch64-linux-musl, x86_64-linux-musl]
+      matrix:
+        target: [aarch64, x86_64]
     env:
-      BUILD_DIR: ${{github.workspace}}/build
-      OUTPUT_DIR: ${{github.workspace}}/output
-    #   TARGET: ${{matrix.target}}
-    #   MCPU: baseline
       ROOTDIR: ${{github.workspace}}
-    #   HOST_BUILD_DIR: ${{github.workspace}}/build/host
-    #   TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
-    #   TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
+      #   TARGET: ${{matrix.target}}
+      BUILD_DIR: ${{github.workspace}}/build
+      #   HOST_BUILD_DIR: ${{github.workspace}}/build/host
+      TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
+      # TARGET_INSTALL_DIR: ${{github.workspace}}/output
+      TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -49,8 +48,8 @@ jobs:
       - name: Install cosmocc
         uses: bjia56/setup-cosmocc@v0.0.3
         # with:
-          # Cosmopolitan release version
-          # version: # default is latest
+        # Cosmopolitan release version
+        # version: # default is latest
 
       # - name: Patch source code
       #   run: |
@@ -75,8 +74,7 @@ jobs:
 
       - name: Build
         run: |
-          ARCH=aarch64
-          PREFIX="$ARCH-unknown-cosmo"
+          PREFIX="${{matrix.target}}-unknown-cosmo"
           export CC=${PREFIX}-cc
           export CXX=${PREFIX}-c++
           export LD=${PREFIX}-ld
@@ -84,17 +82,17 @@ jobs:
           export AR=${PREFIX}-ar
           export STRIP=${PREFIX}-strip
 
-          cmake -S "$ROOTDIR/llvm" -B "${BUILD_DIR}" -G Ninja \
+          cmake -S "$ROOTDIR/llvm" -B "${TARGET_BUILD_DIR}" -G Ninja \
             -DCMAKE_SKIP_RPATH=true \
             -DCMAKE_BUILD_WITH_INSTALL_RPATH=false \
             -DCMAKE_STRIP="" \
             -DCMAKE_INSTALL_DO_STRIP=OFF \
             -DCMAKE_C_COMPILER="$CC" \
             -DCMAKE_CXX_COMPILER="$CXX" \
-            -DCMAKE_INSTALL_PREFIX="$OUTPUT_DIR" \
-            -DCMAKE_INSTALL_OLDINCLUDEDIR="$OUTPUT_DIR/include" \
-            -DBacktrace_INCLUDE_DIR="$OUTPUT_DIR/include" \
-            -DC_INCLUDE_DIRS="$OUTPUT_DIR/include" \
+            -DCMAKE_INSTALL_PREFIX="$TARGET_INSTALL_DIR" \
+            -DCMAKE_INSTALL_OLDINCLUDEDIR="$TARGET_INSTALL_DIR/include" \
+            -DBacktrace_INCLUDE_DIR="$TARGET_INSTALL_DIR/include" \
+            -DC_INCLUDE_DIRS="$TARGET_INSTALL_DIR/include" \
             -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
@@ -139,10 +137,11 @@ jobs:
 
           cmake --build "${TARGET_BUILD_DIR}/llvm" --target install
 
-      # - name: Check
-      #   run: |
-      #     file ${TARGET_INSTALL_DIR}/llvm/bin/*
-      #     tree ${TARGET_INSTALL_DIR}/llvm
+      - name: Check
+        run: |
+          file ${TARGET_INSTALL_DIR}/llvm/bin/*
+          tree ${TARGET_INSTALL_DIR}/llvm
+          
       # - name: Compress
       #   run: |
       #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
