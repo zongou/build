@@ -4,7 +4,7 @@
 # clang 2:35 103
 # 123
 
-name: Build LLVM APE
+name: Build LLVM COSMO
 run-name: Build llvm-${{inputs.version}}
 on:
   workflow_dispatch:
@@ -126,8 +126,8 @@ jobs:
 
       - name: Check
         run: |
-          file ${TARGET_INSTALL_DIR}/llvm/bin/*
-          tree ${TARGET_INSTALL_DIR}/llvm
+          file ${TARGET_INSTALL_DIR}/bin/*
+          tree ${TARGET_INSTALL_DIR}
 
       # - name: Compress
       #   run: |
