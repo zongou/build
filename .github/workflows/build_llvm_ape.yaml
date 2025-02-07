@@ -72,6 +72,10 @@ jobs:
       #     EOF
       #     cat clang/tools/CMakeLists.txt
 
+      - name: Install dependencies
+        run: |
+          sudo apt install ninja-build binfmt-support qemu-user-static
+
       - name: Build
         run: |
           PREFIX="${{matrix.target}}-unknown-cosmo"
