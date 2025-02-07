@@ -139,7 +139,7 @@ jobs:
             -DLLVM_ENABLE_THREADS=ON
 
 
-          cmake --build "${TARGET_BUILD_DIR}/llvm" --target install
+          cmake --build "${TARGET_BUILD_DIR}" --target install
 
       - name: Check
         run: |
