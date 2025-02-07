@@ -45,4 +45,4 @@ jobs:
           shfmt --version
 
           code serve-web --host ::0 --without-connection-token &
-          cloudflared tunnel --url localhost:8000
+          cloudflared tunnel --url localhost:8000 || true
