@@ -80,7 +80,7 @@ jobs:
       
       - uses: actions/upload-artifact@v4
         with:
-          name: hello
+          name: hello-${{matrix.target}}
           path: ${{github.workspace}}/output/${{matrix.target}}/bin/hello
 
  # Optionally add another job to process or download the artifacts
@@ -93,7 +93,6 @@ jobs:
         # # Name of the artifact to download.
         # # If unspecified, all artifacts for the run are downloaded.
         # # Optional.
-        # name:
     
         # # Destination path. Supports basic tilde expansion.
         # # Optional. Default is $GITHUB_WORKSPACE
