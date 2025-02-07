@@ -119,10 +119,6 @@ jobs:
             -o ${{github.workspace}}/output/ape/bin/hello.exe \
             -s ${{github.workspace}}/hello-aarch64/hello ${{github.workspace}}/hello-x86_64/hello
 
-      - uses: actions/download-artifact@v4
-        with:
-          path: ${{github.workspace}}/output/ape/bin/hello.exe
-
       #   run: |
       #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
       #     echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
