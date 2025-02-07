@@ -13,11 +13,11 @@ on:
         description: "Release version:"
         default: "19.1.7"
         required: true
-    #   projects:
-    #     description: "Projects to build:"
-    #     # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
-    #     default: "clang;clang-tools-extra;lld"
-    #     required: true
+      projects:
+        description: "Projects to build:"
+        # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
+        default: "clang;clang-tools-extra;lld"
+        required: true
 
 jobs:
   build:
@@ -76,7 +76,7 @@ jobs:
             -DCMAKE_INSTALL_OLDINCLUDEDIR="$TARGET_INSTALL_DIR/include" \
             -DBacktrace_INCLUDE_DIR="$TARGET_INSTALL_DIR/include" \
             -DC_INCLUDE_DIRS="$TARGET_INSTALL_DIR/include" \
-            -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
             -DLLVM_PARALLEL_COMPILE_JOBS="$(nproc --all)" \
@@ -119,60 +119,79 @@ jobs:
           
           cmake --build "${TARGET_BUILD_DIR}" --target install
 
-      - name: Check
+      - name: Check and archive
         run: |
           file ${TARGET_INSTALL_DIR}/bin/*
           tree ${TARGET_INSTALL_DIR}
+          tar -C ${TARGET_INSTALL_DIR} -c bin >${{matrix.target}}.tar
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.target}}
-          path: ${{github.workspace}}/output/${{matrix.target}}/bin
-
+          path: ${{matrix.target}}.tar
 
   process_artifacts:
     needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v4
+
+    - name: Extract artifacts
+      run: |
+        mkdir -p x86_64
+        mkdir -p aarch64
+        tar -C x86_64 -xf x86_64.tar
+        tar -C aarch64 -xf aarch64.tar
     
     - name: Install cosmocc
       uses: bjia56/setup-cosmocc@v0.0.3
-    
-    - uses: zongou/ga-vscode-server@0.0.1
 
-    - name: Process artifacts
+    # - uses: zongou/ga-vscode-server@0.0.1
+
+    - name: Link APE
       run: |
-        COSMO=$(dirname $(dirname $(command -v cosmocc)))
+        COSMO=$(dirname "$(dirname "$(command -v cosmocc)")")
 
-    #     mkdir -p ${{github.workspace}}/output/ape/bin/
-    #     fixupobj ${{github.workspace}}/hello-aarch64/hello
-    #     fixupobj ${{github.workspace}}/hello-x86_64/hello
+        mkdir -p ape/bin
+        find x86_64 -type l,f | while IFS= read -r file; do
+          bname=$(basename "${file}")
+          if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
+            echo "copy ${bname}"
+            cp -d "x86_64/bin/${bname}" "ape/bin/${bname}"
+          else
+            echo "fixupobj ${bname}"
+            fixupobj "x86_64/bin/${bname}"
+            fixupobj "aarch64/bin/${bname}"
 
-    #     apelink -V -1 \
-    #       -l ${COSMO}/bin/ape-x86_64.elf \
-    #       -l ${COSMO}/bin/ape-aarch64.elf \
-    #       -M ${COSMO}/bin/ape-m1.c \
-    #       -o ${{github.workspace}}/output/ape/bin/hello.exe \
-    #       -s ${{github.workspace}}/hello-aarch64/hello ${{github.workspace}}/hello-x86_64/hello
+            echo "apelink ${bname}"
+            apelink -V -1 \
+              -l "${COSMO}/bin/ape-x86_64.elf" \
+              -l "${COSMO}/bin/ape-aarch64.elf" \
+              -M "${COSMO}/bin/ape-m1.c" \
+              -o "ape/bin/${bname}" \
+              -s "x86_64/bin/${bname}" "aarch64/bin/${bname}"
+          fi
+        done
 
     # - uses: actions/upload-artifact@v4
     #   with:
     #     name: hello-ape
     #     path: ${{github.workspace}}/output/ape/bin/hello.exe
 
-    #   # - name: Compress
-    #   #   run: |
-    #   #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
-    #   #     echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
-    #   #     mv ${TARGET_INSTALL_DIR}/llvm ${tarball_name}
-    #   #     tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
-    #   # - name: Upload release
-    #   #   uses: ncipollo/release-action@v1.14.0
-    #   #   with:
-    #   #     tag: "llvm-${{inputs.version}}"
-    #   #     artifacts: ${{env.tarball_name}}.tar.xz
-    #   #     allowUpdates: true
-    #   #     replacesArtifacts: true
-    #   #     body: |
-    #   #       [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+    - name: Compress
+      run: |
+        tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-ape
+        echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
+        mkdir ${tarball_name}
+        mv ape ${tarball_name}
+        tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
+        
+    - name: Upload release
+      uses: ncipollo/release-action@v1.14.0
+      with:
+        tag: "llvm-${{inputs.version}}-ape"
+        artifacts: ${{env.tarball_name}}.tar.xz
+        allowUpdates: true
+        replacesArtifacts: true
+        body: |
+          [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
