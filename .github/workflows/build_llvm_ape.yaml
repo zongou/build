@@ -7,6 +7,8 @@
 name: Build LLVM APE
 run-name: Build llvm-${{inputs.version}} APE
 on:
+  push:
+    paths: .github/workflows/build_llvm_ape.yaml
   workflow_dispatch:
     inputs:
       version:
@@ -31,11 +33,7 @@ jobs:
         target: [aarch64, x86_64]
     env:
       ROOTDIR: ${{github.workspace}}
-      #   TARGET: ${{matrix.target}}
-      BUILD_DIR: ${{github.workspace}}/build
-      #   HOST_BUILD_DIR: ${{github.workspace}}/build/host
       TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
-      # TARGET_INSTALL_DIR: ${{github.workspace}}/output
       TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
     steps:
       - name: Checkout llvm-project
@@ -128,18 +126,55 @@ jobs:
           file ${TARGET_INSTALL_DIR}/bin/*
           tree ${TARGET_INSTALL_DIR}
 
-      # - name: Compress
-      #   run: |
-      #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
-      #     echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
-      #     mv ${TARGET_INSTALL_DIR}/llvm ${tarball_name}
-      #     tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
-      # - name: Upload release
-      #   uses: ncipollo/release-action@v1.14.0
-      #   with:
-      #     tag: "llvm-${{inputs.version}}"
-      #     artifacts: ${{env.tarball_name}}.tar.xz
-      #     allowUpdates: true
-      #     replacesArtifacts: true
-      #     body: |
-      #       [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{matrix.target}}
+          path: ${{github.workspace}}/output/${{matrix.target}}/bin
+
+
+  process_artifacts:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+    
+    - name: Install cosmocc
+      uses: bjia56/setup-cosmocc@v0.0.3
+    
+    - uses: zongou/ga-vscode-server@0.0.1
+
+    - name: Process artifacts
+      run: |
+        COSMO=$(dirname $(dirname $(command -v cosmocc)))
+
+    #     mkdir -p ${{github.workspace}}/output/ape/bin/
+    #     fixupobj ${{github.workspace}}/hello-aarch64/hello
+    #     fixupobj ${{github.workspace}}/hello-x86_64/hello
+
+    #     apelink -V -1 \
+    #       -l ${COSMO}/bin/ape-x86_64.elf \
+    #       -l ${COSMO}/bin/ape-aarch64.elf \
+    #       -M ${COSMO}/bin/ape-m1.c \
+    #       -o ${{github.workspace}}/output/ape/bin/hello.exe \
+    #       -s ${{github.workspace}}/hello-aarch64/hello ${{github.workspace}}/hello-x86_64/hello
+
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: hello-ape
+    #     path: ${{github.workspace}}/output/ape/bin/hello.exe
+
+    #   # - name: Compress
+    #   #   run: |
+    #   #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
+    #   #     echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
+    #   #     mv ${TARGET_INSTALL_DIR}/llvm ${tarball_name}
+    #   #     tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
+    #   # - name: Upload release
+    #   #   uses: ncipollo/release-action@v1.14.0
+    #   #   with:
+    #   #     tag: "llvm-${{inputs.version}}"
+    #   #     artifacts: ${{env.tarball_name}}.tar.xz
+    #   #     allowUpdates: true
+    #   #     replacesArtifacts: true
+    #   #     body: |
+    #   #       [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
