@@ -115,7 +115,8 @@ jobs:
             -DLLVM_ENABLE_CURL=OFF \
             -DLLVM_ENABLE_ZLIB=OFF \
             -DLLVM_ENABLE_ZSTD=OFF \
-            -DLLVM_ENABLE_THREADS=ON
+            -DLLVM_ENABLE_THREADS=ON \
+            -DCMAKE_EXE_LINKER_FLAGS="-Wl,--no-warnings"
 
           cmake --build "${TARGET_BUILD_DIR}" --target install
 
