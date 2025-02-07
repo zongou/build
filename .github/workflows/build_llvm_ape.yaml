@@ -7,8 +7,6 @@
 name: Build LLVM APE
 run-name: Build llvm-${{inputs.version}} APE
 on:
-  push:
-    paths: .github/workflows/build_llvm_ape.yaml
   workflow_dispatch:
     inputs:
       version:
