@@ -181,10 +181,10 @@ jobs:
         mv ape ${tarball_name}
         tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ${{env.tarball_name}}
-        path: ${{env.tarball_name}}.tar.xz
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: ${{env.tarball_name}}
+    #     path: ${{env.tarball_name}}.tar.xz
         
     - name: Upload release
       uses: ncipollo/release-action@v1.14.0
