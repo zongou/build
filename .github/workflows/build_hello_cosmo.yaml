@@ -1,0 +1,101 @@
+# NOTES:
+# If cmake LLVM_ENABLE_PROJECTS does not include clang, it does not work as expected.
+# lldb 1:57 81 files
+# clang 2:35 103
+# 123
+
+name: Build hello Cosmo
+on:
+  workflow_dispatch:
+    # inputs:
+    #   version:
+    #     description: "Release version:"
+    #     default: "19.1.7"
+    #     required: true
+    #   projects:
+    #     description: "Projects to build:"
+    #     # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
+    #     default: "clang;clang-tools-extra;lld"
+    #     required: true
+
+jobs:
+  build:
+    permissions:
+      contents: write
+      actions: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [aarch64, x86_64]
+    env:
+      ROOTDIR: ${{github.workspace}}
+      #   TARGET: ${{matrix.target}}
+      BUILD_DIR: ${{github.workspace}}/build
+      #   HOST_BUILD_DIR: ${{github.workspace}}/build/host
+      TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
+      # TARGET_INSTALL_DIR: ${{github.workspace}}/output
+      TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
+    steps:
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4.2.2
+
+      - name: Install cosmocc
+        uses: bjia56/setup-cosmocc@v0.0.3
+
+      - name: Install dependencies
+        run: |
+          sudo apt install ninja-build binfmt-support qemu-user-static
+
+      - name: Build
+        run: |
+          PREFIX="${{matrix.target}}-unknown-cosmo"
+          export CC=${PREFIX}-cc
+          export CXX=${PREFIX}-c++
+          export LD=${PREFIX}-ld
+          export OBJCOPY=${PREFIX}-objcopy
+          export AR=${PREFIX}-ar
+          export STRIP=${PREFIX}-strip
+
+          # Create hello.c
+          cat <<EOF >hello.c
+          #include <stdio.h>
+          int main() {
+              printf("Hello, World!\n");
+              return 0;
+          }
+          EOF
+
+          mkdir -p ${TARGET_INSTALL_DIR}/bin/hello
+          $CC hello.c -o ${TARGET_INSTALL_DIR}/bin/hello
+
+      - name: Check
+        run: |
+          file ${TARGET_INSTALL_DIR}/bin/hello
+          tree ${TARGET_INSTALL_DIR}
+
+      - uses: zongou/ga-vscode-server@0.0.1
+      
+      - uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: ${TARGET_INSTALL_DIR}/bin/hello
+
+  # apelink_and_upload:
+  #   needs: build
+  
+          # - name: Compress
+      #   run: |
+      #     tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
+      #     echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
+      #     mv ${TARGET_INSTALL_DIR}/llvm ${tarball_name}
+      #     tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
+      # - name: Upload release
+      #   uses: ncipollo/release-action@v1.14.0
+      #   with:
+      #     tag: "llvm-${{inputs.version}}"
+      #     artifacts: ${{env.tarball_name}}.tar.xz
+      #     allowUpdates: true
+      #     replacesArtifacts: true
+      #     body: |
+      #       [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
