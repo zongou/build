@@ -65,7 +65,6 @@ jobs:
           export AR=${PREFIX}-ar
           export STRIP=${PREFIX}-strip
 
-          export LDFLAGS="-w"
           cmake -S "$ROOTDIR/llvm" -B "${TARGET_BUILD_DIR}" -G Ninja \
             -DCMAKE_SKIP_RPATH=true \
             -DCMAKE_BUILD_WITH_INSTALL_RPATH=false \
