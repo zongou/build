@@ -146,7 +146,7 @@ jobs:
           export AS=${PREFIX}-as
 
           cmake -S "$ROOTDIR/llvm" -B "${TARGET_BUILD_DIR}" -G Ninja \
-            -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}" \
+            -DCMAKE_INSTALL_PREFIX="${ROOTDIR}/llvm-${{matrix.target}}" \
             -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DCMAKE_CROSSCOMPILING=True \
@@ -202,14 +202,14 @@ jobs:
 
       - name: Check and archive
         run: |
-          file ${TARGET_INSTALL_DIR}/bin/*
-          tree ${TARGET_INSTALL_DIR}
-          tar -C ${TARGET_INSTALL_DIR} -c bin >${{matrix.target}}.tar
+          file llvm-${{matrix.target}}/bin/*
+          tree llvm-${{matrix.target}}
+          tar -c llvm-${{matrix.target}} >llvm-${{matrix.target}}.tar
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.target}}
-          path: ${{matrix.target}}.tar
+          name: llvm-${{matrix.target}}
+          path: llvm-${{matrix.target}}.tar
       
       - uses: zongou/run-vscode-server@0.0.1
         name: Open VS Code server to Handle Failure (Run on any failure)
@@ -220,11 +220,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
 
       - name: Extract artifacts
         run: |
-          tar -C x86_64 -xf x86_64/x86_64.tar && rm x86_64/x86_64.tar
-          tar -C aarch64 -xf aarch64/aarch64.tar && rm aarch64/aarch64.tar
+          for ARCH in aarch64 x86_64; do
+            tar -xvf llvm-${ARCH}.tar
+            rm llvm-${ARCH}.tar
+          done
 
       - name: Install cosmocc
         uses: bjia56/setup-cosmocc@v0.0.3
@@ -233,24 +237,24 @@ jobs:
         run: |
           COSMO=$(dirname "$(dirname "$(command -v cosmocc)")")
 
-          mkdir -p ape/bin
-          find x86_64 -type l,f | while IFS= read -r file; do
+          mkdir -p llvm-ape/bin
+          find llvm-x86_64/bin -type l,f | while IFS= read -r file; do
             bname=$(basename "${file}")
             if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
               echo "copy ${bname}"
-              cp -d "x86_64/bin/${bname}" "ape/bin/${bname}"
+              cp -d "llvm-x86_64/bin/${bname}" "llvm-ape/bin/${bname}"
             else
               echo "fixupobj ${bname}"
-              fixupobj "x86_64/bin/${bname}"
-              fixupobj "aarch64/bin/${bname}"
+              fixupobj "llvm-x86_64/bin/${bname}"
+              fixupobj "llvm-aarch64/bin/${bname}"
 
               echo "apelink ${bname}"
               apelink -V -1 \
                 -l "${COSMO}/bin/ape-x86_64.elf" \
                 -l "${COSMO}/bin/ape-aarch64.elf" \
                 -M "${COSMO}/bin/ape-m1.c" \
-                -o "ape/bin/${bname}" \
-                -s "x86_64/bin/${bname}" "aarch64/bin/${bname}"
+                -o "llvm-ape/bin/${bname}" \
+                -s "llvm-x86_64/bin/${bname}" "llvm-aarch64/bin/${bname}"
             fi
           done
 
@@ -258,7 +262,7 @@ jobs:
         run: |
           tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-ape
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
-          mv ape ${tarball_name}
+          mv llvm-ape ${tarball_name}
           tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
 
       - uses: actions/upload-artifact@v4
