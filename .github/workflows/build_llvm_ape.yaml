@@ -224,12 +224,8 @@ jobs:
 
       - name: Extract artifacts
         run: |
-          # mkdir -p x86_64
-          # mkdir -p aarch64
-          mv x86_64/x86_64.tar .
-          mv aarch64/aarch64.tar .
-          tar -C x86_64 -xf x86_64.tar
-          tar -C aarch64 -xf aarch64.tar
+          tar -C x86_64 -xf x86_64/x86_64.tar && rm x86_64/x86_64.tar
+          tar -C aarch64 -xf aarch64/aarch64.tar && rm aarch64/aarch64.tar
 
       - name: Install cosmocc
         uses: bjia56/setup-cosmocc@v0.0.3
