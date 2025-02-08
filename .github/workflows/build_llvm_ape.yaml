@@ -63,7 +63,8 @@ jobs:
           export OBJCOPY=${PREFIX}-objcopy
           export AR=${PREFIX}-ar
           export STRIP=${PREFIX}-strip
-          export AS=${PREFIX}-as
+
+          rm -rf build output/ zlib/ zstd/
 
           if ! test -f "${TARGET_INSTALL_DIR}"/lib/libz.a; then
               if ! test -d zlib; then
@@ -78,14 +79,17 @@ jobs:
                   make -j"$(nproc --all)" install
               )
           fi
+          echo "zlib is built"
 
           if ! test -f "${TARGET_INSTALL_DIR}"/lib/libzstd.a; then
               if ! test -d zstd; then
                   curl https://ghfast.top/https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz -LkSs | gzip -d | tar -x
                   mv zstd-1.5.6 zstd
               fi
-              make -C zstd/lib CC="${CC}" CXX="${CXX}" AS="${AS}" PREFIX="${TARGET_INSTALL_DIR}" -j"$(nproc --all)" install-static
+              make -j"$(nproc --all)" -C zstd/lib CC="${CC}" CXX="${CXX}" PREFIX="${TARGET_INSTALL_DIR}" install-static
           fi
+
+          echo Done
 
       - name: Build LLVM
         run: |
