@@ -73,9 +73,6 @@ jobs:
             -DCMAKE_C_COMPILER="$CC" \
             -DCMAKE_CXX_COMPILER="$CXX" \
             -DCMAKE_INSTALL_PREFIX="$TARGET_INSTALL_DIR" \
-            -DCMAKE_INSTALL_OLDINCLUDEDIR="$TARGET_INSTALL_DIR/include" \
-            -DBacktrace_INCLUDE_DIR="$TARGET_INSTALL_DIR/include" \
-            -DC_INCLUDE_DIRS="$TARGET_INSTALL_DIR/include" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
