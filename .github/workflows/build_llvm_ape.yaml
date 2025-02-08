@@ -197,6 +197,9 @@ jobs:
             [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
 
       - uses: zongou/ga-vscode-server@0.0.1
-        name: Handle Failure (Run on any failure)
-        if: ${{ failure() }}
-
+        name: Open VS Code server to Handle Failure (Run on any failure)
+        if: failure()
+        with:
+          # VS Code quality: stable, insider
+          # Default: stable
+          quality: ""
