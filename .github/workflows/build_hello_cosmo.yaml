@@ -75,11 +75,12 @@ jobs:
         run: |
           file ${TARGET_INSTALL_DIR}/bin/hello
           tree ${TARGET_INSTALL_DIR}
+          tar -C ${TARGET_INSTALL_DIR} -c bin > ${{matrix.target}}.tar
           
       - uses: actions/upload-artifact@v4
         with:
-          name: hello-${{matrix.target}}
-          path: ${{github.workspace}}/output/${{matrix.target}}/bin/hello
+          name: ${{matrix.target}}
+          path: ${{matrix.target}}.tar
 
  # Optionally add another job to process or download the artifacts
   process_artifacts:
@@ -97,7 +98,7 @@ jobs:
         # # Optional. Default is $GITHUB_WORKSPACE
         # path:
 
-      # - uses: zongou/ga-vscode-server@0.0.1
+      - uses: zongou/ga-vscode-server@0.0.1
 
       - name: Install cosmocc
         uses: bjia56/setup-cosmocc@v0.0.3
