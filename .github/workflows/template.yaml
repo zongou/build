@@ -39,18 +39,23 @@ jobs:
       - name: get env
         run: echo env.DATE=${{env.DATE}}
 
+      - name: create artifact
+        run: |
+          echo "Hello!" >clang+clang-tools-extra+lld-19.1.7-ape.tar.xz
+          echo tarball_name=clang+clang-tools-extra+lld-19.1.7-ape.tar.xz >> $GITHUB_ENV
+
       - name: Upload
         if: ${{matrix.target == 'aarch64-linux-musl'}}
         uses: actions/upload-artifact@main
         with:
           name: upload
-          path: /etc/os-release
+          path: ${{env.tarball_name}}
 
       - name: Release
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1.15.0
         with:
-          tag: "template"
-          artifacts: /etc/os-release
+          tag: "test"
+          artifacts: ${{env.tarball_name}}
           allowUpdates: true
           replacesArtifacts: true
           body: |
