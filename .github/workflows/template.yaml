@@ -41,21 +41,22 @@ jobs:
 
       - name: create artifact
         run: |
-          echo "Hello!" >clang+clang-tools-extra+lld-19.1.7-ape.tar.xz
-          echo tarball_name=clang+clang-tools-extra+lld-19.1.7-ape.tar.xz >> $GITHUB_ENV
+          tarball_name=clang+clang-tools-extra+lld-19.1.7-ape
+          echo tarball_name="${tarball_name}" >> ${GITHUB_ENV}
+          echo "Hello!" >${tarball_name}.tar.xz
 
       - name: Upload
         if: ${{matrix.target == 'aarch64-linux-musl'}}
         uses: actions/upload-artifact@main
         with:
           name: upload
-          path: ${{env.tarball_name}}
+          path: ${{env.tarball_name}}.tar.xz
 
       - name: Release
         uses: ncipollo/release-action@v1.15.0
         with:
           tag: "test"
-          artifacts: ${{env.tarball_name}}
+          artifacts: ${{env.tarball_name}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
           body: |
