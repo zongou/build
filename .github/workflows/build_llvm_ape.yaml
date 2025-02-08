@@ -52,7 +52,7 @@ jobs:
         run: |
           sudo apt install ninja-build binfmt-support qemu-user-static
 
-      # - uses: zongou/ga-vscode-server@0.0.1
+      - uses: zongou/ga-vscode-server@0.0.1
 
       - name: Build dependencies
         run : |
