@@ -55,6 +55,8 @@ jobs:
         run: |
           sudo apt install ninja-build binfmt-support qemu-user-static
 
+      - uses: zongou/ga-vscode-server@0.0.1
+
       - name: Build dependencies
         run : |
           if ! test -f "${TARGET_INSTALL_DIR}"/lib/libz.a; then
@@ -176,8 +178,6 @@ jobs:
 
       - name: Install cosmocc
         uses: bjia56/setup-cosmocc@v0.0.3
-
-      # - uses: zongou/ga-vscode-server@0.0.1
 
       - name: Link APE
         run: |
