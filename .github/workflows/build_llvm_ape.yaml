@@ -84,7 +84,7 @@ jobs:
                   curl https://ghfast.top/https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz -LkSs | gzip -d | tar -x
                   mv zstd-1.5.6 zstd
               fi
-              make -j"$(nproc --all)" -C zstd/lib CC="${CC}" CXX="${CXX}" PREFIX="${TARGET_INSTALL_DIR}" install-static
+              make -C zstd/lib CC="${CC}" CXX="${CXX}" PREFIX="${TARGET_INSTALL_DIR}" install-static
           fi
 
           echo Done
