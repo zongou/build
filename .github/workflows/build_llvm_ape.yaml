@@ -52,8 +52,6 @@ jobs:
         run: |
           sudo apt install ninja-build binfmt-support qemu-user-static
 
-      - uses: zongou/ga-vscode-server@0.0.1
-
       - name: Build dependencies
         run : |
           PREFIX="${{matrix.target}}-unknown-cosmo"
@@ -182,8 +180,6 @@ jobs:
           mkdir ${tarball_name}
           mv ape ${tarball_name}
           tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
-          pwd
-          ls
 
       - uses: actions/upload-artifact@v4
         with:
@@ -199,3 +195,8 @@ jobs:
           replacesArtifacts: true
           body: |
             [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+
+      - uses: zongou/ga-vscode-server@0.0.1
+        name: Handle Failure (Run on any failure)
+        if: ${{ failure() }}
+
