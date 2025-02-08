@@ -195,7 +195,9 @@ jobs:
             -DLLVM_ENABLE_TERMINFO=OFF\
             -DLLVM_ENABLE_LIBXML2=OFF\
             -DLLVM_ENABLE_CURL=OFF\
-            -DLLVM_ENABLE_THREADS=ON
+            -DLLVM_ENABLE_THREADS=ON \
+            \
+            -DCMAKE_C_FLAGS="-w"
 
           cmake --build "${TARGET_BUILD_DIR}" --target install
 
