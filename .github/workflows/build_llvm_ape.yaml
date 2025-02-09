@@ -5,7 +5,7 @@
 # 123
 
 name: Build LLVM APE
-run-name: Build llvm-${{inputs.version}} APE
+run-name: Build llvm-${{inputs.version}} APE ${{inputs.mode}}
 on:
   workflow_dispatch:
     inputs:
