@@ -83,7 +83,6 @@ jobs:
                   make -j"$(nproc --all)" install
               )
           fi
-          echo "zlib is built"
 
           if ! test -f "${TARGET_INSTALL_DIR}"/lib/libzstd.a; then
               if ! test -d zstd; then
@@ -136,8 +135,6 @@ jobs:
 
               $AR rcs "${TARGET_INSTALL_DIR}/lib/libzstd.a" "${TARGET_BUILD_DIR}"/zstd/*.o
           fi
-
-          echo Done
 
       - name: Build LLVM
         run: |
