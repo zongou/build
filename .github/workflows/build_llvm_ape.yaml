@@ -246,7 +246,7 @@ jobs:
               echo "copy ${bname}"
               cp -d "llvm-x86_64/bin/${bname}" "llvm-ape/bin/${bname}"
             else
-              echo "fixupobj ${bname}"
+              # echo "fixupobj ${bname}"
               fixupobj "llvm-x86_64/bin/${bname}"
               fixupobj "llvm-aarch64/bin/${bname}"
 
