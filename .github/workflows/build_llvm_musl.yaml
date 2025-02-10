@@ -11,7 +11,7 @@ on:
     inputs:
       version:
         description: "Release version:"
-        default: "18.1.8"
+        default: "19.1.7"
         required: true
       projects:
         description: "Projects to build:"
