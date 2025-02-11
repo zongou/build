@@ -56,7 +56,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt install ninja-build binfmt-support qemu-user-static
+          sudo apt install ninja-build binfmt-support qemu-user-static python-dev-is-python3
 
       - name: Build dependencies
         run : |
