@@ -9,6 +9,7 @@ on:
     inputs:
       from:
         description: "from"
+        default: "HEAD"
         required: true
       depth:
         description: "depth"
@@ -28,7 +29,7 @@ jobs:
           - name: Get 10 random commit IDs
             id: get_commits
             run: |
-              echo commits=$(git log -n${{inputs.depth}} --foramt="%H" | awk 'NR % 100==0')>> $GITHUB_OUTPUT
+              echo commits=$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0')>> $GITHUB_OUTPUT
     
     reset-to-commit:
         needs: get-random-commits
