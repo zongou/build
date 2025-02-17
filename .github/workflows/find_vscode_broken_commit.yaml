@@ -47,7 +47,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
           matrix:
-            commit: [a,b,c]
+            commit: ${{needs.get-random-commits.outputs.commits}}
         steps:
           - name: Reset to commit
             run: |
