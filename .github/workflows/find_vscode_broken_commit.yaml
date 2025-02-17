@@ -34,7 +34,7 @@ jobs:
           - name: Get commits
             id: get_commits
             run: |
-              echo "commits=$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
+              echo "commits=$(git log -n${{inputs.depth||inputs.depth.default}} --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
 
           - name: Test output
             run: |
@@ -52,7 +52,7 @@ jobs:
             with:
               repository: microsoft/vscode
               ref: ${{matrix.commit}}
-              
+
           - name: Build
             run: |
               npm install
