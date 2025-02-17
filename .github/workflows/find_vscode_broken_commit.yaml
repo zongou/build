@@ -2,7 +2,7 @@
 
 
 # https://github.com/microsoft/vscode/wiki/How-to-Contribute
-name: Find broken commit
+name: Find vscode broken commit
 run-name: Find broken commit
 on:
   workflow_dispatch:
@@ -31,7 +31,8 @@ jobs:
           - name: Get 10 random commit IDs
             id: get_commits
             run: |
-              echo "commits=[$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | tr '\n' ',')]">> $GITHUB_OUTPUT
+              # echo "commits=[$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | tr '\n' ',')]">> $GITHUB_OUTPUT
+              echo "commits=[a,b,c]">> $GITHUB_OUTPUT
 
 
     test_ouput:
