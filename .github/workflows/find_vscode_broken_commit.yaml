@@ -43,6 +43,11 @@ jobs:
               echo ${{inputs.depth||inputs.depth.default}}
               echo ${{steps.get_commits.outputs.commits}}
 
+          - name: Delete workflow runs
+            uses: Mattraks/delete-workflow-runs@v2.0.6
+            with:
+              delete_workflow_pattern: "Find vscode broken commit"
+
     build:
         needs: get-commits
         runs-on: ubuntu-latest
