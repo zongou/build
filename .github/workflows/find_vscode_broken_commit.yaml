@@ -1,0 +1,45 @@
+# Build and find out which commit breaks
+
+
+# https://github.com/microsoft/vscode/wiki/How-to-Contribute
+name: Find broken commit
+run-name: Find broken commit
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "from"
+        required: true
+      depth:
+        description: "depth"
+        default: "1000"
+        required: true
+        type: number
+
+jobs:
+    get-random-commits:
+        runs-on: ubuntu-latest
+        outputs:
+          random_commits: ${{ steps.get_commits.outputs.random_commits }}
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+    
+          - name: Get 10 random commit IDs
+            id: get_commits
+            run: |
+              random_commits=$(git rev-list --all | shuf | head -n 10 | tr '\n' ',')
+              echo "::set-output name=random_commits::$random_commits"
+              echo "Random commits: $random_commits"
+    
+    reset-to-commit:
+        needs: get-random-commits
+        runs-on: ubuntu-latest
+        strategy:
+          matrix:
+            commit: ${{ fromJSON(needs.get-random-commits.outputs.random_commits) }}
+        steps:
+          - name: Reset to commit
+            run: |
+                # git reset --hard ${{ matrix.commit }}
+                echo "Reset to commit: ${{ matrix.commit }}"
