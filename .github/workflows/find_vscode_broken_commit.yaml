@@ -20,33 +20,40 @@ on:
         type: number
 
 jobs:
-    get-random-commits:
+    get-commits:
         runs-on: ubuntu-latest
         outputs:
-          commits: ${{ steps.get_commits.outputs.commits }}
+          commits: ${{steps.get_commits.outputs.commits}}
         steps:
           - name: Checkout repository
-            uses: actions/checkout@v2
+            uses: actions/checkout@v4
             with:
-              fetch-depth: ${{inputs.depth||'1000'}}
+              repository: microsoft/vscode
+              fetch-depth: ${{inputs.depth||inputs.depth.default}}
     
-          - name: Get 10 random commit IDs
+          - name: Get commits
             id: get_commits
             run: |
-              echo "commits=$(git log -n1000 --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
+              echo "commits=$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
 
           - name: Test output
             run: |
               echo ${{steps.get_commits.outputs.commits}}
 
-    reset-to-commit:
-        needs: get-random-commits
+    build:
+        needs: get-commits
         runs-on: ubuntu-latest
         strategy:
           matrix:
-            commit: ${{fromJson(needs.get-random-commits.outputs.commits)}}
+            commit: ${{fromJson(needs.get-commits.outputs.commits)}}
         steps:
-          - name: Reset to commit
+          - name: Checkout repository
+            uses: actions/checkout@v4
+            with:
+              repository: microsoft/vscode
+              ref: ${{matrix.commit}}
+              
+          - name: Build
             run: |
-                # git reset --hard ${{ matrix.commit }}
-                echo "Reset to commit: ${{ matrix.commit }}"
+              npm install
+              npm run gulp "${task}"
