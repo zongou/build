@@ -30,6 +30,15 @@ jobs:
             id: get_commits
             run: |
               echo commits=$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0')>> $GITHUB_OUTPUT
+
+
+    test_ouput:
+      needs: get-random-commits
+      runs-on: ubuntu-latest
+      steps:
+        - name: Test output
+          run: |
+            echo ${{needs.get-random-commits.outputs.commits}}
     
     reset-to-commit:
         needs: get-random-commits
