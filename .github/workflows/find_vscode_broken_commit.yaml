@@ -33,12 +33,12 @@ jobs:
             uses: actions/checkout@v4
             with:
               repository: microsoft/vscode
-              fetch-depth: ${{inputs.depth||inputs.depth.default}}
+              fetch-depth: ${{inputs.depth||1000}}
     
           - name: Get commits
             id: get_commits
             run: |
-              echo "commits=$(git log -n${{inputs.depth||inputs.depth.default}} --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
+              echo "commits=$(git log -n${{inputs.depth||1000}} --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
 
           - name: Test
             run: |
