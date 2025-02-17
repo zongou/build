@@ -67,7 +67,14 @@ jobs:
               repository: microsoft/vscode
               ref: ${{matrix.commit}}
 
+          - name: Install dependencies
+            run: |
+              sudo apt install g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev
+
           - name: Build
             run: |
               npm install
-              npm run gulp "${task}"
+              npm run gulp vscode-web
+
+          - name: Package output
+            run: tar -C "${GITHUB_WORKSPACE}/../" -c vscode-web | xz -T0 > "${{matrix.commit}}.tar.xz"
