@@ -24,7 +24,7 @@ jobs:
     get-random-commits:
         runs-on: ubuntu-latest
         outputs:
-          commits: ${{ toJson(steps.get_commits.outputs.commits) }}
+          commits: ${{ steps.get_commits.outputs.commits }}
         steps:
           - name: Checkout repository
             uses: actions/checkout@v2
@@ -34,9 +34,7 @@ jobs:
           - name: Get 10 random commit IDs
             id: get_commits
             run: |
-              # echo "commits=[$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | tr '\n' ',')]">> $GITHUB_OUTPUT
-              echo "commits=[a,b,c]">> $GITHUB_OUTPUT
-
+              echo "commits=[$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | jq -R -s 'split("\n")')]">> $GITHUB_OUTPUT
 
     test_ouput:
       needs: get-random-commits
@@ -51,7 +49,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
           matrix:
-            commit: ${{ fromJSON('["A", "B", "C"]') }}
+            commit: ${{needs.get-random-commits.outputs.commits}}
         steps:
           - name: Reset to commit
             run: |
