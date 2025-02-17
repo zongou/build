@@ -47,6 +47,8 @@ jobs:
             uses: Mattraks/delete-workflow-runs@v2.0.6
             with:
               delete_workflow_pattern: "Find vscode broken commit"
+              retain_days: 0
+              keep_minimum_runs: 1
 
     build:
         needs: get-commits
