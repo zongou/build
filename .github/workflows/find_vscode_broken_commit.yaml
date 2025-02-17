@@ -5,6 +5,9 @@
 name: Find vscode broken commit
 run-name: Find broken commit
 on:
+  push:
+    paths:
+      - ".github/workflows/find_vscode_broken_commit.yaml"
   workflow_dispatch:
     inputs:
       from:
