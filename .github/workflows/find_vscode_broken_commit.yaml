@@ -31,7 +31,7 @@ jobs:
           - name: Get 10 random commit IDs
             id: get_commits
             run: |
-              echo commits=$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | tr '\n' ',')>> $GITHUB_OUTPUT
+              echo "commits=[$(git log -n${{inputs.depth}} --format="%H" | awk 'NR % 100==0' | tr '\n' ',')]">> $GITHUB_OUTPUT
 
 
     test_ouput:
@@ -47,7 +47,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
           matrix:
-            commit: ${{ needs.get-random-commits.outputs.commits }}
+            commit: [a,b,c]
         steps:
           - name: Reset to commit
             run: |
