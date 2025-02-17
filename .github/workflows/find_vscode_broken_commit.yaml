@@ -24,7 +24,7 @@ jobs:
     get-random-commits:
         runs-on: ubuntu-latest
         outputs:
-          commits: ${{ steps.get_commits.outputs.commits }}
+          commits: ${{ toJson(steps.get_commits.outputs.commits) }}
         steps:
           - name: Checkout repository
             uses: actions/checkout@v2
