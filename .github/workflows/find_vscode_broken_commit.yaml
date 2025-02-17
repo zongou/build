@@ -19,6 +19,10 @@ on:
         required: true
         type: number
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
     get-commits:
         runs-on: ubuntu-latest
