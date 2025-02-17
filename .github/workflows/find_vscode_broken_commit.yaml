@@ -15,7 +15,7 @@ on:
         required: true
       depth:
         description: "depth"
-        default: "1000"
+        default: 1000
         required: true
         type: number
 
