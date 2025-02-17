@@ -51,7 +51,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
           matrix:
-            commit: ${{fromJson(needs.get-random-commits.outputs.commits)}}
+            commit: ${{ fromJSON('["A", "B", "C"]') }}
         steps:
           - name: Reset to commit
             run: |
