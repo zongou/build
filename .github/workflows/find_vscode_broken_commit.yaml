@@ -60,6 +60,7 @@ jobs:
         strategy:
           matrix:
             commit: ${{fromJson(needs.get-commits.outputs.commits)}}
+          fail-fast: true
         steps:
           - name: Checkout repository
             uses: actions/checkout@v4
@@ -79,3 +80,9 @@ jobs:
 
           - name: Package output
             run: tar -C "${GITHUB_WORKSPACE}/../" -c vscode-web | xz -T0 > "${{matrix.commit}}.tar.xz"
+
+          - name: Upload
+            uses: actions/upload-artifact@main
+            with:
+              name: ${{matrix.commit}}
+              path: ${{matrix.commit}}.tar.xz
