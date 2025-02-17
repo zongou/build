@@ -25,6 +25,8 @@ jobs:
         steps:
           - name: Checkout repository
             uses: actions/checkout@v2
+            with:
+              fetch-depth: ${{inputs.depth||'1000'}}
     
           - name: Get 10 random commit IDs
             id: get_commits
