@@ -39,7 +39,10 @@ jobs:
           - name: Get commits
             id: get_commits
             run: |
-              echo "commits=$(git log -n${{inputs.depth||1000}} --format="%H" | awk 'NR % 100==0' | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
+              depth=${{inputs.depth||1000}}
+              step=$((${{inputs.depth}}/10))
+              echo step=$step
+              echo "commits=$(git log -n${depth} --format="%H" | awk --assign=step=${step} "NR % step==0" | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
 
           - name: Test
             run: |
