@@ -4,7 +4,7 @@
 # clang 2:35 103
 # 123
 
-name: Build LLVM APE
+name: Build LLVM COSMO
 run-name: Build llvm-${{inputs.version}}-ape${{inputs.mode&&format('-{0}', inputs.mode)}} ${{inputs.projects}}
 on:
   workflow_dispatch:
