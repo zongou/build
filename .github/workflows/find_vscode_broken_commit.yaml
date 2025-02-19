@@ -73,52 +73,21 @@ jobs:
           - name: Build
             run: |
               npm install
-              npm run gulp vscode-web
+              npm run gulp vscode-reh-web-linux-x64
 
-          - name: Build
+          - name: Download cloudflared
             run: |
-              task=vscode-reh-web-alpine-arm64
-              sudo apt install qemu-user-static binfmt-support
-              case "${task}" in
-              vscode-reh-web-alpine-arm64*)
-                ARCH=aarch64
-                export npm_config_arch=arm64
-                ;;
-              vscode-reh-web-linux-alpine*)
-                ARCH=x86_64
-                export npm_config_arch=${ARCH}
-                ;;
-              esac
-              TARGET=${ARCH}-linux-musl
-              echo "Setting up sysroot"
-              sudo apt install qemu-user-static binfmt-support
-              sudo update-binfmts --enable qemu-aarch64
-              SYSROOT="${PWD}/../${ARCH}-alpine"
-              export PKG_CONFIG_PATH="${SYSROOT}/usr/lib/pkgconfig"
-              if ! test -d "${SYSROOT}"; then
-                mkdir -p "${SYSROOT}"
-                curl -Lk "https://dl-cdn.alpinelinux.org/alpine/v3.19/releases/${ARCH}/alpine-minirootfs-3.19.1-${ARCH}.tar.gz" | gzip -d | tar -C "${SYSROOT}" -x
-                cat <<EOF >"${SYSROOT}/etc/resolv.conf"
-              nameserver 8.8.8.8
-              nameserver 8.8.4.4
-              EOF
-                # sudo chroot "${SYSROOT}" sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-                sudo chroot "${SYSROOT}" apk add libx11-dev libxkbfile-dev libsecret-dev krb5-dev libstdc++
-              fi
-              echo "Setting up toolchain"
-              TOOLCHAIN=${PWD}/../${TARGET}-cross
-              if ! test -d "${TOOLCHAIN}"; then
-                curl -Lk "https://musl.cc/${TARGET}-cross.tgz" | gzip -d | tar -C "$(dirname "${TOOLCHAIN}")" -x
-              fi
-              case "${ARCH}" in
-              x86_64) cp "$(command -v ld)" "${TOOLCHAIN}/bin/${TARGET}-ld" ;;
-              esac
-              export CC="${TOOLCHAIN}/bin/${TARGET}-gcc --sysroot=${SYSROOT}"
-              export CXX="${TOOLCHAIN}/bin/${TARGET}-g++ --sysroot=${SYSROOT}"
-              npm_build
+              echo "Downloading cloudflared"
+              CLOUDFLARED_ARCH="amd64"
+              CLOUDFLARED_VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/cloudflare/cloudflared/releases | jq -r .[0].tag_name)
+              sudo curl -LkSs https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${CLOUDFLARED_ARCH} > /usr/local/bin/cloudflared
+              sudo chmod +x /usr/local/bin/cloudflared
 
-          - name: Package output
-            run: tar -C "${GITHUB_WORKSPACE}/../" -c vscode-reh-web-alpine-arm64 | xz -T0 > "${{matrix.commit}}.tar.xz"
+          - name: Run code server
+            run: |
+              curl -LkSs https://github.com/zongou/vscli/raw/refs/heads/main/code | bash patch ${GITHUB_WORKSPACE}/../vscode-reh-web-alpine-arm64
+              ${GITHUB_WORKSPACE}/../vscode-reh-web-alpine-arm64/bin/code-server --host 0.0.0.0 --without-connection-token &
+              cloudflared tunnel --url http://localhost:8000
 
           - name: Upload
             uses: actions/upload-artifact@main
