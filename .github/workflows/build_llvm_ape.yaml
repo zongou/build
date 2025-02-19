@@ -20,7 +20,7 @@ on:
         required: true
       mode:
         description: "cosmocc mode flag:"
-        default: ""
+        default: "tiny"
         required: false
 
 permissions:
