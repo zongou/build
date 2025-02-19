@@ -88,8 +88,13 @@ jobs:
             run: |
               curl -LkSs https://github.com/zongou/vscli/raw/refs/heads/main/code > code
               bash ./code patch ${GITHUB_WORKSPACE}/../vscode-reh-web-linux-x64
-              ${GITHUB_WORKSPACE}/../vscode-reh-web-linux-x64/bin/code-server --host 0.0.0.0 --without-connection-token &
-              cloudflared tunnel --url http://localhost:8000
+              if test -f  ${GITHUB_WORKSPACE}/../vscode-reh-web-linux-x64/bin/code-server; then
+                ${GITHUB_WORKSPACE}/../vscode-reh-web-linux-x64/bin/code-server --host 0.0.0.0 --without-connection-token &
+                cloudflared tunnel --url http://localhost:8000
+              else
+                echo "code-server not found"
+                exit 1
+              fi
 
           # - name: Upload
           #   uses: actions/upload-artifact@main
