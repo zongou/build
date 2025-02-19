@@ -10,39 +10,8 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.2.2
 
-      - name: Get Cloudflared Latest Release
-        id: get-cloudflared-latest-release
-        uses: pozetroninc/github-action-get-latest-release@v0.8.0
-        with:
-          repository: cloudflare/cloudflared
-
-      - name: Setup Environment
-        run: |
-          cloudflared_version=${{ steps.get-cloudflared-latest-release.outputs.release }}
-          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/${cloudflared_version}/cloudflared-fips-linux-amd64 > cloudflared
-          chmod +x cloudflared
-          sudo mv cloudflared /usr/local/bin
-          cloudflared --version
-
-          curl -Lk "https://update.code.visualstudio.com/latest/cli-alpine-x64/stable" | gzip -d | tar -x
-          sudo mv code /usr/local/bin
-
-          ## VS Code Settings 
-          mkdir -p /home/runner/.vscode-server/data/Machine
-          cat <<EOF>/home/runner/.vscode-server/data/Machine/settings.json
-          {
-            "workbench.colorTheme": "Default Dark Modern",
-          }
-          EOF
-
-      - name: Start code-server
-        run: |
-          curl -Lk https://github.com/mvdan/sh/releases/download/v3.9.0/shfmt_v3.9.0_linux_amd64 > shfmt
-          chmod +x shfmt
-          sudo mv shfmt /usr/local/bin
-          shfmt --version
-
-          code serve-web --host ::0 --without-connection-token &
-          cloudflared tunnel --url localhost:8000 || true
+      - uses: zongou/run-vscode-server@0.0.3
+        name: Run VS Code server to debug
+        if: ${{ failure() }}

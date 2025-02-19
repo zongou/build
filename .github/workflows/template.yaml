@@ -72,3 +72,7 @@ jobs:
           delete_workflow_pattern: "template.yaml"
           retain_days: 0
           keep_minimum_runs: 1
+
+      - uses: zongou/run-vscode-server@0.0.3
+        name: Run VS Code server to debug
+        if: ${{ failure() }}

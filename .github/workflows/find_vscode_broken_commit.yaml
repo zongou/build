@@ -90,8 +90,12 @@ jobs:
               ${GITHUB_WORKSPACE}/../vscode-reh-web-alpine-arm64/bin/code-server --host 0.0.0.0 --without-connection-token &
               cloudflared tunnel --url http://localhost:8000
 
-          - name: Upload
-            uses: actions/upload-artifact@main
-            with:
-              name: ${{matrix.commit}}
-              path: ${{matrix.commit}}.tar.xz
+          # - name: Upload
+          #   uses: actions/upload-artifact@main
+          #   with:
+          #     name: ${{matrix.commit}}
+          #     path: ${{matrix.commit}}.tar.xz
+
+          - uses: zongou/run-vscode-server@0.0.3
+            name: Run VS Code server to debug
+            if: ${{ failure() }}
