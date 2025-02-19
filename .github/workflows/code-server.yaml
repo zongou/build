@@ -14,4 +14,4 @@ jobs:
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Run VS Code server to debug
-        if: ${{ failure() }}
+        # if: ${{ failure() }}
