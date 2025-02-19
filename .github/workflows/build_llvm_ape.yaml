@@ -220,7 +220,7 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.15.0
         with:
-          tag: "llvm-${{inputs.version}}"
+          tag: "llvm"
           artifacts: llvm-${{matrix.target}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
@@ -289,7 +289,7 @@ jobs:
       - name: Upload release
         uses: ncipollo/release-action@v1.15.0
         with:
-          tag: "llvm-${{inputs.version}}"
+          tag: "llvm"
           artifacts: ${{env.tarball_name}}.tar.xz
           allowUpdates: true
           replacesArtifacts: true
