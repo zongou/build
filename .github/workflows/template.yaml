@@ -23,8 +23,8 @@ jobs:
         target:
           [
             aarch64-linux-musl,
-            arm-linux-musleabi,
-            x86-linux-musl,
+            # arm-linux-musleabi,
+            # x86-linux-musl,
             x86_64-linux-musl,
           ]
 
@@ -56,15 +56,15 @@ jobs:
           name: upload
           path: ${{env.tarball_name}}.tar.xz
 
-      - name: Release
-        uses: ncipollo/release-action@v1.15.0
-        with:
-          tag: "test"
-          artifacts: ${{env.tarball_name}}.tar.xz
-          allowUpdates: true
-          replacesArtifacts: true
-          body: |
-            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+      # - name: Release
+      #   uses: ncipollo/release-action@v1.15.0
+      #   with:
+      #     tag: "test"
+      #     artifacts: ${{env.tarball_name}}.tar.xz
+      #     allowUpdates: true
+      #     replacesArtifacts: true
+      #     body: |
+      #       [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
@@ -76,3 +76,9 @@ jobs:
       - uses: zongou/run-vscode-server@0.0.3
         name: Run VS Code server to debug
         if: ${{ failure() }}
+
+  job2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test if env is shared bettween jobs
+        run: echo "${{env.tarball_name}}"
