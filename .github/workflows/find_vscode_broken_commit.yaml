@@ -86,8 +86,8 @@ jobs:
           - name: Run code server
             run: |
               curl -LkSs https://github.com/zongou/vscli/raw/refs/heads/main/code > code
-              bash ./code patch ${GITHUB_WORKSPACE}/../vscode-reh-web-alpine-arm64
-              ${GITHUB_WORKSPACE}/../vscode-reh-web-alpine-arm64/bin/code-server --host 0.0.0.0 --without-connection-token &
+              bash ./code patch ${GITHUB_WORKSPACE}/../vscode-reh-web-linux-x64
+              ${GITHUB_WORKSPACE}/../vscode-reh-web-linux-x64/bin/code-server --host 0.0.0.0 --without-connection-token &
               cloudflared tunnel --url http://localhost:8000
 
           # - name: Upload
