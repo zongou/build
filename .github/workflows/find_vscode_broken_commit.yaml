@@ -3,10 +3,11 @@
 
 # https://github.com/microsoft/vscode/wiki/How-to-Contribute
 name: Find vscode broken commit
+run-name: Find vscode broken commit ${{inputs.from}} -${{inputs.depth}}
 on:
-  push:
-    paths:
-      - ".github/workflows/find_vscode_broken_commit.yaml"
+  # push:
+  #   paths:
+  #     - ".github/workflows/find_vscode_broken_commit.yaml"
   workflow_dispatch:
     inputs:
       from:
