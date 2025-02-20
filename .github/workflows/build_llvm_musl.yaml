@@ -207,8 +207,8 @@ jobs:
 
       - name: Compress
         run: |
-          projects=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}
-          tarball_name=${projects}-${{matrix.target}}
+          projects=$(echo "${{inputs.projects}}" | tr ";" "+")
+          tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
           mv llvm-${{matrix.target}} ${tarball_name}
           tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz

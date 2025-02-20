@@ -218,10 +218,11 @@ jobs:
 
       - name: Compress
         run: |
+          projects=$(echo "${{inputs.projects}}" | tr ";" "+")
           if [ -n ${{inputs.mode}} ]; then
-            tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}-cosmo-${{inputs.mode}}
+            tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}-cosmo-${{inputs.mode}}
             else
-            tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}-cosmo
+            tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}-cosmo
           fi
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
           mv llvm-${{matrix.target}} ${tarball_name}
