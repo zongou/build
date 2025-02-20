@@ -3,7 +3,7 @@
 
 # https://github.com/microsoft/vscode/wiki/How-to-Contribute
 name: Find vscode broken commit
-# run-name: Find vscode broken commit from ${{inputs.from}} -${{inputs.depth}} commits
+run-name: Find vscode broken commit from ${{inputs.from}} -${{inputs.depth}} commits
 on:
   # push:
   #   paths:
