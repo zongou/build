@@ -5,7 +5,7 @@
 # 123
 
 name: Build LLVM COSMO
-run-name: Build llvm-${{inputs.version}}-cosmo${{inputs.mode&&format('-{0}', inputs.mode)}} ${{inputs.projects}}
+run-name: Build llvm-${{inputs.version}}-cosmo ${{inputs.projects}} ${{inputs.mode&&format('{0}', inputs.mode)}}
 on:
   workflow_dispatch:
     inputs:
