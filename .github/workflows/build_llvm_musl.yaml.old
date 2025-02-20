@@ -1,0 +1,192 @@
+# NOTES:
+# If cmake LLVM_ENABLE_PROJECTS does not include clang, it does not work as expected.
+# lldb 1:57 81 files
+# clang 2:35 103
+# 123
+
+name: Build LLVM MUSL
+run-name: Build llvm-${{inputs.version}}-musl ${{inputs.projects}}
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version:"
+        default: "19.1.7"
+        required: true
+      projects:
+        description: "Projects to build:"
+        # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
+        default: "clang;clang-tools-extra;lld"
+        required: true
+
+jobs:
+  build:
+    permissions:
+      contents: write
+      actions: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [aarch64-linux-musl, x86_64-linux-musl]
+    env:
+      BUILD_DIR: ${{github.workspace}}/build
+      OUTPUT_DIR: ${{github.workspace}}/output
+      TARGET: ${{matrix.target}}
+      MCPU: baseline
+      ROOTDIR: ${{github.workspace}}
+      HOST_BUILD_DIR: ${{github.workspace}}/build/host
+      TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
+      TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
+    steps:
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: llvm/llvm-project
+          ref: llvmorg-${{inputs.version}}
+          fetch-depth: 1
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.13.0
+          cache: true
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install ninja-build binfmt-support qemu-user-static
+          # sudo apt install ninja-build
+
+      - name: Patch source code
+        run: |
+          ## error: unsupported linker arg: -Bsymbolic-functions
+          ## https://github.com/ziglang/zig/issues/18804
+          ## https://github.com/ziglang/zig-bootstrap/commit/451966c163c7a2e9769d62fd77585af1bc9aca4b
+          # sed -i "s/add_clang_subdirectory(clang-shlib)/#/" clang/tools/CMakeLists.txt
+          base64 -d <<-EOF | patch -up1
+          ZGlmZiAtLWdpdCBhL2NsYW5nL3Rvb2xzL0NNYWtlTGlzdHMudHh0IGIvY2xhbmcvdG9vbHMvQ01h
+          a2VMaXN0cy50eHQKaW5kZXggZjYwZGI2ZWYwYi4uNTc2OWU4NTQ1MiAxMDA2NDQKLS0tIGEvY2xh
+          bmcvdG9vbHMvQ01ha2VMaXN0cy50eHQKKysrIGIvY2xhbmcvdG9vbHMvQ01ha2VMaXN0cy50eHQK
+          QEAgLTIwLDExICsyMCw2IEBAIGFkZF9jbGFuZ19zdWJkaXJlY3RvcnkoYy1pbmRleC10ZXN0KQog
+          CiBhZGRfY2xhbmdfc3ViZGlyZWN0b3J5KGNsYW5nLXJlbmFtZSkKIGFkZF9jbGFuZ19zdWJkaXJl
+          Y3RvcnkoY2xhbmctcmVmYWN0b3IpCi0jIEZvciBNaW5HVyB3ZSBvbmx5IGVuYWJsZSBzaGFyZWQg
+          bGlicmFyeSBpZiBMTFZNX0xJTktfTExWTV9EWUxJQj1PTi4KLSMgV2l0aG91dCB0aGF0IG9wdGlv
+          biByZXN1bHRpbmcgbGlicmFyeSBpcyB0b28gY2xvc2UgdG8gMl4xNiBETEwgZXhwb3J0cyBsaW1p
+          dC4KLWlmKFVOSVggT1IgKE1JTkdXIEFORCBMTFZNX0xJTktfTExWTV9EWUxJQikpCi0gIGFkZF9j
+          bGFuZ19zdWJkaXJlY3RvcnkoY2xhbmctc2hsaWIpCi1lbmRpZigpCiAKIGlmKENMQU5HX0VOQUJM
+          RV9BUkNNVCkKICAgYWRkX2NsYW5nX3N1YmRpcmVjdG9yeShhcmNtdC10ZXN0KQ==
+          EOF
+          cat clang/tools/CMakeLists.txt
+
+      - name: Build dependencies
+        if: contains(inputs.projects, 'lld')
+        run: |
+          if ! test -f "${TARGET_INSTALL_DIR}"/lib/libz.a; then
+            if ! test -d zlib; then
+              zlib_version=1.3.1
+              curl https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.xz -LkSs | xz -d | tar -x
+              mv zlib-${zlib_version} zlib
+            fi
+            mkdir -p "${TARGET_BUILD_DIR}"/zlib
+            cmake -S "$ROOTDIR/zlib" -B "${TARGET_BUILD_DIR}"/zlib \
+              -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}" \
+              -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_CROSSCOMPILING=True \
+              -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
+              -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU" \
+              -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-static;-target;$TARGET;-mcpu=$MCPU"
+
+            cmake --build "${TARGET_BUILD_DIR}"/zlib --target install
+          fi
+
+          if ! test -f "${TARGET_INSTALL_DIR}"/lib/libzstd.a; then
+            if ! test -d zstd; then
+              curl https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz -LkSs | gzip -d | tar -x
+              mv zstd-1.5.6 zstd
+            fi
+            make -C zstd CC="zig cc --target=${TARGET}" CXX="zig c++ --target=${TARGET}" PREFIX="${TARGET_INSTALL_DIR}" install
+          fi
+
+      # - name: Build host llvm
+      #   run: |
+      #     mkdir -p "${HOST_BUILD_DIR}/llvm"
+      #     cmake -S "$ROOTDIR/llvm" -B "${HOST_BUILD_DIR}/llvm" \
+      #         -DCMAKE_INSTALL_PREFIX="${HOST_BUILD_DIR}" \
+      #         -DCMAKE_PREFIX_PATH="${HOST_INSTALL_DIR}" \
+      #         -DCMAKE_BUILD_TYPE=Release \
+      #         -DLLVM_ENABLE_PROJECTS="lld;clang" \
+      #         -DLLVM_ENABLE_LIBXML2=OFF \
+      #         -DLLVM_ENABLE_ZSTD=OFF \
+      #         -DLLVM_INCLUDE_UTILS=OFF \
+      #         -DLLVM_INCLUDE_TESTS=OFF \
+      #         -DLLVM_INCLUDE_EXAMPLES=OFF \
+      #         -DLLVM_INCLUDE_BENCHMARKS=OFF \
+      #         -DLLVM_INCLUDE_DOCS=OFF \
+      #         -DLLVM_ENABLE_BINDINGS=OFF \
+      #         -DLLVM_ENABLE_OCAMLDOC=OFF \
+      #         -DLLVM_ENABLE_Z3_SOLVER=OFF \
+      #         -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+      #         -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+      #         -DLLVM_TOOL_LTO_BUILD=OFF \
+      #         -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+      #         -DCLANG_BUILD_TOOLS=OFF \
+      #         -DCLANG_INCLUDE_DOCS=OFF \
+      #         -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+      #         -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_ARCMT_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
+      #         -DCLANG_TOOL_LIBCLANG_BUILD=OFF
+      #     cmake --build "${HOST_BUILD_DIR}/llvm" --target llvm-tblgen clang-tblgen
+
+      - name: Build
+        run: |
+          cmake -S llvm -B "${TARGET_BUILD_DIR}/llvm" \
+            -G Ninja \
+            -DCMAKE_INSTALL_PREFIX="${TARGET_INSTALL_DIR}/llvm" \
+            -DCMAKE_PREFIX_PATH="${TARGET_INSTALL_DIR}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CROSSCOMPILING=True \
+            -DCMAKE_SYSTEM_NAME="$TARGET_OS_CMAKE" \
+            -DCMAKE_C_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_CXX_COMPILER="zig;c++;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DCMAKE_ASM_COMPILER="zig;cc;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU" \
+            -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
+            -DLLVM_ENABLE_ZLIB=FORCE_ON \
+            -DLLVM_ENABLE_ZSTD=FORCE_ON \
+            -DLLVM_USE_STATIC_ZSTD=ON \
+            -DLLVM_BUILD_STATIC=ON \
+            -DLLVM_DEFAULT_TARGET_TRIPLE="$TARGET" \
+            -DCLANG_ENABLE_ARCMT=ON \
+            -DLIBCLANG_BUILD_STATIC=ON \
+            -DCMAKE_SKIP_INSTALL_RPATH=TRUE
+
+          cmake --build "${TARGET_BUILD_DIR}/llvm" --target install
+
+      - name: Check
+        run: |
+          file ${TARGET_INSTALL_DIR}/llvm/bin/*
+          tree ${TARGET_INSTALL_DIR}/llvm
+
+      - name: Compress
+        run: |
+          tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-${{matrix.target}}
+          echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
+          mv ${TARGET_INSTALL_DIR}/llvm ${tarball_name}
+          tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1.15.0
+        with:
+          tag: "llvm"
+          artifacts: ${{env.tarball_name}}.tar.xz
+          allowUpdates: true
+          replacesArtifacts: true
+          body: |
+            [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
