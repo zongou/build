@@ -4,8 +4,8 @@
 # clang 2:35 103
 # 123
 
-name: Build LLVM MUSL
-run-name: Build llvm-${{inputs.version}}-cosmo${{inputs.mode&&format('-{0}', inputs.mode)}} ${{inputs.projects}}
+name: Build LLVM MUSL NEW
+run-name: Build llvm-${{inputs.version}}-musl ${{inputs.projects}}
 on:
   workflow_dispatch:
     inputs:
