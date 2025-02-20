@@ -42,6 +42,9 @@ jobs:
             run: |
               depth=${{inputs.depth||1000}}
               step=$((${{inputs.depth}}/10))
+              if [ $step -eq 0 ]; then
+                step=1
+              fi
               echo step=$step
               echo "commits=$(git log -n${depth} --format="%H" | awk --assign=step=${step} "NR % step==0" | jq -R -s -c 'split("\n") | map(select(length > 0))')">> $GITHUB_OUTPUT
 
