@@ -23,7 +23,7 @@ on:
         options:
             - "musl"
             - "cosmo"
-        default: "musl"
+        default: "cosmo"
         type: choice
     
 permissions:
