@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        target: [aarch64-unknown-cosmo, x86_64-unknown-cosmo]
+        target: ${{inputs.libc}} == 'MUSL' && [aarch64-linux-musl, x86_64-linux-musl] || [aarch64-unknown-cosmo, x86_64-unknown-cosmo]
     env:
       ROOTDIR: ${{github.workspace}}
       TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
