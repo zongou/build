@@ -74,8 +74,8 @@ jobs:
         run: |
           cd ${{runner.temp}}
           git clone https://github.com/zongou/zig-wrappers
-          ./zig-as-llvm/make_wrappers.sh ${{matrix.target}}
-          echo $PWD/zig-as-llvm/bin >> $GITHUB_PATH
+          ./zig-wrappers/make_wrappers.sh ${{matrix.target}}
+          echo $PWD/zig-wrappers/bin >> $GITHUB_PATH
       
       - name: Install dependencies
         run: |
