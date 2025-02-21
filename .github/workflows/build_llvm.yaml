@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        target: 
+        target:
           - aarch64-${{inputs.libc=='musl'&&'linux-musl'||'unknown-cosmo'}}
           - x86_64-${{inputs.libc=='musl'&&'linux-musl'||'unknown-cosmo'}}
     env:
@@ -74,9 +74,7 @@ jobs:
         run: |
           cd ${{runner.temp}}
           git clone https://github.com/zongou/zig-as-llvm
-          for tool in cc c++ ld objcopy ar strip; do
-            ln -s ../zig_wrapper.sh zig-as-llvm/bin/${{matrix.target}}-${tool}
-          done
+          ./zig-as-llvm/setup_target.sh ${{matrix.target}}
           echo $PWD/zig-as-llvm/bin >> $GITHUB_PATH
       
       - name: Install dependencies
