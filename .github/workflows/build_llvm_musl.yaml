@@ -5,7 +5,7 @@
 # 123
 
 name: Build LLVM (MUSL)
-run-name: Build ${{inputs.projects}}-${{inputs.version}} (MUSL)
+run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (MUSL)
 on:
   workflow_dispatch:
     inputs:
