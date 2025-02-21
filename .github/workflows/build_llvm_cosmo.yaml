@@ -18,10 +18,6 @@ on:
         # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
         default: "clang;clang-tools-extra;lld"
         required: true
-      mode:
-        description: "cosmocc mode flag:"
-        default: "tiny"
-        required: false
 
 permissions:
   contents: write
@@ -33,12 +29,12 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        target: [aarch64, x86_64]
+        target: [aarch64-unknown-cosmo, x86_64-unknown-cosmo]
     env:
       ROOTDIR: ${{github.workspace}}
       TARGET_BUILD_DIR: ${{github.workspace}}/build/${{matrix.target}}
       TARGET_INSTALL_DIR: ${{github.workspace}}/output/${{matrix.target}}
-      MODE: ${{inputs.mode}}
+      MODE: tiny
     steps:
       - name: Checkout llvm-project
         uses: actions/checkout@v4.1.1
@@ -60,13 +56,12 @@ jobs:
 
       - name: Build dependencies
         run : |
-          PREFIX="${{matrix.target}}-unknown-cosmo"
-          export CC=${PREFIX}-cc
-          export CXX=${PREFIX}-c++
-          export LD=${PREFIX}-ld
-          export OBJCOPY=${PREFIX}-objcopy
-          export AR=${PREFIX}-ar
-          export STRIP=${PREFIX}-strip
+          export CC=${{matrix.target}}-cc
+          export CXX=${{matrix.target}}-c++
+          export LD=${{matrix.target}}-ld
+          export OBJCOPY=${{matrix.target}}-objcopy
+          export AR=${{matrix.target}}-ar
+          export STRIP=${{matrix.target}}-strip
 
           rm -rf build output/ zlib/ zstd/
 
@@ -138,14 +133,13 @@ jobs:
 
       - name: Build LLVM
         run: |
-          PREFIX="${{matrix.target}}-unknown-cosmo"
-          export CC=${PREFIX}-cc
-          export CXX=${PREFIX}-c++
-          export LD=${PREFIX}-ld
-          export OBJCOPY=${PREFIX}-objcopy
-          export AR=${PREFIX}-ar
-          export STRIP=${PREFIX}-strip
-          export AS=${PREFIX}-as
+          export CC=${{matrix.target}}-cc
+          export CXX=${{matrix.target}}-c++
+          export LD=${{matrix.target}}-ld
+          export OBJCOPY=${{matrix.target}}-objcopy
+          export AR=${{matrix.target}}-ar
+          export STRIP=${{matrix.target}}-strip
+          export AS=${{matrix.target}}-as
 
           cmake -S "$ROOTDIR/llvm" -B "${TARGET_BUILD_DIR}" -G Ninja \
             -DCMAKE_INSTALL_PREFIX="${ROOTDIR}/llvm-${{matrix.target}}" \
@@ -219,11 +213,7 @@ jobs:
       - name: Compress
         run: |
           projects=$(echo "${{inputs.projects}}" | tr ";" "+")
-          if [ -n ${{inputs.mode}} ]; then
-            tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}-cosmo-${{inputs.mode}}
-            else
-            tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}-cosmo
-          fi
+          tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
           mv llvm-${{matrix.target}} ${tarball_name}
           tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
@@ -252,8 +242,9 @@ jobs:
 
       - name: Extract artifacts
         run: |
-          for ARCH in aarch64 x86_64; do
-            tar -xvf llvm-${ARCH}.tar
+          for target in aarch64-unknown-cosmo x86_64-unknown-cosmo; do
+            tar -xvf llvm-${target}.tar
+            rm llvm-${target}.tar
           done
 
       - name: Install cosmocc
@@ -264,15 +255,15 @@ jobs:
           COSMO=$(dirname "$(dirname "$(command -v cosmocc)")")
 
           mkdir -p llvm-ape/bin
-          find llvm-x86_64/bin -type l,f | while IFS= read -r file; do
+          find llvm-aarch64-unknown-cosmo/bin -type l,f | while IFS= read -r file; do
             bname=$(basename "${file}")
             if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
               echo "copy ${bname}"
-              cp -d "llvm-x86_64/bin/${bname}" "llvm-ape/bin/${bname}"
+              cp -d "llvm-aarch64-unknown-cosmo/bin/${bname}" "llvm-ape/bin/${bname}"
             else
               # echo "fixupobj ${bname}"
-              fixupobj "llvm-x86_64/bin/${bname}"
-              fixupobj "llvm-aarch64/bin/${bname}"
+              fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
+              fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
 
               echo "apelink ${bname}"
               apelink -V -1 \
@@ -280,25 +271,22 @@ jobs:
                 -l "${COSMO}/bin/ape-aarch64.elf" \
                 -M "${COSMO}/bin/ape-m1.c" \
                 -o "llvm-ape/bin/${bname}" \
-                -s "llvm-x86_64/bin/${bname}" "llvm-aarch64/bin/${bname}"
+                -s "llvm-aarch64-unknown-cosmo/bin/${bname}" "llvm-aarch64-unknown-cosmo/bin/${bname}"
             fi
           done
 
       - name: Compress
         run: |
-          if [ -n ${{inputs.mode}} ]; then
-            tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-ape-${{inputs.mode}}
-            else
-            tarball_name=$(echo "${{inputs.projects}}" | tr ";" "+")-${{inputs.version}}-ape
-          fi
+          projects=$(echo "${{inputs.projects}}" | tr ";" "+")
+          tarball_name=${projects}-${{inputs.version}}-ape
           echo tarball_name=${tarball_name} >> ${GITHUB_ENV}
           mv llvm-ape ${tarball_name}
           tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{env.tarball_name}}
-          path: ${{env.tarball_name}}.tar.xz
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{env.tarball_name}}
+      #     path: ${{env.tarball_name}}.tar.xz
 
       - name: Upload release
         uses: ncipollo/release-action@v1.15.0
