@@ -273,28 +273,28 @@ jobs:
       - name: Link APE
         run: |
           COSMO=$(dirname "$(dirname "$(command -v cosmocc)")")
-
+          
           mkdir -p llvm-ape/bin
-          find llvm-aarch64-unknown-cosmo/bin -type l,f | while IFS= read -r file; do
-            bname=$(basename "${file}")
-            if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
+          find llvm-x86_64-unknown-cosmo/bin -type l,f | while IFS= read -r file; do
+          bname=$(basename "${file}")
+          if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
               echo "copy ${bname}"
-              cp -d "llvm-aarch64-unknown-cosmo/bin/${bname}" "llvm-ape/bin/${bname}"
-            else
+              cp -d "llvm-x86_64-unknown-cosmo/bin/${bname}" "llvm-ape/bin/${bname}"
+          else
               # echo "fixupobj ${bname}"
-              fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
               fixupobj "llvm-x86_64-unknown-cosmo/bin/${bname}"
-
+              fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
+          
               echo "apelink ${bname}"
               apelink -V -1 \
-                -l "${COSMO}/bin/ape-x86_64.elf" \
-                -l "${COSMO}/bin/ape-aarch64.elf" \
-                -M "${COSMO}/bin/ape-m1.c" \
-                -o "llvm-ape/bin/${bname}" \
-                -s \
-                "llvm-aarch64-unknown-cosmo/bin/${bname}" \
-                "llvm-x86_64-unknown-cosmo/bin/${bname}"
-            fi
+              -l "${COSMO}/bin/ape-x86_64.elf" \
+              -l "${COSMO}/bin/ape-aarch64.elf" \
+              -M "${COSMO}/bin/ape-m1.c" \
+              -o "llvm-ape/bin/${bname}" \
+              -s \
+              "llvm-x86_64-unknown-cosmo/bin/${bname}" \
+              "llvm-aarch64-unknown-cosmo/bin/${bname}"
+          fi
           done
 
       - name: Compress
