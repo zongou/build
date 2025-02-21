@@ -74,7 +74,7 @@ jobs:
         run: |
           cd ${{runner.temp}}
           git clone https://github.com/zongou/zig-as-llvm
-          ./zig-as-llvm/setup_target.sh ${{matrix.target}}
+          ./zig-as-llvm/make_target.sh ${{matrix.target}}
           echo $PWD/zig-as-llvm/bin >> $GITHUB_PATH
       
       - name: Install dependencies
