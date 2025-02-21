@@ -175,8 +175,8 @@ jobs:
             -DLIBCLANG_BUILD_STATIC=ON \
             -DCMAKE_SKIP_INSTALL_RPATH=TRUE \
             \
-            -DCMAKE_STRIP=""\
-            -DCMAKE_INSTALL_DO_STRIP=OFF\
+            -DCMAKE_STRIP="${STRIP}"\
+            -DCMAKE_INSTALL_DO_STRIP=ON\
             -DBUILD_SHARED_LIBS=OFF\
             -DLLVM_INCLUDE_BENCHMARKS=OFF\
             -DLLVM_BUILD_BENCHMARKS=OFF\
