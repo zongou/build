@@ -73,7 +73,7 @@ jobs:
         if: inputs.libc == 'musl'
         run: |
           cd ${{runner.temp}}
-          git clone https://github.com/zongou/zig-toolchain
+          git clone https://github.com/zongou/zig-wrappers
           ./zig-as-llvm/make_target.sh ${{matrix.target}}
           echo $PWD/zig-as-llvm/bin >> $GITHUB_PATH
       
