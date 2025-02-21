@@ -276,11 +276,11 @@ jobs:
           
           mkdir -p llvm-ape/bin
           find llvm-x86_64-unknown-cosmo/bin -type l,f | while IFS= read -r file; do
-          bname=$(basename "${file}")
-          if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
+            bname=$(basename "${file}")
+            if [ -h "${file}" ] || ! file "${file}" | grep ELF -q; then
               echo "copy ${bname}"
               cp -d "llvm-x86_64-unknown-cosmo/bin/${bname}" "llvm-ape/bin/${bname}"
-          else
+            else
               # echo "fixupobj ${bname}"
               fixupobj "llvm-x86_64-unknown-cosmo/bin/${bname}"
               fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
@@ -294,7 +294,7 @@ jobs:
               -s \
               "llvm-x86_64-unknown-cosmo/bin/${bname}" \
               "llvm-aarch64-unknown-cosmo/bin/${bname}"
-          fi
+            fi
           done
 
       - name: Compress
