@@ -283,7 +283,7 @@ jobs:
             else
               # echo "fixupobj ${bname}"
               fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
-              fixupobj "llvm-aarch64-unknown-cosmo/bin/${bname}"
+              fixupobj "llvm-x86_64-unknown-cosmo/bin/${bname}"
 
               echo "apelink ${bname}"
               apelink -V -1 \
@@ -291,7 +291,9 @@ jobs:
                 -l "${COSMO}/bin/ape-aarch64.elf" \
                 -M "${COSMO}/bin/ape-m1.c" \
                 -o "llvm-ape/bin/${bname}" \
-                -s "llvm-aarch64-unknown-cosmo/bin/${bname}" "llvm-aarch64-unknown-cosmo/bin/${bname}"
+                -s \
+                "llvm-aarch64-unknown-cosmo/bin/${bname}" \
+                "llvm-x86_64-unknown-cosmo/bin/${bname}"
             fi
           done
 
