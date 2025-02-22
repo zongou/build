@@ -156,6 +156,8 @@ jobs:
         run: |
             curl -LkSs https://github.com/ahgamut/superconfigure/raw/refs/heads/main/compiler/llvm/minimal.diff | patch -up1
 
+      ## Setting CMAKE_EXE_LINKER_FLAGS="-s" will make stripped binary for cosmo
+      ## But the binary cannot be used by apelink
       - name: Build LLVM
         run: |
           cmake -S "$ROOTDIR/llvm" -B "${TARGET_BUILD_DIR}" -G Ninja \
@@ -166,7 +168,6 @@ jobs:
             -DCMAKE_C_COMPILER="${CC}" \
             -DCMAKE_CXX_COMPILER="${CXX}" \
             -DCMAKE_ASM_COMPILER="${CC}" \
-            -DCMAKE_EXE_LINKER_FLAGS="-s" \
             -DLLVM_ENABLE_PROJECTS="${{inputs.projects}}" \
             -DLLVM_ENABLE_ZLIB=FORCE_ON \
             -DLLVM_ENABLE_ZSTD=FORCE_ON \
@@ -231,6 +232,7 @@ jobs:
           path: llvm-${{matrix.target}}.tar
 
       - name: Compress
+        if: inputs.libc == 'musl'
         run: |
           projects=$(echo "${{inputs.projects}}" | tr ";" "+")
           tarball_name=${projects}-${{inputs.version}}-${{matrix.target}}
@@ -239,6 +241,7 @@ jobs:
           tar -c ${tarball_name} | xz -T0 -v >${tarball_name}.tar.xz
 
       - name: Upload release
+        if: inputs.libc == 'musl'
         uses: ncipollo/release-action@v1.15.0
         with:
           tag: "llvm"
