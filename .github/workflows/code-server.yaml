@@ -1,8 +1,14 @@
 name: Run VS Code Server
 on:
   workflow_dispatch:
-  push:
-    paths: .github/workflows/code-server.yaml
+  # push:
+  #   paths: .github/workflows/code-server.yaml
+    inputs:
+      freespace:
+        description: 'Free disk space'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -13,6 +19,7 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: Free Disk Space (Ubuntu)
+        if: ${{ inputs.freespace }}
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - uses: zongou/run-vscode-server@0.0.3
