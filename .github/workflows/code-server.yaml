@@ -1,4 +1,4 @@
-name: code-server
+name: Run VS Code Server
 on:
   workflow_dispatch:
   push:
@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Run VS Code server to debug
