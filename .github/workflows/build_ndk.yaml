@@ -21,14 +21,11 @@ jobs:
             mkdir -p aosp
             cd  aosp
 
-      - uses: zongou/run-vscode-server@0.0.3
-        name: Run VS Code server to expore
-
-      - name: Run
-        run: |
             git config --global user.email "test@example.com"
             git config --global user.name "test"
-            yes | repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --partial-clone
+            repo init -u https://android.googlesource.com/platform/manifest -b master-ndk --partial-clone
+
+            echo Start syncing
             repo sync
 
       - name: Python environment setup
@@ -50,6 +47,9 @@ jobs:
 
           poetry run python checkbuild.py --module make --system="linux"
           file ../out/linux/make/build/make
+
+      - uses: zongou/run-vscode-server@0.0.3
+        name: Run VS Code server to expore
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Run VS Code server when failed
