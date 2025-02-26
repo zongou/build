@@ -50,7 +50,3 @@ jobs:
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Run VS Code server to expore
-
-      - uses: zongou/run-vscode-server@0.0.3
-        name: Run VS Code server when failed
-        if: failure()
