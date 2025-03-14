@@ -22,6 +22,12 @@ jobs:
         if: ${{ inputs.freespace }}
         uses: jlumbroso/free-disk-space@v1.3.1
 
+      - name: Setup zig
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.14.0
+          cache: true
+
       - uses: zongou/run-vscode-server@0.0.3
         name: Run VS Code server to debug
         # if: ${{ failure() }}
