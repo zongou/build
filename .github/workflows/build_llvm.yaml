@@ -262,7 +262,7 @@ jobs:
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Open VS Code server to Handle Failure (Run on any failure)
-        if: inputs.runServerOnFailure && ${{ failure() }}
+        if: ${{ inputs.runServerOnFailure && failure() }}
 
   ape-link:
     if: inputs.libc == 'cosmo'
@@ -335,4 +335,4 @@ jobs:
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Open VS Code server to Handle Failure (Run on any failure)
-        if: inputs.runServerOnFailure && ${{ failure() }}
+        if: ${{ inputs.runServerOnFailure && failure() }}
