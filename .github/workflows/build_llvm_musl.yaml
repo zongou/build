@@ -5,13 +5,13 @@
 # 123
 
 name: Build LLVM (MUSL)
-run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (MUSL)
+run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (musl-c)
 on:
   workflow_dispatch:
     inputs:
       version:
         description: "Release version:"
-        default: "19.1.7"
+        default: "20.1.3"
         required: true
       projects:
         description: "Projects to build:"
@@ -196,7 +196,11 @@ jobs:
             -DLLVM_ENABLE_TERMINFO=OFF\
             -DLLVM_ENABLE_LIBXML2=OFF\
             -DLLVM_ENABLE_CURL=OFF\
-            -DLLVM_ENABLE_THREADS=ON
+            -DLLVM_ENABLE_THREADS=ON \
+            \
+            -DLLDB_ENABLE_PYTHON=0 \
+            -DLLDB_ENABLE_LIBEDIT=0 \
+            -DLLDB_ENABLE_CURSES=0
 
           cmake --build "${TARGET_BUILD_DIR}" --target install
 
