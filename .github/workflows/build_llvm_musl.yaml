@@ -16,7 +16,7 @@ on:
       projects:
         description: "Projects to build:"
         # bolt;clang;clang-tools-extra;compiler-rt;cross-project-tests;libc;libclc;lld;lldb;mlir;openmp;polly;pstl;flang
-        default: "clang;clang-tools-extra;lld;lldb"
+        default: "clang;clang-tools-extra;lld"
         required: true
 
 permissions:
@@ -48,7 +48,7 @@ jobs:
         with:
           version: 0.13.0
           cache: true
-        
+
       - name: Setup Zig toolchain
         run: |
           git clone https://github.com/zongou/zig-as-llvm
@@ -58,7 +58,7 @@ jobs:
           sudo apt install ninja-build binfmt-support qemu-user-static
 
       - name: Build dependencies
-        run : |
+        run: |
           TOOLCHAIN=${PWD}/zig-as-llvm
           export CC=${TOOLCHAIN}/bin/cc
           export CXX=${TOOLCHAIN}/bin/c++
@@ -196,12 +196,8 @@ jobs:
             -DLLVM_ENABLE_TERMINFO=OFF\
             -DLLVM_ENABLE_LIBXML2=OFF\
             -DLLVM_ENABLE_CURL=OFF\
-            -DLLVM_ENABLE_THREADS=ON \
-            \
-            -DLLDB_ENABLE_PYTHON=0 \
-            -DLLDB_ENABLE_LIBEDIT=0 \
-            -DLLDB_ENABLE_CURSES=0
-
+            -DLLVM_ENABLE_THREADS=ON
+            
           cmake --build "${TARGET_BUILD_DIR}" --target install
 
       - name: Check
@@ -226,7 +222,3 @@ jobs:
           replacesArtifacts: true
           body: |
             [action](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
-      
-      - uses: zongou/run-vscode-server@0.0.3
-        name: Open VS Code server to Handle Failure (Run on any failure)
-        if: ${{ failure() }}
