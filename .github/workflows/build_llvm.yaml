@@ -5,7 +5,7 @@
 # 123
 
 name: Build LLVM
-run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (${{inputs.libc}})
+run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (${{inputs.libc}}-c)
 on:
   workflow_dispatch:
     inputs:
@@ -25,10 +25,10 @@ on:
           - "cosmo"
         default: "cosmo"
         type: choice
-      runServerOnFailure:
-        description: "Run vscode server to handle failure"
-        required: true
+      handleFailre:
+        description: "Handle failure with vscode server:"
         default: false
+        required: true
         type: boolean
 
 permissions:
@@ -78,9 +78,9 @@ jobs:
         if: inputs.libc == 'musl'
         run: |
           cd ${{runner.temp}}
-          git clone https://github.com/zongou/zig-wrappers
-          ./zig-wrappers/make_wrappers.sh ${{matrix.target}}
-          echo $PWD/zig-wrappers/bin >> $GITHUB_PATH
+          git clone https://github.com/zongou/zig-as-llvm
+          ./zig-as-llvm/make_wrappers.sh ${{matrix.target}}
+          echo $PWD/zig-as-llvm/bin >> $GITHUB_PATH
 
       - name: Install dependencies
         run: |
@@ -262,7 +262,7 @@ jobs:
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Open VS Code server to Handle Failure (Run on any failure)
-        if: ${{ inputs.runServerOnFailure && failure() }}
+        if: ${{ inputs.handleFailure && failure() }}
 
   ape-link:
     if: inputs.libc == 'cosmo'
@@ -335,4 +335,4 @@ jobs:
 
       - uses: zongou/run-vscode-server@0.0.3
         name: Open VS Code server to Handle Failure (Run on any failure)
-        if: ${{ inputs.runServerOnFailure && failure() }}
+        if: ${{ inputs.handleFailure && failure() }}
