@@ -4,7 +4,7 @@
 # clang 2:35 103
 # 123
 
-name: Build LLVM (MUSL)
+name: Build LLVM (musl-c)
 run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (musl-c)
 on:
   workflow_dispatch:

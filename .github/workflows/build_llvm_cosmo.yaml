@@ -4,8 +4,8 @@
 # clang 2:35 103
 # 123
 
-name: Build LLVM (COSMO)
-run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (COSMO)
+name: Build LLVM (cosmo-c)
+run-name: Build llvm-${{inputs.version}} ${{inputs.projects}} (cosmo-c)
 on:
   workflow_dispatch:
     inputs:
