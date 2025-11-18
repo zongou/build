@@ -1,8 +1,19 @@
 name: ttyd
 on:
   workflow_dispatch:
-  push:
-    paths: .github/workflows/ttyd.yaml
+    # push:
+    #   paths: .github/workflows/code-server.yaml
+    inputs:
+      zig:
+        description: "Install Zig"
+        required: true
+        default: false
+        type: boolean
+      helix:
+        description: "Install Helix"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -13,47 +24,44 @@ jobs:
         uses: actions/checkout@v4.1.1
 
       - name: Setup Zig
+        if: ${{ inputs.zig }}
         uses: goto-bus-stop/setup-zig@v2.2.0
         with:
           version: 0.13.0
           cache: true
 
-      # - name: Run sshx
-      #   run: |
-      #     curl -sSf https://sshx.io/get | sh -s run
-
-      # - name: Debugging with tmate
-      #   uses: mxschmitt/action-tmate@v3.18
-
-      - name: Prepare environment
+      - name: Install cloudflared
         run: |
-          # curl -Lk https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | gzip -d | tar -x
-          # sudo mv bore /usr/local/bin
-          # bore --version
-          # # bore local 7681 --to bore.pub
-
-          curl -Lk https://github.com/cloudflare/cloudflared/releases/download/2024.8.2/cloudflared-fips-linux-amd64 > cloudflared
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/cloudflare/cloudflared/releases | jq -r .[0].tag_name)
+          echo "Downloading cloudflared ${VERSION}"
+          ARCH=$(uname -m)
+          URL=https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-${ARCH}
+          curl -LkSs "${URL}" > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
 
-          helix_vesion=24.07
-          helix_url=https://github.com/helix-editor/helix/releases/download/${helix_vesion}/helix-${helix_vesion}-x86_64-linux.tar.xz
-          curl -L ${helix_url} | xz -d | tar -C /opt -x
-          ln -snf /opt/helix-${helix_vesion}-x86_64-linux/hx /usr/local/bin/hx
+      - name: Install helix editor
+        if: ${{ inputs.helix }}
+        run: |
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/helix-editor/helix/releases | jq -r .[0].tag_name)
+          echo "Downloading cloudflared ${VERSION}"
+          ARCH=$(uname -m)
+          ${URL}=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
+          curl -L ${URL} | xz -d | tar -C /opt -x
+          ln -snf /opt/helix-${URL}-${ARCH}-linux/hx /usr/local/bin/hx
           hx --version
 
-          # curl -Lk https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 > ttyd
-          curl -Lk https://github.com/zongou/ttyd/releases/download/1.7.7/ttyd-x86_64-linux-musl > ttyd
+      - name: Install ttyd
+        run: |
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/tsl0922/ttyd/releases | jq -r .[0].tag_name)
+          echo "Downloading ttyd ${VERSION}"
+          ARCH=$(uname -m)
+          ${URL}=https://github.com/tsl0922/ttyd/releases/download/${VERSION}/ttyd.${ARCH}
+          curl -LkSs "${URL}" > ttyd
           chmod +x ttyd
           sudo mv ttyd /usr/local/bin
           ttyd --version
-          # ttyd -t enableZmodem=true -t enableTrzsz=true -t enableSixel=true --writable bash -l
-
-          curl -Lk https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 > shfmt
-          chmod +x shfmt
-          sudo mv shfmt /usr/local/bin
-          shfmt --version
 
       - name: Start ttyd
         run: |
