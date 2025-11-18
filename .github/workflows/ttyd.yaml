@@ -46,7 +46,7 @@ jobs:
           VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/helix-editor/helix/releases | jq -r .[0].tag_name)
           echo "Downloading cloudflared ${VERSION}"
           ARCH=$(uname -m)
-          ${URL}=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
+          URL=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
           curl -L ${URL} | xz -d | tar -C /opt -x
           ln -snf /opt/helix-${URL}-${ARCH}-linux/hx /usr/local/bin/hx
           hx --version
@@ -56,7 +56,7 @@ jobs:
           VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/tsl0922/ttyd/releases | jq -r .[0].tag_name)
           echo "Downloading ttyd ${VERSION}"
           ARCH=$(uname -m)
-          ${URL}=https://github.com/tsl0922/ttyd/releases/download/${VERSION}/ttyd.${ARCH}
+          URL=https://github.com/tsl0922/ttyd/releases/download/${VERSION}/ttyd.${ARCH}
           curl -LkSs "${URL}" > ttyd
           chmod +x ttyd
           sudo mv ttyd /usr/local/bin
