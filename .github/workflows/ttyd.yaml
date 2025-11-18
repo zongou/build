@@ -5,12 +5,17 @@ on:
     #   paths: .github/workflows/code-server.yaml
     inputs:
       zig:
-        description: "Install Zig"
+        description: "Install zig"
         required: true
         default: false
         type: boolean
       helix:
-        description: "Install Helix"
+        description: "Install helix"
+        required: true
+        default: false
+        type: boolean
+      dufs:
+        description: "Install dufs"
         required: true
         default: false
         type: boolean
@@ -40,6 +45,17 @@ jobs:
           sudo mv cloudflared /usr/local/bin
           cloudflared --version
 
+      - name: Install ttyd
+        run: |
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/tsl0922/ttyd/releases | jq -r .[0].tag_name)
+          echo "Downloading ttyd ${VERSION}"
+          ARCH=$(uname -m)
+          URL=https://github.com/tsl0922/ttyd/releases/download/${VERSION}/ttyd.${ARCH}
+          curl -LkSs "${URL}" > ttyd
+          chmod +x ttyd
+          sudo mv ttyd /usr/local/bin
+          ttyd --version
+      
       - name: Install helix editor
         if: ${{ inputs.helix }}
         run: |
@@ -51,16 +67,15 @@ jobs:
           ln -snf /opt/helix-${VERSION}-${ARCH}-linux/hx /usr/local/bin/hx
           hx --version
 
-      - name: Install ttyd
+      - name: Install dufs
+        if: ${{ inputs.dufs }}
         run: |
-          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/tsl0922/ttyd/releases | jq -r .[0].tag_name)
-          echo "Downloading ttyd ${VERSION}"
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/sigoden/dufs/releases | jq -r .[0].tag_name)
+          echo "Downloading dufs ${VERSION}"
           ARCH=$(uname -m)
-          URL=https://github.com/tsl0922/ttyd/releases/download/${VERSION}/ttyd.${ARCH}
-          curl -LkSs "${URL}" > ttyd
-          chmod +x ttyd
-          sudo mv ttyd /usr/local/bin
-          ttyd --version
+          URL=https://github.com/sigoden/dufs/releases/download/${VERSION}/dufs-${VERSION}-${ARCH}-unknown-linux-musl.tar.gz
+          curl -L ${URL} | gzip -d | tar -C /usr/local/bin -x
+          dufs --version
 
       - name: Start ttyd
         run: |
