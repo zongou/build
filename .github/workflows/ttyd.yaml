@@ -34,8 +34,7 @@ jobs:
         run: |
           VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/cloudflare/cloudflared/releases | jq -r .[0].tag_name)
           echo "Downloading cloudflared ${VERSION}"
-          ARCH=$(uname -m)
-          URL=https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-${ARCH}
+          URL=https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-amd64
           curl -LkSs "${URL}" > cloudflared
           chmod +x cloudflared
           sudo mv cloudflared /usr/local/bin
@@ -47,7 +46,7 @@ jobs:
           VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/helix-editor/helix/releases | jq -r .[0].tag_name)
           echo "Downloading cloudflared ${VERSION}"
           ARCH=$(uname -m)
-          ${URL}=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
+          ${URL}=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-25.07.1-${ARCH}-linux.tar.xz
           curl -L ${URL} | xz -d | tar -C /opt -x
           ln -snf /opt/helix-${URL}-${ARCH}-linux/hx /usr/local/bin/hx
           hx --version
