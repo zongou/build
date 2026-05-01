@@ -30,6 +30,7 @@ jobs:
 
       - name: build
         run: |
+          rm Cargo.lock
           rustup install nightly
           rustup default nightly
           rustup target add ${{matrix.target}}
