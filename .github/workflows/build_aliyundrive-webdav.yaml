@@ -37,6 +37,9 @@ jobs:
           export AR=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
 
           cat <<EOF>~/.cargo/config.toml
+          [unstable]
+          profile-rustflags = true
+          
           [profile.release]
           opt-level = "s"
           lto = true
