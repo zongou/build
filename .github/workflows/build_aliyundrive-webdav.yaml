@@ -41,6 +41,7 @@ jobs:
           opt-level = "s"
           lto = true
           strip = true
+          rustflags = ["-Wl,--page-size=16384"]
           
           [target.${{matrix.target}}]
           linker = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${ANDROID_TARGET}${ANDROID_API_LEVEL}-clang++"
