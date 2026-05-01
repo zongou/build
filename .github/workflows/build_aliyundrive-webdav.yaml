@@ -30,6 +30,8 @@ jobs:
 
       - name: build
         run: |
+          rustup install nightly
+          rustup default nightly
           rustup target add ${{matrix.target}}
           ANDROID_TARGET=${{matrix.target == 'armv7-linux-androideabi' && 'armv7a-linux-androideabi' || matrix.target}}
           ANDROID_API_LEVEL=24
@@ -37,8 +39,6 @@ jobs:
           export AR=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
 
           cat <<EOF>~/.cargo/config.toml
-          [unstable]
-          profile-rustflags = true
           
           [profile.release]
           opt-level = "s"
