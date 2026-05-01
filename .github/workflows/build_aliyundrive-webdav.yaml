@@ -41,6 +41,9 @@ jobs:
           cat <<EOF>~/.cargo/config.toml
           
           [profile.release]
+          [unstable]
+          profile-rustflags = true
+
           opt-level = "s"
           lto = true
           strip = true
