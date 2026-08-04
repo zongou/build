@@ -71,7 +71,7 @@ jobs:
           echo "Downloading fresh-editor ${VERSION}"
           ARCH=$(uname -m)
           URL=https://github.com/sinelaw/fresh/releases/download/v0.4.6/fresh-editor-${ARCH}-unknown-linux-musl.tar.gz
-          curl -L ${URL} | gzip -d | tar -C /usr/local/bin --strip-components=1 -x "*/fresh"
+          curl -L ${URL} | gzip -d | tar -C /usr/local/bin --strip-components=1 -x --wildcards "*/fresh"
           fresh --version
 
       - name: Setup Zig
@@ -88,7 +88,7 @@ jobs:
           echo "Downloading helix editor ${VERSION}"
           ARCH=$(uname -m)
           URL=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
-          curl -L ${URL} | xz -d | tar -C /usr/local/bin --strip-components=1 -x "*/hx"
+          curl -L ${URL} | xz -d | tar -C /usr/local/bin --strip-components=1 -x --wildcards "*/hx"
           ln -snf /opt/helix-${VERSION}-${ARCH}-linux/hx /usr/local/bin/hx
           hx --version
 
