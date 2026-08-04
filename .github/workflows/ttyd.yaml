@@ -4,18 +4,23 @@ on:
     # push:
     #   paths: .github/workflows/code-server.yaml
     inputs:
-      zig:
+      install_dufs:
+        description: "Install dufs"
+        required: true
+        default: false
+        type: boolean
+      install_fresh:
+        description: "Install fresh"
+        required: true
+        default: false
+        type: boolean
+      install_zig:
         description: "Install zig"
         required: true
         default: false
         type: boolean
-      helix:
+      install_helix:
         description: "Install helix"
-        required: true
-        default: false
-        type: boolean
-      dufs:
-        description: "Install dufs"
         required: true
         default: false
         type: boolean
@@ -27,13 +32,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1
-
-      - name: Setup Zig
-        if: ${{ inputs.zig }}
-        uses: goto-bus-stop/setup-zig@v2.2.0
-        with:
-          version: 0.13.0
-          cache: true
 
       - name: Install cloudflared
         run: |
@@ -56,19 +54,18 @@ jobs:
           sudo mv ttyd /usr/local/bin
           ttyd --version
       
-      - name: Install helix editor
-        if: ${{ inputs.helix }}
+      - name: Install dufs
+        if: ${{ inputs.install_dufs }}
         run: |
-          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/helix-editor/helix/releases | jq -r .[0].tag_name)
-          echo "Downloading helix editor ${VERSION}"
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/sigoden/dufs/releases | jq -r .[0].tag_name)
+          echo "Downloading dufs ${VERSION}"
           ARCH=$(uname -m)
-          URL=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
-          curl -L ${URL} | xz -d | tar -C /usr/local/bin --strip-components=1 -x "*/hx"
-          ln -snf /opt/helix-${VERSION}-${ARCH}-linux/hx /usr/local/bin/hx
-          hx --version
-
+          URL=https://github.com/sigoden/dufs/releases/download/${VERSION}/dufs-${VERSION}-${ARCH}-unknown-linux-musl.tar.gz
+          curl -L ${URL} | gzip -d | tar -C /usr/local/bin -x
+          dufs --version
+      
       - name: Install fresh-editor
-        if: ${{ inputs.helix }}
+        if: ${{ inputs.install_fresh }}
         run: |
           VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/sinelaw/fresh/releases | jq -r .[0].tag_name)
           echo "Downloading fresh-editor ${VERSION}"
@@ -77,15 +74,23 @@ jobs:
           curl -L ${URL} | gzip -d | tar -C /usr/local/bin --strip-components=1 -x "*/fresh"
           fresh --version
 
-      - name: Install dufs
-        if: ${{ inputs.dufs }}
+      - name: Setup Zig
+        if: ${{ inputs.install_zig }}
+        uses: goto-bus-stop/setup-zig@v2.2.0
+        with:
+          version: 0.16.0
+          cache: true
+      
+      - name: Install helix editor
+        if: ${{ inputs.install_helix }}
         run: |
-          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/sigoden/dufs/releases | jq -r .[0].tag_name)
-          echo "Downloading dufs ${VERSION}"
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/helix-editor/helix/releases | jq -r .[0].tag_name)
+          echo "Downloading helix editor ${VERSION}"
           ARCH=$(uname -m)
-          URL=https://github.com/sigoden/dufs/releases/download/${VERSION}/dufs-${VERSION}-${ARCH}-unknown-linux-musl.tar.gz
-          curl -L ${URL} | gzip -d | tar -C /usr/local/bin -x
-          dufs --version
+          URL=https://github.com/helix-editor/helix/releases/download/${VERSION}/helix-${VERSION}-${ARCH}-linux.tar.xz
+          curl -L ${URL} | xz -d | tar -C /usr/local/bin --strip-components=1 -x "*/hx"
+          ln -snf /opt/helix-${VERSION}-${ARCH}-linux/hx /usr/local/bin/hx
+          hx --version
 
       - name: Start ttyd
         run: |
