@@ -60,7 +60,7 @@ jobs:
           echo "Downloading trzsz ${VERSION}"
           ARCH=$(uname -m)
           URL=https://github.com/ruanimal/trzsz-rs/releases/download/${VERSION}/trzsz-${VERSION}-${ARCH}-unknown-linux-musl.tar.gz
-          curl -LkSs "${URL}" | gzip -d | tar -C /usr/local/bin --strip-components=1 -x
+          curl -LkSs "${URL}" | gzip -d | tar -C /usr/local/bin -x
           trzsz --version
       
       - name: Install dufs
