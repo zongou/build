@@ -1,4 +1,4 @@
-name: ttyd
+name: Run ttyd server
 on:
   workflow_dispatch:
     # push:
