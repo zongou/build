@@ -56,7 +56,7 @@ jobs:
 
       - name: Install trzsz
         run: |
-          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/ruanimal/trzsz-rs/releases | jq -r .[0].tag_name)
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/ruanimal/trzsz-rs/releases | jq -r .[0].tag_name)
           echo "Downloading trzsz ${VERSION}"
           ARCH=$(uname -m)
           URL=https://github.com/ruanimal/trzsz-rs/releases/download/v${VERSION}/trzsz-v${VERSION}-${ARCH}-unknown-linux-musl.tar.gz
