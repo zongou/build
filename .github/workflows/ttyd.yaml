@@ -45,7 +45,7 @@ jobs:
 
       - name: Install ttyd
         run: |
-          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/tsl0922/ttyd/releases | jq -r .[0].tag_name)
+          VERSION=$(curl -s -S -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/zongou/ttyd/releases | jq -r .[0].tag_name)
           echo "Downloading ttyd ${VERSION}"
           ARCH=$(uname -m)
           URL=https://github.com/tsl0922/ttyd/releases/download/${VERSION}/ttyd.${ARCH}
